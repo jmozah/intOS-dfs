@@ -1,0 +1,179 @@
+/*
+Copyright © 2020 intOS Authors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package pod
+
+import (
+	"crypto/rand"
+	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
+	"github.com/jmozah/intOS-dfs/pkg/utils"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+)
+
+func TestPod_CopyToLocal(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "pod")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	mockClient := mock.NewMockBeeClient()
+	pod1 := NewPod(mockClient)
+	err = pod1.LoadRootPod(tempDir, "password")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	podName1 := "test1"
+	firstDir := "dir1"
+
+	t.Run("copy-file-from-root", func(t *testing.T) {
+		info, err := pod1.CreatePod(podName1, tempDir, "password")
+		if err != nil {
+			t.Fatalf("error creating pod %s", podName1)
+		}
+		podFile := createRandomFileInPod(t, 540, pod1, podName1, info.GetCurrentPodPathAndName())
+
+		err = pod1.CopyToLocal(podName1, podFile, os.TempDir())
+		if err != nil {
+			t.Fatalf("error copying file to local dir %s", err.Error())
+		}
+
+		fileInfo, err := os.Stat(os.TempDir() + utils.PathSeperator + filepath.Base(podFile))
+		if err != nil {
+			t.Fatalf("file not copied to local")
+		}
+
+		if fileInfo.Size() != 540 {
+			t.Fatalf("invalid file size")
+		}
+
+		os.Remove(fileInfo.Name())
+		err = pod1.DeletePod(podName1, tempDir)
+		if err != nil {
+			t.Fatalf("could not delete pod")
+		}
+	})
+
+	t.Run("copy-file-from-firstdir", func(t *testing.T) {
+		info, err := pod1.CreatePod(podName1, tempDir, "password")
+		if err != nil {
+			t.Fatalf("error creating pod %s", podName1)
+		}
+		err = pod1.MakeDir(podName1, firstDir)
+		if err != nil {
+			t.Fatalf("error creating directory %s", firstDir)
+		}
+		dirPath := utils.PathSeperator + podName1 + utils.PathSeperator + firstDir
+		dirInode := info.getDirectory().GetDirFromDirectoryMap(dirPath)
+		if dirInode == nil {
+			t.Fatalf("directory not created")
+		}
+		podFile := createRandomFileInPod(t, 540, pod1, podName1, dirPath)
+
+		err = pod1.CopyToLocal(podName1, podFile, os.TempDir())
+		if err != nil {
+			t.Fatalf("error copying file to local dir %s", err.Error())
+		}
+
+		fileInfo, err := os.Stat(os.TempDir() + utils.PathSeperator + filepath.Base(podFile))
+		if err != nil {
+			t.Fatalf("file not copied to local")
+		}
+
+		if fileInfo.Size() != 540 {
+			t.Fatalf("invalid file size")
+		}
+
+		os.Remove(fileInfo.Name())
+		err = pod1.DeletePod(podName1, tempDir)
+		if err != nil {
+			t.Fatalf("could not delete pod")
+		}
+	})
+
+	t.Run("copy-file-to-dot", func(t *testing.T) {
+		info, err := pod1.CreatePod(podName1, tempDir, "password")
+		if err != nil {
+			t.Fatalf("error creating pod %s", podName1)
+		}
+		podFile := createRandomFileInPod(t, 540, pod1, podName1, info.GetCurrentPodPathAndName())
+		pwd, err := os.Getwd()
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = pod1.CopyToLocal(podName1, podFile, pwd)
+		if err != nil {
+			t.Fatalf("error copying file to local dir %s", err.Error())
+		}
+
+		fileInfo, err := os.Stat(pwd + utils.PathSeperator + filepath.Base(podFile))
+		if err != nil {
+			t.Fatalf("file not copied to local")
+		}
+
+		if fileInfo.Size() != 540 {
+			t.Fatalf("invalid file size")
+		}
+
+		os.Remove(fileInfo.Name())
+		err = pod1.DeletePod(podName1, tempDir)
+		if err != nil {
+			t.Fatalf("could not delete pod")
+		}
+	})
+
+}
+
+func createRandomFileInPod(t *testing.T, size int, pod1 *Pod, podName string, podDir string) string {
+	file, err := ioutil.TempFile("/tmp", "intos")
+	if err != nil {
+		t.Fatal(err)
+	}
+	bytes := make([]byte, size)
+	_, err = rand.Read(bytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = file.Write(bytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	podDir = strings.TrimPrefix(podDir, utils.PathSeperator+podName)
+	if podDir == "" {
+		podDir = "."
+	}
+
+
+	err = pod1.CopyFromLocal(podName, file.Name(), podDir, "100")
+	if err != nil {
+		t.Fatalf("createRandomFileInPod failed: %s", err.Error())
+	}
+
+	os.Remove(file.Name())
+
+	if podDir == "." {
+		podDir = ""
+	}
+	fileName := podDir + utils.PathSeperator + filepath.Base(file.Name())
+	fileName = strings.TrimPrefix(fileName, utils.PathSeperator+podName)
+	return fileName
+}
