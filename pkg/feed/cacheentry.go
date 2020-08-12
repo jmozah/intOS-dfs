@@ -24,7 +24,7 @@ import (
 
 const (
 	hasherCount            = 8
-	defaultRetrieveTimeout = 1000 * time.Millisecond
+	defaultRetrieveTimeout = 100 * time.Millisecond
 )
 
 // cacheEntry caches the last known update of a specific Swarm feed.
