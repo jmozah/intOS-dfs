@@ -14,28 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package datapod
+package user
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
-	"github.com/jmozah/intOS-dfs/pkg/utils"
+	"github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
-func (d *Directory) GetDirNode(name string, fd *feed.API, accountInfo *account.AccountInfo) ([]byte, *DirInode, error) {
-	topic := utils.HashString(name)
-	addr, data, err := fd.GetFeedData(topic, accountInfo.GetAddress())
-	if err != nil {
-		return nil, nil, err
-	}
+func (i *Info) GetUserName() string {
+	return i.name
+}
 
-	var dirInode DirInode
-	err = json.Unmarshal(data, &dirInode)
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not unmarshall dirInode: %v", name)
-	}
-	return addr, &dirInode, nil
+func (i *Info) GetPod() *pod.Pod {
+	return i.pods
+}
+
+func (i *Info) GetAccount() *account.Account {
+	return i.account
+}
+
+func (i *Info) GetFeed() *feed.API {
+	return i.feedApi
 }

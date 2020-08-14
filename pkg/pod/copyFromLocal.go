@@ -18,7 +18,6 @@ package pod
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,12 +40,12 @@ func (p *Pod) CopyFromLocal(podName string, localFile string, podDir string, blo
 
 	bs, err := humanize.ParseBytes(blockSize)
 	if err != nil {
-		return fmt.Errorf("copyFromLocal: block size parse error: %w",err)
+		return fmt.Errorf("copyFromLocal: block size parse error: %w", err)
 	}
 
 	path := p.getFilePath(podDir, podInfo)
 
-	_, dirInode, err := dir.GetDirNode(path, podInfo.getFeed(), podInfo.getAccount())
+	_, dirInode, err := dir.GetDirNode(path, podInfo.getFeed(), podInfo.getAccountInfo())
 	if err != nil {
 		return fmt.Errorf("error while fetching pod info: %w", err)
 	}
@@ -100,7 +99,7 @@ func (p *Pod) CopyFromLocal(podName string, localFile string, podDir string, blo
 				return nil
 			})
 		if err != nil {
-			log.Println(err)
+			return err
 		}
 	} else {
 		fpath := path + utils.PathSeperator + fileInfo.Name()

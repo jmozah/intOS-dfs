@@ -51,7 +51,7 @@ func (p *Pod) RemoveFile(podName string, podFile string) error {
 		return fmt.Errorf("rm: file not present in pod")
 	}
 
-	_, dirInode, err := dir.GetDirNode(gopath.Dir(path), podInfo.getFeed(), podInfo.getAccount())
+	_, dirInode, err := dir.GetDirNode(gopath.Dir(path), podInfo.getFeed(), podInfo.getAccountInfo())
 	if err != nil {
 		return fmt.Errorf("error while fetching pod info: %w", err)
 	}
@@ -59,7 +59,7 @@ func (p *Pod) RemoveFile(podName string, podFile string) error {
 	// remove the file
 	var newHashes [][]byte
 	for _, hash := range dirInode.Hashes {
-		_, _, err := podInfo.getFeed().GetFeedData(hash, podInfo.getAccount().GetAddress())
+		_, _, err := podInfo.getFeed().GetFeedData(hash, podInfo.getAccountInfo().GetAddress())
 		if err != nil {
 			data, respCode, err := p.GetClient().DownloadBlob(hash)
 			if err != nil || respCode != http.StatusOK {

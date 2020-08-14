@@ -14,28 +14,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package pod
+package user
 
 import (
-	"fmt"
+	"github.com/jmozah/intOS-dfs/pkg/account"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
-func (p *Pod) LogoutPod(podName string) error {
-	podName, err := CleanName(podName)
+func (u *Users) ListAllUsers(dataDir string) []string {
+	var users []string
+	keyFileDir := account.GetKeyFileDir(dataDir)
+	err := filepath.Walk(keyFileDir,
+		func(path string, info os.FileInfo, err error) error {
+			if strings.HasSuffix(info.Name(), ".key") {
+				userName := strings.TrimSuffix(info.Name(), ".key")
+				userName = "<User> " + userName
+				users = append(users, userName)
+			}
+			return nil
+		})
 	if err != nil {
-		return fmt.Errorf("login pod: %w", err)
+		return nil
 	}
-
-	if !p.isLoggedInToPod(podName) {
-		return fmt.Errorf("logout pod: login to pod to do this operation")
-	}
-
-	podInfo, err := p.GetPodInfoFromPodMap(podName)
-	if err != nil {
-		return fmt.Errorf("logout pod: %w", err)
-	}
-
-	p.removePodFromPodMap(podName)
-	podInfo.dir.RemoveFromDirectoryMap(podName)
-	return nil
+	return users
 }

@@ -20,12 +20,12 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/jmozah/intOS-dfs/pkg/account"
 	"io"
 	"strconv"
 	"strings"
 	"sync"
 
-	"github.com/jmozah/intOS-dfs/pkg/account"
 	d "github.com/jmozah/intOS-dfs/pkg/dir"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
 	f "github.com/jmozah/intOS-dfs/pkg/file"
@@ -38,47 +38,48 @@ func (p *Pod) CreatePod(podName, dataDir string, passPhrase string) (*Info, erro
 		return nil, fmt.Errorf("create pod: %w", err)
 	}
 
-	if p.rootDirInode == nil {
-		return nil, fmt.Errorf("please format the dfs before using it")
-	}
-
-	index, err := p.checkIfPodPresent(podName)
+	// check if pods is present and get free index
+	pods, err := p.loadUserPods()
 	if err != nil {
 		return nil, fmt.Errorf("create pod: %w", err)
 	}
-
-	if index != -1 {
+	if p.checkIfPodPresent(pods, podName) {
 		return nil, fmt.Errorf("create pod: pod already exist")
 	}
-
-	pods, err := p.getRootFileContents()
-	if err != nil {
-		return nil, fmt.Errorf("create pod: %w", err)
-	}
-
-	acc := account.New(podName, dataDir)
 	freeId, err := p.getFreeId(pods)
 	if err != nil {
 		return nil, err
 	}
-	err = acc.CreateNormalAccount(freeId, passPhrase)
+
+	// create a child account for the user and other data structures for the pod
+	err = p.acc.CreatePodAccount(freeId, "")
 	if err != nil {
 		return nil, err
 	}
-	fd := feed.New(acc, p.client)
-	file := f.NewFile(podName, p.client, fd, acc)
-	dir := d.NewDirectory(podName, p.client, fd, acc, file)
+	accountInfo := p.acc.GetAccountInfo(freeId)
+	fd := feed.New(accountInfo, p.client)
+	file := f.NewFile(podName, p.client, fd, accountInfo)
+	dir := d.NewDirectory(podName, p.client, fd, accountInfo, file)
 
-	dirInode, _, err := dir.CreateDirINode("", podName, nil)
+	// create the pod inode
+	dirInode, _, err := dir.CreatePodINode(podName)
 	if err != nil {
 		return nil, fmt.Errorf("create pod: %w", err)
 	}
 
+	// store the pod file
+	pods[freeId] = podName
+	err = p.storeUserPods(pods)
+	if err != nil {
+		return nil, fmt.Errorf("create pod: %w", err)
+	}
+
+	// create the pod info and store it in the podMap
 	podInfo := &Info{
 		podName:         podName,
 		dir:             dir,
 		file:            file,
-		account:         acc,
+		accountInfo:     accountInfo,
 		feed:            fd,
 		currentPodInode: dirInode,
 		curPodMu:        sync.RWMutex{},
@@ -86,23 +87,15 @@ func (p *Pod) CreatePod(podName, dataDir string, passPhrase string) (*Info, erro
 		curDirMu:        sync.RWMutex{},
 	}
 	pods[freeId] = podName
-	err = p.storeAsRootFile(pods)
-	if err != nil {
-		return nil, fmt.Errorf("create pod: %w", err)
-	}
-
 	p.addPodToPodMap(podName, podInfo)
+
 	return podInfo, nil
 }
 
-func (p *Pod) getRootFileContents() (map[int]string, error) {
-
-	if p.rootAccount == nil {
-		return nil, fmt.Errorf("loading pods: dfs not initialised")
-	}
-
-	topic := utils.HashString(utils.PodsInfoFile)
-	_, data, err := p.rootFeed.GetFeedData(topic, p.rootAccount.GetAddress())
+func (p *Pod) loadUserPods() (map[int]string, error) {
+	// The user pod file topic should be in the name of the user account
+	topic := utils.HashString(p.acc.GetAddress(account.UserAccountIndex).Hex())
+	_, data, err := p.fd.GetFeedData(topic, p.acc.GetAddress(account.UserAccountIndex))
 	if err != nil {
 		if err.Error() != "no feed updates found" {
 			return nil, fmt.Errorf("loading pods: %w", err)
@@ -131,11 +124,7 @@ func (p *Pod) getRootFileContents() (map[int]string, error) {
 	return pods, nil
 }
 
-func (p *Pod) storeAsRootFile(pods map[int]string) error {
-	if p.rootAccount == nil {
-		return fmt.Errorf("store pods: dfs not initialised")
-	}
-
+func (p *Pod) storeUserPods(pods map[int]string) error {
 	buf := bytes.NewBuffer(nil)
 	podLen := len(pods)
 	for index, pod := range pods {
@@ -147,8 +136,8 @@ func (p *Pod) storeAsRootFile(pods map[int]string) error {
 		buf.WriteString(line + "\n")
 	}
 
-	topic := utils.HashString(utils.PodsInfoFile)
-	_, err := p.rootFeed.UpdateFeed(topic, p.rootAccount.GetAddress(), buf.Bytes())
+	topic := utils.HashString(p.acc.GetAddress(account.UserAccountIndex).Hex())
+	_, err := p.fd.UpdateFeed(topic, p.acc.GetAddress(account.UserAccountIndex), buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("store pods: %w", err)
 	}
@@ -162,4 +151,13 @@ func (p *Pod) getFreeId(pods map[int]string) (int, error) {
 		}
 	}
 	return 0, fmt.Errorf("max pods exhausted")
+}
+
+func (p *Pod) checkIfPodPresent(pods map[int]string, podName string) bool {
+	for _, pod := range pods {
+		if strings.Trim(pod, "\n") == podName {
+			return true
+		}
+	}
+	return false
 }

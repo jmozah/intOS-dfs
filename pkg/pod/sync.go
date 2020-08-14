@@ -53,17 +53,17 @@ func (p *Pod) SyncPod(podName string) error {
 
 func (pi *Info) SyncPod(podName string, client blockstore.Client) error {
 	fd := pi.getFeed()
-	acc := pi.getAccount()
+	accountInfo := pi.getAccountInfo()
 
 	fmt.Println("Syncing pod", podName)
 	var wg sync.WaitGroup
 	for _, ref := range pi.currentPodInode.Hashes {
 		wg.Add(1)
-		go func() {
+		go func(reference []byte) {
 			defer wg.Done()
-			_, data, err := fd.GetFeedData(ref, acc.GetAddress())
+			_, data, err := fd.GetFeedData(reference, accountInfo.GetAddress())
 			if err != nil {
-				data, respCode, err := client.DownloadBlob(ref)
+				data, respCode, err := client.DownloadBlob(reference)
 				if err != nil {
 					fmt.Println("sync: download error: ", err)
 					return
@@ -93,15 +93,15 @@ func (pi *Info) SyncPod(podName string, client blockstore.Client) error {
 			}
 
 			path := dirInode.Meta.Path + utils.PathSeperator + dirInode.Meta.Name
-			err = pi.getDirectory().LoadDirMeta(podName, dirInode, fd, acc)
+			err = pi.getDirectory().LoadDirMeta(podName, dirInode, fd, accountInfo)
 			if err != nil {
-				fmt.Println("sync: load meta error: %w",err)
+				fmt.Println("sync: load meta error: %w", err)
 				return
 			}
 			pi.getDirectory().AddToDirectoryMap(path, dirInode)
 			path = strings.TrimPrefix(path, podName)
 			fmt.Println(path)
-		}()
+		}(ref)
 	}
 	wg.Wait()
 	return nil

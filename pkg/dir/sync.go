@@ -25,9 +25,9 @@ import (
 	"net/http"
 )
 
-func (d *Directory) LoadDirMeta(podName string, curDirInode *DirInode, fd *feed.API, acc *account.Account) error {
+func (d *Directory) LoadDirMeta(podName string, curDirInode *DirInode, fd *feed.API, accountInfo *account.AccountInfo) error {
 	for _, ref := range curDirInode.Hashes {
-		_, data, err := fd.GetFeedData(ref, acc.GetAddress())
+		_, data, err := fd.GetFeedData(ref, accountInfo.GetAddress())
 		if err != nil {
 			respCode, err := d.file.LoadFileMeta(podName, ref)
 			if err != nil {
@@ -49,11 +49,11 @@ func (d *Directory) LoadDirMeta(podName string, curDirInode *DirInode, fd *feed.
 		d.AddToDirectoryMap(path, dirInode)
 		fmt.Println(path)
 
-		_, newDirInode, err := d.GetDirNode(path, fd, acc)
+		_, newDirInode, err := d.GetDirNode(path, fd, accountInfo)
 		if err != nil {
 			return fmt.Errorf("could not load Inode for path: %s", path)
 		}
-		err = d.LoadDirMeta(podName, newDirInode, fd, acc)
+		err = d.LoadDirMeta(podName, newDirInode, fd, accountInfo)
 		if err != nil {
 			return fmt.Errorf("could not load Meta for path: %s", path)
 		}

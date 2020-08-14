@@ -26,36 +26,28 @@ import (
 )
 
 func (d *Directory) CreateDirINode(podName string, dirName string, parent *DirInode) (*DirInode, []byte, error) {
-	path := getPath(podName, parent)
+	// create the meta data
+	parentPath := getPath(podName, parent)
 	now := time.Now().Unix()
 	meta := m.DirectoryMetaData{
 		Version:          m.DirMetaVersion,
-		Path:             path,
+		Path:             parentPath,
 		Name:             dirName,
 		CreationTime:     now,
 		ModificationTime: now,
 		AccessTime:       now,
 	}
-
-	if podName == "" {
-		meta.Path = utils.PathSeperator
-	}
-
 	dirInode := &DirInode{
 		Meta: &meta,
 	}
-
 	data, err := json.Marshal(dirInode)
 	if err != nil {
 		return nil, nil, fmt.Errorf("create inode: %w", err)
 	}
 
-	totalPath := path + utils.PathSeperator + dirName
+	// create a feed for the directory and add data to it
+	totalPath := parentPath + utils.PathSeperator + dirName
 	topic := utils.HashString(totalPath)
-	if podName == utils.DefaultRoot {
-		topic = utils.HashString(utils.DefaultRoot)
-	}
-
 	_, err = d.fd.CreateFeed(topic, d.acc.GetAddress(), data)
 	if err != nil {
 		return nil, nil, fmt.Errorf("create inode: %w", err)
@@ -67,14 +59,41 @@ func (d *Directory) CreateDirINode(podName string, dirName string, parent *DirIn
 
 func getPath(podName string, parent *DirInode) string {
 	var path string
-	if podName == "" || parent == nil {
-		path = ""
+	if parent.Meta.Path == utils.PathSeperator {
+		path = parent.Meta.Path + parent.Meta.Name
 	} else {
-		if parent.Meta.Path == utils.PathSeperator {
-			path = parent.Meta.Path + parent.Meta.Name
-		} else {
-			path = parent.Meta.Path + utils.PathSeperator + parent.Meta.Name
-		}
+		path = parent.Meta.Path + utils.PathSeperator + parent.Meta.Name
 	}
 	return path
+}
+
+func (d *Directory) CreatePodINode(podName string) (*DirInode, []byte, error) {
+	// create the metadata
+	now := time.Now().Unix()
+	meta := m.DirectoryMetaData{
+		Version:          m.DirMetaVersion,
+		Path:             "/",
+		Name:             podName,
+		CreationTime:     now,
+		ModificationTime: now,
+		AccessTime:       now,
+	}
+	dirInode := &DirInode{
+		Meta: &meta,
+	}
+	data, err := json.Marshal(dirInode)
+	if err != nil {
+		return nil, nil, fmt.Errorf("create pod inode: %w", err)
+	}
+
+	// create a feed and store the metadata of the pod
+	totalPath := utils.PathSeperator + podName
+	topic := utils.HashString(totalPath)
+	_, err = d.fd.CreateFeed(topic, d.acc.GetAddress(), data)
+	if err != nil {
+		return nil, nil, fmt.Errorf("create pod inode: %w", err)
+	}
+
+	d.AddToDirectoryMap(totalPath, dirInode)
+	return dirInode, topic, nil
 }

@@ -14,28 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package datapod
+package user
 
 import (
-	"encoding/json"
 	"fmt"
-
 	"github.com/jmozah/intOS-dfs/pkg/account"
-	"github.com/jmozah/intOS-dfs/pkg/feed"
-	"github.com/jmozah/intOS-dfs/pkg/utils"
+	"os"
 )
 
-func (d *Directory) GetDirNode(name string, fd *feed.API, accountInfo *account.AccountInfo) ([]byte, *DirInode, error) {
-	topic := utils.HashString(name)
-	addr, data, err := fd.GetFeedData(topic, accountInfo.GetAddress())
-	if err != nil {
-		return nil, nil, err
+func (u *Users) DeleteUser(userName string, dataDir string) error {
+
+	// Logout user
+	if u.IsUserLoggedIn(userName) {
+		u.removeUserFromMap(userName)
 	}
 
-	var dirInode DirInode
-	err = json.Unmarshal(data, &dirInode)
-	if err != nil {
-		return nil, nil, fmt.Errorf("could not unmarshall dirInode: %v", name)
+	// remove the user key if it is present
+	if !u.IsUsernameAvailable(userName, dataDir) {
+		return fmt.Errorf("user del: user name not present")
 	}
-	return addr, &dirInode, nil
+
+	userKeyFileName := account.ConstructUserKeyFile(userName, dataDir)
+	err := os.Remove(userKeyFileName)
+	if err != nil {
+		return fmt.Errorf("user del: could not remove user key: %w", err)
+	}
+	return nil
 }

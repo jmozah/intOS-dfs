@@ -18,7 +18,9 @@ package pod
 
 import (
 	"crypto/rand"
+	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
+	"github.com/jmozah/intOS-dfs/pkg/feed"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 	"io/ioutil"
 	"os"
@@ -35,15 +37,16 @@ func TestPod_CopyToLocal(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	mockClient := mock.NewMockBeeClient()
-	pod1 := NewPod(mockClient)
-	err = pod1.LoadRootPod(tempDir, "password")
+	acc := account.New("user1", tempDir)
+	err = acc.CreateUserAccount("password")
 	if err != nil {
 		t.Fatal(err)
 	}
+	fd := feed.New(acc.GetAccountInfo(account.UserAccountIndex), mockClient)
+	pod1 := NewPod(mockClient, fd, acc)
 
 	podName1 := "test1"
 	firstDir := "dir1"
-
 	t.Run("copy-file-from-root", func(t *testing.T) {
 		info, err := pod1.CreatePod(podName1, tempDir, "password")
 		if err != nil {
@@ -133,7 +136,10 @@ func TestPod_CopyToLocal(t *testing.T) {
 			t.Fatalf("invalid file size")
 		}
 
-		os.Remove(fileInfo.Name())
+		err = os.Remove(fileInfo.Name())
+		if err != nil {
+			t.Fatal(err)
+		}
 		err = pod1.DeletePod(podName1, tempDir)
 		if err != nil {
 			t.Fatalf("could not delete pod")
@@ -161,7 +167,6 @@ func createRandomFileInPod(t *testing.T, size int, pod1 *Pod, podName string, po
 	if podDir == "" {
 		podDir = "."
 	}
-
 
 	err = pod1.CopyFromLocal(podName, file.Name(), podDir, "100")
 	if err != nil {

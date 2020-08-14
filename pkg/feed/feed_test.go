@@ -43,7 +43,7 @@ func TestFeed(t *testing.T) {
 	}
 	user := acc.GetAddress()
 	//client := mock.NewMockBeeClient()
-	client := bee.NewBeeClient("127.0.0.1","8080")
+	client := bee.NewBeeClient("127.0.0.1", "8080")
 
 	t.Run("create-feed", func(t *testing.T) {
 		fd := New(acc, client)
@@ -106,7 +106,7 @@ func TestFeed(t *testing.T) {
 			if !bytes.Equal(buf, rcvdData) {
 				t.Fatal(err)
 			}
-			fmt.Println("update ", i , " Done")
+			fmt.Println("update ", i, " Done")
 		}
 
 	})

@@ -17,36 +17,25 @@ limitations under the License.
 package pod
 
 import (
-	"io/ioutil"
-	"os"
-	"testing"
-
-	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
+	"fmt"
 )
 
-func TestFormat(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "pod")
+func (p *Pod) ClosePod(podName string) error {
+	podName, err := CleanName(podName)
 	if err != nil {
-		t.Fatal(err)
+		return fmt.Errorf("login pod: %w", err)
 	}
-	defer os.RemoveAll(tempDir)
 
-	mockClient := mock.NewMockBeeClient()
-	pod1 := NewPod(mockClient)
+	if !p.isLoggedInToPod(podName) {
+		return fmt.Errorf("logout pod: login to pod to do this operation")
+	}
 
-	t.Run("format-root", func(t *testing.T) {
-		err := pod1.LoadRootPod(tempDir, "password")
-		if err != nil {
-			t.Fatal(err)
-		}
-		if pod1.rootAccount == nil || pod1.rootDirInode == nil || pod1.rootFeed == nil {
-			t.Fatal(err)
-		}
+	podInfo, err := p.GetPodInfoFromPodMap(podName)
+	if err != nil {
+		return fmt.Errorf("logout pod: %w", err)
+	}
 
-		_, err = pod1.CreatePod("zz", tempDir, "password")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-	})
+	p.removePodFromPodMap(podName)
+	podInfo.dir.RemoveFromDirectoryMap(podName)
+	return nil
 }

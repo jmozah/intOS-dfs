@@ -32,14 +32,16 @@ import (
 )
 
 const (
-	DefaultPrompt   = "dfs >>"
+	DefaultPrompt   = "dfs"
+	UserSeperator   = ">>>"
 	PodSeperator    = ">>"
 	PromptSeperator = "> "
 )
 
 var (
-	currentPrompt  string
+	currentUser    string
 	currentPodInfo *pod.Info
+	currentPrompt  string
 	dfsAPI         *dfs.DfsAPI
 )
 
@@ -51,15 +53,6 @@ var promptCmd = &cobra.Command{
 file system of the intOS.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		dfsAPI = dfs.NewDfsAPI(dataDir, beeHost, beePort)
-		if !dfsAPI.IsInitialized(dataDir) {
-			fmt.Println("Looks like you have not initialised dfs. Please run \"init\" command to start using dfs.")
-		} else {
-			err := dfsAPI.Init(dataDir, "")
-			if err != nil {
-				fmt.Println("error starting dfs: ", err)
-				os.Exit(1)
-			}
-		}
 		initPrompt()
 	},
 }
@@ -69,7 +62,7 @@ func init() {
 }
 
 func initPrompt() {
-	currentPrompt = DefaultPrompt
+	currentPrompt = DefaultPrompt + " " + UserSeperator
 	p := prompt.New(
 		executor,
 		completer,
@@ -85,13 +78,18 @@ func changeLivePrefix() (string, bool) {
 }
 
 var suggestions = []prompt.Suggest{
-	{Text: "init", Description: "initialize the dfs file system"},
-	{Text: "pod new", Description: "create a new pod"},
-	{Text: "pod del", Description: "delete a existing pod"},
-	{Text: "pod login", Description: "login to a existing pod"},
-	{Text: "pod logout", Description: "logout from a logged in pod"},
-	{Text: "pod ls", Description: "list all the existing pods"},
-	{Text: "pod stat", Description: "show the metadata of a pod"},
+	{Text: "user new", Description: "create a new user"},
+	{Text: "user del", Description: "delete a existing user"},
+	{Text: "user login", Description: "login to a existing user"},
+	{Text: "user logout", Description: "logout from a logged in user"},
+	{Text: "user present", Description: "is user present"},
+	{Text: "user ls", Description: "list all users"},
+	{Text: "pod new", Description: "create a new pod for a user"},
+	{Text: "pod del", Description: "delete a existing pod of a user"},
+	{Text: "pod open", Description: "open to a existing pod of a user"},
+	{Text: "pod close", Description: "close a already opened pod of a user"},
+	{Text: "pod ls", Description: "list all the existing pods of  auser"},
+	{Text: "pod stat", Description: "show the metadata of a pod of a user"},
 	{Text: "pod sync", Description: "sync the pod from swarm"},
 	{Text: "cd", Description: "change path"},
 	{Text: "copyToLocal", Description: "copy file from dfs to local machine"},
@@ -122,14 +120,91 @@ func executor(in string) {
 		help()
 	case "exit":
 		os.Exit(0)
-	case "init":
-		err := dfsAPI.Init(dataDir, "")
-		if err != nil {
-			fmt.Println("init failed: ", err)
+	case "user":
+		if len(blocks) < 2 {
+			log.Println("invalid command.")
+			help()
 			return
 		}
-		currentPrompt = DefaultPrompt
+		switch blocks[1] {
+		case "new":
+			if len(blocks) < 3 {
+				fmt.Println("invalid command. Missing \"name\" argument ")
+				return
+			}
+			userName := blocks[2]
+			err := dfsAPI.CreateUser(userName, "")
+			if err != nil {
+				fmt.Println("create user: ", err)
+				return
+			}
+			currentUser = userName
+			currentPodInfo = nil
+			currentPrompt = getCurrentPrompt()
+		case "del":
+			if len(blocks) < 3 {
+				fmt.Println("invalid command. Missing \"name\" argument ")
+				return
+			}
+			userName := blocks[2]
+			err := dfsAPI.DeleteUser(userName)
+			if err != nil {
+				fmt.Println("delete user: ", err)
+				return
+			}
+			currentUser = ""
+			currentPodInfo = nil
+			currentPrompt = getCurrentPrompt()
+		case "login":
+			if len(blocks) < 3 {
+				fmt.Println("invalid command. Missing \"name\" argument ")
+				return
+			}
+			userName := blocks[2]
+			err := dfsAPI.LoginUser(userName, "")
+			if err != nil {
+				fmt.Println("login user: ", err)
+				return
+			}
+			currentUser = userName
+			currentPodInfo = nil
+			currentPrompt = getCurrentPrompt()
+		case "logout":
+			err := dfsAPI.LogoutUser(currentUser)
+			if err != nil {
+				fmt.Println("logout user: ", err)
+				return
+			}
+			currentUser = ""
+			currentPodInfo = nil
+			currentPrompt = getCurrentPrompt()
+		case "present":
+			if len(blocks) < 3 {
+				fmt.Println("invalid command. Missing \"name\" argument ")
+				return
+			}
+			userName := blocks[2]
+			yes := dfsAPI.IsUserNameAvailable(userName)
+			if yes {
+				fmt.Println("user name: available")
+			} else {
+				fmt.Println("user name: not available")
+			}
+			currentPrompt = getCurrentPrompt()
+		case "ls":
+			users := dfsAPI.ListAllUsers()
+			for _, user := range users {
+				fmt.Println(user)
+			}
+			currentPrompt = getCurrentPrompt()
+		default:
+			fmt.Println("invalid user command")
+		}
 	case "pod":
+		if currentUser == "" {
+			fmt.Println("login as a user to execute these commands")
+			return
+		}
 		if len(blocks) < 2 {
 			log.Println("invalid command.")
 			help()
@@ -142,13 +217,13 @@ func executor(in string) {
 				return
 			}
 			podName := blocks[2]
-			podInfo, err := dfsAPI.CreatePod(podName, "")
+			podInfo, err := dfsAPI.CreatePod(currentUser, podName, "")
 			if err != nil {
 				fmt.Println("could not create pod: ", err)
 				return
 			}
-			currentPrompt = getCurrentPrompt(podInfo)
 			currentPodInfo = podInfo
+			currentPrompt = getCurrentPrompt()
 		case "del":
 			lastPrompt := currentPrompt
 			if len(blocks) < 3 {
@@ -156,7 +231,7 @@ func executor(in string) {
 				return
 			}
 			podName := blocks[2]
-			err := dfsAPI.DeletePod(podName)
+			err := dfsAPI.DeletePod(currentUser, podName)
 			if err != nil {
 				fmt.Println("could not delete pod: ", err)
 				return
@@ -167,35 +242,35 @@ func executor(in string) {
 			} else {
 				currentPrompt = lastPrompt
 			}
-		case "login":
+		case "open":
 			if len(blocks) < 3 {
 				fmt.Println("invalid command. Missing \"name\" argument ")
 				return
 			}
 			podName := blocks[2]
-			podInfo, err := dfsAPI.LoginPod(podName, "")
+			podInfo, err := dfsAPI.OpenPod(currentUser, podName, "")
 			if err != nil {
 				fmt.Println("Login failed: ", err)
 				return
 			}
-			currentPrompt = getCurrentPrompt(podInfo)
 			currentPodInfo = podInfo
-		case "logout":
-			if !isLoggedIn() {
+			currentPrompt = getCurrentPrompt()
+		case "close":
+			if !isPodOpened() {
 				return
 			}
-			err := dfsAPI.LogoutPod(currentPodInfo.GetCurrentPodNameOnly())
+			err := dfsAPI.ClosePod(currentUser, currentPodInfo.GetCurrentPodNameOnly())
 			if err != nil {
 				fmt.Println("error logging out: ", err)
 				return
 			}
-			currentPrompt = DefaultPrompt
+			currentPrompt = DefaultPrompt + " " + UserSeperator
 			currentPodInfo = nil
 		case "stat":
-			if !isLoggedIn() {
+			if !isPodOpened() {
 				return
 			}
-			podStat, err := dfsAPI.PodStat(currentPodInfo.GetCurrentPodNameOnly())
+			podStat, err := dfsAPI.PodStat(currentUser, currentPodInfo.GetCurrentPodNameOnly())
 			if err != nil {
 				fmt.Println("error getting stat: ", err)
 				return
@@ -206,49 +281,49 @@ func executor(in string) {
 			fmt.Println("Creation Time    :", podStat.CreationTime)
 			fmt.Println("Access Time      :", podStat.AccessTime)
 			fmt.Println("Modification Time:", podStat.ModificationTime)
-			currentPrompt = getCurrentPrompt(currentPodInfo)
+			currentPrompt = getCurrentPrompt()
 		case "sync":
-			if !isLoggedIn() {
+			if !isPodOpened() {
 				return
 			}
-			err := dfsAPI.SyncPod(currentPodInfo.GetCurrentPodNameOnly())
+			err := dfsAPI.SyncPod(currentUser, currentPodInfo.GetCurrentPodNameOnly())
 			if err != nil {
 				fmt.Println("could not sync pod: ", err)
 				return
 			}
 			fmt.Println("pod synced.")
-			currentPrompt = getCurrentPrompt(currentPodInfo)
+			currentPrompt = getCurrentPrompt()
 		case "ls":
-			err := dfsAPI.ListPods()
+			err := dfsAPI.ListPods(currentUser)
 			if err != nil {
 				fmt.Println("error while listing pods: %w", err)
 				return
 			}
-			currentPrompt = getCurrentPrompt(currentPodInfo)
+			currentPrompt = getCurrentPrompt()
 		default:
 			fmt.Println("invalid pod command!!")
 			help()
 		} // end of pod commands
 	case "cd":
-		if !isLoggedIn() {
+		if !isPodOpened() {
 			return
 		}
 		if len(blocks) < 2 {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		podInfo, err := dfsAPI.ChangeDirectory(currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		podInfo, err := dfsAPI.ChangeDirectory(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
 		if err != nil {
 			fmt.Println("cd failed: ", err)
 			return
 		}
 		currentPodInfo = podInfo
-		currentPrompt = getCurrentPrompt(currentPodInfo)
+		currentPrompt = getCurrentPrompt()
 	case "ls":
-		if !isLoggedIn() {
+		if !isPodOpened() {
 			return
 		}
-		listing, err := dfsAPI.ListDir(currentPodInfo.GetCurrentPodNameOnly())
+		listing, err := dfsAPI.ListDir(currentUser, currentPodInfo.GetCurrentPodNameOnly())
 		if err != nil {
 			fmt.Println("ls failed: ", err)
 			return
@@ -257,85 +332,85 @@ func executor(in string) {
 			fmt.Println(l)
 		}
 	case "copyToLocal":
-		if !isLoggedIn() {
+		if !isPodOpened() {
 			return
 		}
 		if len(blocks) < 3 {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.CopyToLocal(currentPodInfo.GetCurrentPodNameOnly(), blocks[1], blocks[2])
+		err := dfsAPI.CopyToLocal(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1], blocks[2])
 		if err != nil {
 			fmt.Println("copyToLocal failed: ", err)
 			return
 		}
 	case "copyFromLocal":
-		if !isLoggedIn() {
+		if !isPodOpened() {
 			return
 		}
 		if len(blocks) < 4 {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.CopyFromLocal(currentPodInfo.GetCurrentPodNameOnly(), blocks[1], blocks[2], blocks[3])
+		err := dfsAPI.CopyFromLocal(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1], blocks[2], blocks[3])
 		if err != nil {
 			fmt.Println("copyFromLocal failed: ", err)
 			return
 		}
 	case "mkdir":
-		if !isLoggedIn() {
+		if !isPodOpened() {
 			return
 		}
 		if len(blocks) < 2 {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.Mkdir(currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		err := dfsAPI.Mkdir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
 		if err != nil {
 			fmt.Println("mkdir failed: ", err)
 			return
 		}
 	case "rmdir":
-		if !isLoggedIn() {
+		if !isPodOpened() {
 			return
 		}
 		if len(blocks) < 2 {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.RmDir(currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		err := dfsAPI.RmDir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
 		if err != nil {
 			fmt.Println("rmdir failed: ", err)
 			return
 		}
 	case "cat":
-		if !isLoggedIn() {
+		if !isPodOpened() {
 			return
 		}
 		if len(blocks) < 2 {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.Cat(currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		err := dfsAPI.Cat(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
 		if err != nil {
 			fmt.Println("cat failed: ", err)
 			return
 		}
 	case "stat":
-		if !isLoggedIn() {
+		if !isPodOpened() {
 			return
 		}
 		if len(blocks) < 2 {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.DirectoryOrFileStat(currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		err := dfsAPI.DirectoryOrFileStat(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
 		if err != nil {
 			fmt.Println("stat failed: ", err)
 			return
 		}
 	case "pwd":
-		if !isLoggedIn() {
+		if !isPodOpened() {
 			return
 		}
 		if currentPodInfo.IsCurrentDirRoot() {
@@ -346,14 +421,14 @@ func executor(in string) {
 			fmt.Println(curDir)
 		}
 	case "rm":
-		if !isLoggedIn() {
+		if !isPodOpened() {
 			return
 		}
 		if len(blocks) < 2 {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.RemoveFile(currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		err := dfsAPI.RemoveFile(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
 		if err != nil {
 			fmt.Println("rm failed: ", err)
 			return
@@ -370,12 +445,18 @@ func executor(in string) {
 func help() {
 	fmt.Println("Usage: <command> <sub-command> (args1) (args2) ...")
 	fmt.Println("commands:")
-	fmt.Println(" - pod <new> (pod-name) - create a new pod and login to that pod")
-	fmt.Println(" - pod <del> (pod-name) - Deletes a already created pod")
-	fmt.Println(" - pod <login> (pod-name) - login to a already created pod.")
+	fmt.Println(" - user <new> (user-name) - create a new user and login as that user")
+	fmt.Println(" - user <del> (user-name) - deletes a already created user")
+	fmt.Println(" - user <login> (user-name) - login as a given user")
+	fmt.Println(" - user <logout> (user-name) - logout as user")
+	fmt.Println(" - user <ls> - lists all the user present in this instance")
+
+	fmt.Println(" - pod <new> (pod-name) - create a new pod for the logged in user and opens the pod")
+	fmt.Println(" - pod <del> (pod-name) - deletes a already created pod of the user")
+	fmt.Println(" - pod <open> (pod-name) - open a already created pod")
 	fmt.Println(" - pod <stat> (pod-name) - display meta information about a pod")
 	fmt.Println(" - pod <sync> (pod-name) - sync the contents of a logged in pod from Swarm")
-	fmt.Println(" - pod <logout>  - logout of a logged in pod")
+	fmt.Println(" - pod <close>  - close a opened pod")
 	fmt.Println(" - pod <ls> - lists all the pods created for this account")
 
 	fmt.Println(" - cd <directory name>")
@@ -394,25 +475,52 @@ func help() {
 
 }
 
-func getCurrentPrompt(podInfo *pod.Info) string {
-	if podInfo == nil || podInfo.GetCurrentDirInode() == nil {
-		return DefaultPrompt
+func getCurrentPrompt() string {
+	currPrompt := getUserPrompt()
+	podPrompt := getPodPrompt()
+	if podPrompt != "" {
+		currPrompt = currPrompt + " " + podPrompt + " " + PodSeperator
 	}
-	if podInfo.GetCurrentPodPathOnly() == podInfo.GetCurrentDirPathOnly() {
-		return DefaultPrompt + " " + podInfo.GetCurrentDirNameOnly() + " " + PodSeperator
-	} else {
-		podPathAndName := podInfo.GetCurrentPodPathAndName()
-		pathExceptPod := strings.TrimPrefix(podInfo.GetCurrentDirPathOnly(), podPathAndName)
-		return DefaultPrompt + " " +
-			podInfo.GetCurrentPodNameOnly() + " " + PodSeperator + " " +
-			pathExceptPod + utils.PathSeperator + podInfo.GetCurrentDirNameOnly() + PromptSeperator
+	dirPrompt := getCurrentDirPrompt()
+	if dirPrompt != "" {
+		currPrompt = currPrompt + " " + dirPrompt + " " + PromptSeperator
 	}
+	return currPrompt
 }
 
-func isLoggedIn() bool {
+func isPodOpened() bool {
 	if currentPodInfo == nil {
-		fmt.Println("login to do the operation")
+		fmt.Println("open the pod to do the operation")
 		return false
 	}
 	return true
+}
+
+func getUserPrompt() string {
+	if currentUser == "" {
+		return DefaultPrompt + " " + UserSeperator
+	} else {
+		return DefaultPrompt + "@" + currentUser + " " + UserSeperator
+	}
+}
+
+func getPodPrompt() string {
+	if currentPodInfo != nil {
+		return currentPodInfo.GetCurrentPodNameOnly()
+	} else {
+		return ""
+	}
+}
+
+func getCurrentDirPrompt() string {
+	currentDir := ""
+	if currentPodInfo != nil {
+		if currentPodInfo.IsCurrentDirRoot() {
+			return utils.PathSeperator
+		}
+		podPathAndName := currentPodInfo.GetCurrentPodPathAndName()
+		pathExceptPod := strings.TrimPrefix(currentPodInfo.GetCurrentDirPathOnly(), podPathAndName)
+		currentDir = pathExceptPod + utils.PathSeperator + currentPodInfo.GetCurrentDirNameOnly()
+	}
+	return currentDir
 }
