@@ -7,7 +7,12 @@ dfs can be used as follows
 2) In conjunction with intOS-compute layer to work as a data provider for
    large scale parallel data processing engine over the internet. 
 
+### User
 
+every user is associated with a 24 word mnemonic based hd wallet. This wallet is 
+passwod protected and stored in the datadir. whenever a user created a pod for
+himself, a new key pair is created using this mnemonic. A user can use this
+mnemonic and import his account in any device and instantly see all his pods.
 
 ### What is a pod?
 
@@ -30,26 +35,34 @@ For now dfs is a command line program. Later there will be a UI that will be hos
 - cd bin
 - ./dfs prompt  (this will start dfs in REPL mode with a "dfs >>>" prompt)
 
-### Comands in dfs:
-
-- dfs >>> \<command\> where, \<command\> is listed below
-- pod <new> (pod-name) - create a new pod and login to that pod
+### Comands in dfs
+**dfs >>>** \<command\> where, \<command\> is listed below
+##### user related commands
+- user \<new\> (user-name) - create a new user and login as that user
+- user \<del\> (user-name) - deletes a already created user
+- user \<login\> (user-name) - login as a given user
+- user \<logout\> (user-name) - logout as user
+- user \<ls\> - lists all the user present in this instance
+##### pod related commands
+- pod \<new\> (pod-name) - create a new pod and login to that pod
 - pod \<del\> (pod-name) - deletes a already created pod
-- pod <login> (pod-name) - login to a already created pod
-- pod <stat> (pod-name) - display meta information about a pod
-- pod <sync> (pod-name) - sync the contents of a logged in pod from Swarm
-- pod <logout>  - logout of a logged in pod
-- pod <ls> - lists all the pods created for this account
-- cd <directory name>
+- pod \<login\> (pod-name) - login to a already created pod
+- pod \<stat\> (pod-name) - display meta information about a pod
+- pod \<sync\> (pod-name) - sync the contents of a logged in pod from Swarm
+- pod \<logout\>  - logout of a logged in pod
+- pod \<ls\> - lists all the pods created for this account
+##### directory & file related commands
+- cd \<directory name\>
 - ls 
-- copyToLocal <source file in pod, destination directory in local fs>
-- copyFromLocal <source file in local fs, destination directory in pod, block size in MB>
-- mkdir <directory name>
-- rmdir <directory name>
-- rm <file name>
+- copyToLocal \<source file in pod, destination directory in local fs\>
+- copyFromLocal \<source file in local fs, destination directory in pod, block size in MB\>
+- mkdir \<directory name\>
+- rmdir \<directory name\>
+- rm \<file name\>
 = pwd - show present working directory
-- head <no of lines>
+- head \<no of lines\>
 - cat  - stream the file to stdout
-- stat <file name or directory name> - shows the information about a file or directory
+- stat \<file name or directory name\> - shows the information about a file or directory
+##### REPL related commands
 - help - display this help
 - exit - exits from the prompt
