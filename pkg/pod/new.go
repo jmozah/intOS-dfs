@@ -52,7 +52,7 @@ func (p *Pod) CreatePod(podName, dataDir string, passPhrase string) (*Info, erro
 	}
 
 	// create a child account for the user and other data structures for the pod
-	err = p.acc.CreatePodAccount(freeId, "")
+	err = p.acc.CreatePodAccount(freeId, passPhrase)
 	if err != nil {
 		return nil, err
 	}

@@ -34,7 +34,7 @@ func TestAccount_CreateRootAccount(t *testing.T) {
 	podName := "test_pod1"
 	password := "letmein"
 	acc := New(podName, tempDir)
-	err = acc.CreateRootAccount(password)
+	err = acc.CreateUserAccount(password)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +57,7 @@ func TestAccount_CreateRootAccount(t *testing.T) {
 		t.Fatal("mnemonic file does not exists")
 	}
 
-	if acc.privateKey == nil || acc.publicKey == nil || len(acc.address[:]) != utils.AddressLength {
+	if acc.userAcount.GetPrivateKey() == nil || acc.userAcount.GetPublicKey() == nil || len(acc.userAcount.address[:]) != utils.AddressLength {
 		t.Fatalf("keys not intialised")
 	}
 
@@ -75,7 +75,7 @@ func TestLoadAndStoreMnemonic(t *testing.T) {
 	podName := "test_pod1"
 	password := "letmein"
 	acc := New(podName, tempDir)
-	err = acc.CreateRootAccount(password)
+	err = acc.CreateUserAccount(password)
 	if err != nil {
 		t.Fatal(err)
 	}

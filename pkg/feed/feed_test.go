@@ -25,7 +25,7 @@ import (
 	"testing"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
-	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee"
+	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
 )
 
 func TestFeed(t *testing.T) {
@@ -37,16 +37,17 @@ func TestFeed(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	acc := account.New("feed_pod", tempDir)
-	err = acc.CreateRootAccount("password")
+	err = acc.CreateUserAccount("password")
 	if err != nil {
 		t.Fatal(err)
 	}
-	user := acc.GetAddress()
-	//client := mock.NewMockBeeClient()
-	client := bee.NewBeeClient("127.0.0.1", "8080")
+	user := acc.GetAddress(account.UserAccountIndex)
+	accountInfo := acc.GetAccountInfo(account.UserAccountIndex)
+	client := mock.NewMockBeeClient()
+	//client := bee.NewBeeClient("127.0.0.1", "8080")
 
 	t.Run("create-feed", func(t *testing.T) {
-		fd := New(acc, client)
+		fd := New(accountInfo, client)
 		topic := hashString("topic1")
 		data := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 		addr, err := fd.CreateFeed(topic, user, data)
@@ -68,7 +69,7 @@ func TestFeed(t *testing.T) {
 	})
 
 	t.Run("read-feed-first-time", func(t *testing.T) {
-		fd := New(acc, client)
+		fd := New(accountInfo, client)
 		topic := hashString("topic2")
 
 		// check if the data and address is present and is same as stored
@@ -80,7 +81,7 @@ func TestFeed(t *testing.T) {
 	})
 
 	t.Run("update-feed", func(t *testing.T) {
-		fd := New(acc, client)
+		fd := New(accountInfo, client)
 		topic := hashString("topic3")
 		data := []byte{0}
 		_, err := fd.CreateFeed(topic, user, data)
