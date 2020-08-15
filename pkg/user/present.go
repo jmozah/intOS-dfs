@@ -17,9 +17,10 @@ limitations under the License.
 package user
 
 import (
-	"github.com/jmozah/intOS-dfs/pkg/account"
 	"os"
 	"regexp"
+
+	"github.com/jmozah/intOS-dfs/pkg/account"
 )
 
 func (u *Users) IsUsernameAvailable(userName string, dataDir string) bool {

@@ -18,9 +18,10 @@ package datapod
 
 import (
 	"fmt"
-	"github.com/jmozah/intOS-dfs/pkg/utils"
 	"strings"
 	"time"
+
+	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
 func (d *Directory) DirStat(podName, dirName string, dirInode *DirInode, account string, podAddr string) error {

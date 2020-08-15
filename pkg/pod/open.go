@@ -18,11 +18,12 @@ package pod
 
 import (
 	"fmt"
+	"strings"
+	"sync"
+
 	d "github.com/jmozah/intOS-dfs/pkg/dir"
 	f "github.com/jmozah/intOS-dfs/pkg/file"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
-	"strings"
-	"sync"
 )
 
 func (p *Pod) OpenPod(podName string, dataDir string, passPhrase string) (*Info, error) {

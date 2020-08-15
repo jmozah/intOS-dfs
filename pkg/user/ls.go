@@ -17,10 +17,11 @@ limitations under the License.
 package user
 
 import (
-	"github.com/jmozah/intOS-dfs/pkg/account"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/jmozah/intOS-dfs/pkg/account"
 )
 
 func (u *Users) ListAllUsers(dataDir string) []string {

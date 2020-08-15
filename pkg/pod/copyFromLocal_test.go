@@ -18,12 +18,13 @@ package pod
 
 import (
 	"crypto/rand"
-	"github.com/jmozah/intOS-dfs/pkg/account"
-	"github.com/jmozah/intOS-dfs/pkg/feed"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/jmozah/intOS-dfs/pkg/account"
+	"github.com/jmozah/intOS-dfs/pkg/feed"
 
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
 	"github.com/jmozah/intOS-dfs/pkg/utils"

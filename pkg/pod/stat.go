@@ -18,10 +18,11 @@ package pod
 
 import (
 	"fmt"
-	"github.com/ethersphere/bee/pkg/swarm"
-	"github.com/jmozah/intOS-dfs/pkg/utils"
 	"strconv"
 	"time"
+
+	"github.com/ethersphere/bee/pkg/swarm"
+	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
 type PodStat struct {

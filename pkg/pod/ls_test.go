@@ -17,11 +17,12 @@ limitations under the License.
 package pod
 
 import (
-	"github.com/jmozah/intOS-dfs/pkg/account"
-	"github.com/jmozah/intOS-dfs/pkg/feed"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/jmozah/intOS-dfs/pkg/account"
+	"github.com/jmozah/intOS-dfs/pkg/feed"
 
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
 )

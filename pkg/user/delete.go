@@ -18,8 +18,9 @@ package user
 
 import (
 	"fmt"
-	"github.com/jmozah/intOS-dfs/pkg/account"
 	"os"
+
+	"github.com/jmozah/intOS-dfs/pkg/account"
 )
 
 func (u *Users) DeleteUser(userName string, dataDir string) error {

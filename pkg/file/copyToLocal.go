@@ -20,10 +20,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/jmozah/intOS-dfs/pkg/utils"
 	"io"
 	"os"
 	"path/filepath"
+
+	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
 func (f *File) CopyToFile(podFile string, localDir string) error {
