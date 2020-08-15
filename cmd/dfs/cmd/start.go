@@ -17,14 +17,18 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	//"github.com/gorilla/mux"
 	//"github.com/jmozah/intOS-dfs/pkg/api"
 	"github.com/spf13/cobra"
+
+	"github.com/jmozah/intOS-dfs/pkg/web"
 )
+
+var handler *web.Handler
 
 // startCmd represents the start command
 var startCmd = &cobra.Command{
@@ -33,6 +37,7 @@ var startCmd = &cobra.Command{
 	Long: `Serves all the dfs commands through an HTTP server so that the upper layers
 can consume it.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		handler = web.NewHandler()
 		startHttpService()
 	},
 }
@@ -42,20 +47,47 @@ func init() {
 }
 
 func startHttpService() {
-	router := mux.NewRouter().StrictSlash(true)
-	//router.HandleFunc("/pod/new/{podName}", api.CreatePod).Methods("POST")
-	//router.HandleFunc("/pod/del/{podName}", api.DeletePod).Methods("DELETE")
-	//router.HandleFunc("/pod/login/{podName}", api.LoginPod).Methods("POST")
-	//router.HandleFunc("/pod/logout/{podName}", api.LogoutPod).Methods("POST")
-	//router.HandleFunc("/pod/ls/{dirName}", api.ListPod).Methods("GET")
-	//router.HandleFunc("/pod/stat/{fileOrDirName}", api.InfoPod).Methods("GET")
-	//router.HandleFunc("/pod/sync/{podName}", api.SyncPod).Methods("POST")
-	//
-	//router.HandleFunc("/mkdir/{dirName}", api.Mkdir).Methods("POST")
-	//router.HandleFunc("/rmdir/{dirName}", api.Rmdir).Methods("DELETE")
-	//router.HandleFunc("/copyFromLocal/", api.CopyFromLocal).Methods("POST")
-	//router.HandleFunc("/copyToLocal/", api.CopyToLocal).Methods("POST")
-	//router.HandleFunc("/rm/{fileName}", api.RemoveFile).Methods("DELETE")
+	fs := http.FileServer(http.Dir("pkg/web/public/assets/"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	log.Fatal(http.ListenAndServe("127.0.0.1:"+httpPort, router))
+	router := mux.NewRouter()
+	router.HandleFunc("/", handler.IndexPageHandler)
+	router.HandleFunc("/login_page", handler.LoginPageHandler).Methods("POST")
+	router.HandleFunc("/signup_page", handler.SignupPageHandler).Methods("POST")
+
+	router.HandleFunc("/user/signup", handler.UserSignupHandler).Methods("POST")
+	router.HandleFunc("/user/delete", handler.UserDeleteHandler).Methods("POST")
+	router.HandleFunc("/user/login", handler.UserLoginHandler).Methods("POST")
+	router.HandleFunc("/user/logout", handler.LogoutHandler).Methods("POST")
+	router.HandleFunc("/user/present", handler.UserPresentHandler).Methods("POST")
+	router.HandleFunc("/user/ls", handler.UserListHandler).Methods("POST")
+
+	router.HandleFunc("/pod/new", handler.PodCreateHandler).Methods("POST")
+	router.HandleFunc("/pod/delete", handler.PodDeleteHandler).Methods("POST")
+	router.HandleFunc("/pod/open", handler.PodOpenHandler).Methods("POST")
+	router.HandleFunc("/pod/close", handler.PodCloseHandler).Methods("POST")
+	router.HandleFunc("/pod/ls", handler.PodListHandler).Methods("POST")
+	router.HandleFunc("/pod/stat", handler.PodStatHandler).Methods("POST")
+	router.HandleFunc("/pod/sync", handler.PodSyncHandler).Methods("POST")
+
+	router.HandleFunc("/dir/mkdir", handler.MakeDirectoryHandler).Methods("POST")
+	router.HandleFunc("/dir/rmdir", handler.RemoveDirectoryHandler).Methods("POST")
+	router.HandleFunc("/dir/cd", handler.ChangeDirectoryHandler).Methods("POST")
+	router.HandleFunc("/dir/ls", handler.ListDirectoryHandler).Methods("POST")
+	router.HandleFunc("/dir/stat", handler.StatDirectoryHandler).Methods("POST")
+	router.HandleFunc("/dir/pwd", handler.CurrentDirectoryHandler).Methods("POST")
+
+	router.HandleFunc("/file/copyToLocal", handler.FileCopyToLocalHandler).Methods("POST")
+	router.HandleFunc("/file/copyFromLocal", handler.FileCopyFromLocalHandler).Methods("POST")
+	router.HandleFunc("/file/stat", handler.FileStatHandler).Methods("POST")
+
+	http.Handle("/", router)
+
+	fmt.Println("listening on port:", httpPort)
+	err := http.ListenAndServe(":"+httpPort, nil)
+	if err != nil {
+		fmt.Println("listenAndServe: %w", err)
+		return
+	}
+
 }

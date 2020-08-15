@@ -14,36 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package cmd
+package web
 
 import (
 	"fmt"
-
-	"github.com/spf13/cobra"
+	"net/http"
 )
 
-var (
-	version    = "0.1.0"
-	commitHash string
-)
-
-// versionCmd shows the version of dfs
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "prints version",
-	Long:  `Shows the version of dfs.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println(showVersion())
-	},
-}
-
-func init() {
-	rootCmd.AddCommand(versionCmd)
-}
-
-func showVersion() string {
-	if commitHash != "" {
-		return version + "-" + commitHash
+func (h *Handler) IndexPageHandler(w http.ResponseWriter, r *http.Request) {
+	err := h.indexTmpl.Execute(w, nil)
+	if err != nil {
+		fmt.Println("index handler: ", err)
 	}
-	return version + "-dev"
 }
