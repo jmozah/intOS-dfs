@@ -44,10 +44,8 @@ jobs:
           ${{ runner.OS }}-build-
           ${{ runner.OS }}-
     - name: Lint
-      if: matrix.os == 'ubuntu-latest'
       run: make lint
     - name: Vet
-      if: matrix.os == 'ubuntu-latest'
       run: make vet
     - name: Build
       run: make build
@@ -58,5 +56,4 @@ jobs:
       if: matrix.os != 'windows-latest'
       run: make test-race
     - name: Test
-      if: matrix.os == 'windows-latest'
       run: make test
