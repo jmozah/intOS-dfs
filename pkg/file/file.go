@@ -29,7 +29,7 @@ type File struct {
 	podName string
 	client  blockstore.Client
 	fd      *feed.API
-	acc     *account.Account
+	acc     *account.AccountInfo
 	fileMap map[string]*m.FileMetaData
 	fileMu  *sync.RWMutex
 }
@@ -44,7 +44,7 @@ type FileBlock struct {
 	Address []byte
 }
 
-func NewFile(podName string, client blockstore.Client, fd *feed.API, acc *account.Account) *File {
+func NewFile(podName string, client blockstore.Client, fd *feed.API, acc *account.AccountInfo) *File {
 	return &File{
 		podName: podName,
 		client:  client,
@@ -67,7 +67,7 @@ func (f *File) getFeed() *feed.API {
 	return f.fd
 }
 
-func (f *File) getAccount() *account.Account {
+func (f *File) getAccount() *account.AccountInfo {
 	return f.acc
 }
 

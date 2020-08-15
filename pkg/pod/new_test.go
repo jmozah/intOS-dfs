@@ -22,6 +22,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jmozah/intOS-dfs/pkg/account"
+	"github.com/jmozah/intOS-dfs/pkg/feed"
+
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
 )
 
@@ -33,29 +36,31 @@ func TestPod_New(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	mockClient := mock.NewMockBeeClient()
-	pod1 := NewPod(mockClient)
-	err = pod1.LoadRootPod(tempDir, "password")
+	acc := account.New("user1", tempDir)
+	err = acc.CreateUserAccount("password")
 	if err != nil {
 		t.Fatal(err)
 	}
+	fd := feed.New(acc.GetAccountInfo(account.UserAccountIndex), mockClient)
+	pod1 := NewPod(mockClient, fd, acc)
+
 	podName1 := "test1"
 	podName2 := "test2"
-
 	t.Run("create-first-pod", func(t *testing.T) {
 		info, err := pod1.CreatePod(podName1, tempDir, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
 
-		if pod1.rootFeed == nil || pod1.rootDirInode == nil || pod1.rootAccount == nil {
-			t.Fatalf("Root not initialized")
+		if pod1.fd == nil || pod1.acc == nil {
+			t.Fatalf("user not initialized")
 		}
 
 		if info.GetCurrentPodNameOnly() != podName1 {
 			t.Fatalf("invalid pod name: expected %s got %s", podName1, info.GetCurrentPodNameOnly())
 		}
 
-		pods, err := pod1.getRootFileContents()
+		pods, err := pod1.loadUserPods()
 		if err != nil {
 			t.Fatalf("error getting pods")
 		}
@@ -94,7 +99,7 @@ func TestPod_New(t *testing.T) {
 			t.Fatalf("invalid pod name: expected %s got %s", podName2, info.GetCurrentPodNameOnly())
 		}
 
-		pods, err := pod1.getRootFileContents()
+		pods, err := pod1.loadUserPods()
 		if err != nil {
 			t.Fatalf("error getting pods")
 		}

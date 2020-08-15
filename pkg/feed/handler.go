@@ -39,12 +39,12 @@ import (
 )
 
 type Handler struct {
-	acc        *account.Account
-	client     blockstore.Client
-	hasherPool *bmtlegacy.TreePool
-	HashSize   int
-	cache      map[uint64]*cacheEntry
-	cacheLock  sync.RWMutex
+	accountInfo *account.AccountInfo
+	client      blockstore.Client
+	hasherPool  *bmtlegacy.TreePool
+	HashSize    int
+	cache       map[uint64]*cacheEntry
+	cacheLock   sync.RWMutex
 }
 
 // hashPool contains a pool of ready hashers
@@ -59,12 +59,12 @@ func init() {
 	}
 }
 
-func NewHandler(acc *account.Account, client blockstore.Client, hasherPool *bmtlegacy.TreePool) *Handler {
+func NewHandler(accountInfo *account.AccountInfo, client blockstore.Client, hasherPool *bmtlegacy.TreePool) *Handler {
 	fh := &Handler{
-		acc:        acc,
-		client:     client,
-		hasherPool: hasherPool,
-		cache:      make(map[uint64]*cacheEntry),
+		accountInfo: accountInfo,
+		client:      client,
+		hasherPool:  hasherPool,
+		cache:       make(map[uint64]*cacheEntry),
 	}
 	for i := 0; i < hasherCount; i++ {
 		hashfunc := crypto.SHA256.New()
@@ -330,7 +330,7 @@ func (h *Handler) getSignature(id []byte, payloadId []byte) ([]byte, []byte, err
 	if err != nil {
 		return nil, nil, err
 	}
-	signer := beecrypto.NewDefaultSigner(h.acc.GetPrivateKey())
+	signer := beecrypto.NewDefaultSigner(h.accountInfo.GetPrivateKey())
 	signature, err := signer.Sign(toSignBytes)
 	if err != nil {
 		return nil, nil, err
@@ -345,7 +345,6 @@ func epocId(time uint64, level uint8) lookup.EpochID {
 	id[7] = level
 	return id
 }
-
 
 // Retrieves the feed update cache value for the given nameHash
 func (h *Handler) get(feed *Feed) *cacheEntry {

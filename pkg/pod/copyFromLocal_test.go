@@ -23,6 +23,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/jmozah/intOS-dfs/pkg/account"
+	"github.com/jmozah/intOS-dfs/pkg/feed"
+
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
@@ -35,15 +38,16 @@ func TestPod_CopyFromLocal(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	mockClient := mock.NewMockBeeClient()
-	pod1 := NewPod(mockClient)
-	err = pod1.LoadRootPod(tempDir, "password")
+	acc := account.New("user1", tempDir)
+	err = acc.CreateUserAccount("password")
 	if err != nil {
 		t.Fatal(err)
 	}
+	fd := feed.New(acc.GetAccountInfo(account.UserAccountIndex), mockClient)
+	pod1 := NewPod(mockClient, fd, acc)
 
 	podName1 := "test1"
 	firstDir := "dir1"
-
 	t.Run("copy-file-to-root-of-pod", func(t *testing.T) {
 		info, err := pod1.CreatePod(podName1, tempDir, "password")
 		if err != nil {

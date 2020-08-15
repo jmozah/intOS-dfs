@@ -18,10 +18,11 @@ package pod
 
 import (
 	"fmt"
-	"github.com/ethersphere/bee/pkg/swarm"
-	"github.com/jmozah/intOS-dfs/pkg/utils"
 	"strconv"
 	"time"
+
+	"github.com/ethersphere/bee/pkg/swarm"
+	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
 type PodStat struct {
@@ -59,14 +60,14 @@ func (p *Pod) DirectoryOrFileStat(podName, podFileOrDir string) error {
 		return fmt.Errorf("rmdir: %w", err)
 	}
 
-	acc := info.getAccount().GetAddress()
+	acc := info.getAccountInfo().GetAddress()
 	account := swarm.NewAddress(acc[:]).String()
 
 	path := p.getDirectoryPath(podFileOrDir, info)
 	dirInode := info.getDirectory().GetDirFromDirectoryMap(path)
 	if dirInode != nil {
 		meta := dirInode.Meta
-		addr, dirInode, err := info.getDirectory().GetDirNode(meta.Path+utils.PathSeperator+meta.Name, info.getFeed(), info.getAccount())
+		addr, dirInode, err := info.getDirectory().GetDirNode(meta.Path+utils.PathSeperator+meta.Name, info.getFeed(), info.getAccountInfo())
 		if err != nil {
 			return fmt.Errorf("could not get dirnode: %w", err)
 		}

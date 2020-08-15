@@ -46,8 +46,8 @@ var (
 )
 
 type API struct {
-	handler *Handler
-	acc     *account.Account
+	handler     *Handler
+	accountInfo *account.AccountInfo
 }
 
 type Request struct {
@@ -60,11 +60,11 @@ type Request struct {
 	binaryData []byte     // cached serialized data (does not get serialized again!, for efficiency/internal use)
 }
 
-func New(account *account.Account, client blockstore.Client) *API {
+func New(accountInfo *account.AccountInfo, client blockstore.Client) *API {
 	bmtPool := bmtlegacy.NewTreePool(hashFunc, swarm.Branches, bmtlegacy.PoolSize)
 	return &API{
-		handler: NewHandler(account, client, bmtPool),
-		acc:     account,
+		handler:     NewHandler(accountInfo, client, bmtPool),
+		accountInfo: accountInfo,
 	}
 }
 
@@ -102,7 +102,7 @@ func (a *API) CreateFeed(topic []byte, user utils.Address, data []byte) ([]byte,
 	}
 
 	// create the signer and the content addressed chunk
-	signer := crypto.NewDefaultSigner(a.acc.GetPrivateKey())
+	signer := crypto.NewDefaultSigner(a.accountInfo.GetPrivateKey())
 	ch, err := content.NewChunk(data)
 	if err != nil {
 		return nil, err
@@ -192,7 +192,7 @@ func (a *API) UpdateFeed(topic []byte, user utils.Address, data []byte) ([]byte,
 	}
 
 	// create the signer and the content addressed chunk
-	signer := crypto.NewDefaultSigner(a.acc.GetPrivateKey())
+	signer := crypto.NewDefaultSigner(a.accountInfo.GetPrivateKey())
 	ch, err := content.NewChunk(data)
 	if err != nil {
 		return nil, err
@@ -218,5 +218,3 @@ func (a *API) UpdateFeed(topic []byte, user utils.Address, data []byte) ([]byte,
 	}
 	return address, nil
 }
-
-

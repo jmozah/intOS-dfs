@@ -51,26 +51,12 @@ func (p *Pod) GetName(inode *d.DirInode) string {
 	return ""
 }
 
-func (p *Pod) GetAccount(podName string) (*account.Account, error) {
+func (p *Pod) GetAccountInfo(podName string) (*account.AccountInfo, error) {
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
 		return nil, fmt.Errorf("get account: %w", err)
 	}
-	return podInfo.account, nil
-}
-
-func (p *Pod) checkIfPodPresent(podName string) (int, error) {
-	pods, err := p.getRootFileContents()
-	if err != nil {
-		return -1, fmt.Errorf("check pod: %w", err)
-	}
-
-	for index, pod := range pods {
-		if strings.Trim(pod, "\n") == podName {
-			return index, nil
-		}
-	}
-	return -1, nil
+	return podInfo.getAccountInfo(), nil
 }
 
 func CleanName(podName string) (string, error) {

@@ -21,6 +21,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/jmozah/intOS-dfs/pkg/account"
+	"github.com/jmozah/intOS-dfs/pkg/feed"
+
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
 )
 
@@ -32,8 +35,11 @@ func TestPod_ListPods(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	mockClient := mock.NewMockBeeClient()
-	pod1 := NewPod(mockClient)
-	err = pod1.LoadRootPod(tempDir, "password")
+	acc := account.New("user1", tempDir)
+	accountInfo := acc.GetAccountInfo(account.UserAccountIndex)
+	fd := feed.New(accountInfo, mockClient)
+	pod1 := NewPod(mockClient, fd, acc)
+	err = acc.CreateUserAccount("password")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +57,7 @@ func TestPod_ListPods(t *testing.T) {
 	t.Run("create-two-pods", func(t *testing.T) {
 		_, err := pod1.CreatePod(podName1, tempDir, "password")
 		if err != nil {
-			t.Fatalf("error creating pod %s", podName1)
+			t.Fatalf("error creating pod: %v", err)
 		}
 		_, err = pod1.CreatePod(podName2, tempDir, "password")
 		if err != nil {

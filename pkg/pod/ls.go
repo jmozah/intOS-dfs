@@ -19,7 +19,7 @@ package pod
 import "fmt"
 
 func (p *Pod) ListPods() error {
-	pods, err := p.getRootFileContents()
+	pods, err := p.loadUserPods()
 	if err != nil {
 		return fmt.Errorf("list pods: %w", err)
 	}
@@ -31,7 +31,6 @@ func (p *Pod) ListPods() error {
 }
 
 func (p *Pod) ListEntiesInDir(podName string) ([]string, error) {
-
 	if !p.isLoggedInToPod(podName) {
 		return nil, fmt.Errorf("ls: login to pod to do this operation")
 	}
@@ -49,7 +48,4 @@ func (p *Pod) ListEntiesInDir(podName string) ([]string, error) {
 	}
 
 	return directory.ListDir(podName, path), nil
-
-	return nil, nil
-
 }

@@ -33,30 +33,39 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+const (
+	UserAccountIndex = -1
+)
+
 type Account struct {
 	dataDir          string
 	podName          string
 	mnemonicFileName string
 	wallet           *Wallet
-	privateKey       *ecdsa.PrivateKey
-	publicKey        *ecdsa.PublicKey
-	address          utils.Address
+	userAcount       *AccountInfo
+	podAccounts      map[int]*AccountInfo
+}
+
+type AccountInfo struct {
+	privateKey *ecdsa.PrivateKey
+	publicKey  *ecdsa.PublicKey
+	address    utils.Address
 }
 
 const (
 	KeyStoreDirectoryName = "keystore"
 )
 
-func New(podName, datadir string) *Account {
-	destDir := filepath.Join(datadir, KeyStoreDirectoryName)
-	destFile := filepath.Join(destDir, utils.DefaultRoot+".key")
-
+func New(podName, dataDir string) *Account {
+	destFile := ConstructUserKeyFile(podName, dataDir)
 	wallet := NewWallet("")
 	return &Account{
-		dataDir:          datadir,
+		dataDir:          dataDir,
 		podName:          podName,
 		wallet:           wallet,
 		mnemonicFileName: destFile,
+		userAcount:       &AccountInfo{},
+		podAccounts:      make(map[int]*AccountInfo),
 	}
 }
 
@@ -68,10 +77,10 @@ func (a *Account) IsAlreadyInitialized() bool {
 	return !info.IsDir()
 }
 
-func (a *Account) CreateRootAccount(passPhrase string) error {
+func (a *Account) CreateUserAccount(passPhrase string) error {
 	if a.IsAlreadyInitialized() {
 		var s string
-		fmt.Println("dfs is already initialised")
+		fmt.Println("user is already initialised")
 		fmt.Println("reinitialising again will make all the your data inaccessible")
 		fmt.Printf("do you still want to proceed (Y/N):")
 		_, err := fmt.Scan(&s)
@@ -88,7 +97,7 @@ func (a *Account) CreateRootAccount(passPhrase string) error {
 		}
 		err = os.Remove(a.mnemonicFileName)
 		if err != nil {
-			return fmt.Errorf("could not remove root key: %w", err)
+			return fmt.Errorf("could not remove user key: %w", err)
 		}
 	}
 
@@ -113,19 +122,19 @@ func (a *Account) CreateRootAccount(passPhrase string) error {
 	}
 
 	// store publicKey, private key and user
-	a.privateKey, err = hdw.PrivateKey(acc)
+	a.userAcount.privateKey, err = hdw.PrivateKey(acc)
 	if err != nil {
 		return err
 	}
-	a.publicKey, err = hdw.PublicKey(acc)
+	a.userAcount.publicKey, err = hdw.PublicKey(acc)
 	if err != nil {
 		return err
 	}
-	addrBytes, err := crypto.NewEthereumAddress(a.privateKey.PublicKey)
+	addrBytes, err := crypto.NewEthereumAddress(a.userAcount.privateKey.PublicKey)
 	if err != nil {
 		return err
 	}
-	a.address.SetBytes(addrBytes)
+	a.userAcount.address.SetBytes(addrBytes)
 
 	// store the mnemonic
 	encryptedMnemonic, err := a.storeAsEncryptedMnemonicToDisk(mnemonic, passPhrase)
@@ -136,10 +145,10 @@ func (a *Account) CreateRootAccount(passPhrase string) error {
 	return nil
 }
 
-func (a *Account) LoadRootAccount(passPhrase string) error {
+func (a *Account) LoadUserAccount(passPhrase string) error {
 	password := passPhrase
 	if password == "" {
-		fmt.Print("Enter root password to unlock root account: ")
+		fmt.Print("Enter password to unlock user account: ")
 		password = a.getPassword()
 	}
 
@@ -162,30 +171,34 @@ func (a *Account) LoadRootAccount(passPhrase string) error {
 	if err != nil {
 		return err
 	}
-	a.privateKey, err = hdw.PrivateKey(acc)
+	a.userAcount.privateKey, err = hdw.PrivateKey(acc)
 	if err != nil {
 		return err
 	}
-	a.publicKey, err = hdw.PublicKey(acc)
+	a.userAcount.publicKey, err = hdw.PublicKey(acc)
 	if err != nil {
 		return err
 	}
-	addrBytes, err := crypto.NewEthereumAddress(a.privateKey.PublicKey)
+	addrBytes, err := crypto.NewEthereumAddress(a.userAcount.privateKey.PublicKey)
 	if err != nil {
 		return err
 	}
-	a.address.SetBytes(addrBytes)
+	a.userAcount.address.SetBytes(addrBytes)
 	return nil
 }
 
-func (a *Account) CreateNormalAccount(accountId int, passPhrase string) error {
+func (a *Account) CreatePodAccount(accountId int, passPhrase string) error {
 	if !a.IsAlreadyInitialized() {
-		return fmt.Errorf("dfs not initalised. use the \"init\" command to intialise the system")
+		return fmt.Errorf("user not created")
+	}
+
+	if _, ok := a.podAccounts[accountId]; ok {
+		return nil
 	}
 
 	password := passPhrase
 	if password == "" {
-		fmt.Print("Enter root password to create a pod: ")
+		fmt.Print("Enter user password to create a pod: ")
 		password = a.getPassword()
 	}
 
@@ -204,20 +217,27 @@ func (a *Account) CreateNormalAccount(accountId int, passPhrase string) error {
 		return err
 	}
 
-	a.privateKey, err = hdw.PrivateKey(acc)
+	accountInfo := &AccountInfo{}
+
+	accountInfo.privateKey, err = hdw.PrivateKey(acc)
 	if err != nil {
 		return err
 	}
-	a.publicKey, err = hdw.PublicKey(acc)
+	accountInfo.publicKey, err = hdw.PublicKey(acc)
 	if err != nil {
 		return err
 	}
-	addrBytes, err := crypto.NewEthereumAddress(a.privateKey.PublicKey)
+	addrBytes, err := crypto.NewEthereumAddress(accountInfo.privateKey.PublicKey)
 	if err != nil {
 		return err
 	}
-	a.address.SetBytes(addrBytes)
+	accountInfo.address.SetBytes(addrBytes)
+	a.podAccounts[accountId] = accountInfo
 	return nil
+}
+
+func (a *Account) DeletePodAccount(accountId int) {
+	delete(a.podAccounts, accountId)
 }
 
 func (a *Account) LoadEncryptedMnemonicFromDisk(passPhrase string) error {
@@ -285,12 +305,28 @@ func (a *Account) storeAsEncryptedMnemonicToDisk(mnemonic string, passPhrase str
 	return encryptedMessage, nil
 }
 
-func (a *Account) GetPrivateKey() *ecdsa.PrivateKey {
-	return a.privateKey
+func (a *Account) GetUserPrivateKey(index int) *ecdsa.PrivateKey {
+	if index == UserAccountIndex {
+		return a.userAcount.privateKey
+	} else {
+		return a.podAccounts[index].privateKey
+	}
 }
 
-func (s *Account) GetAddress() utils.Address {
-	return s.address
+func (a *Account) GetAddress(index int) utils.Address {
+	if index == UserAccountIndex {
+		return a.userAcount.address
+	} else {
+		return a.podAccounts[index].address
+	}
+}
+
+func (a *Account) GetAccountInfo(index int) *AccountInfo {
+	if index == UserAccountIndex {
+		return a.userAcount
+	} else {
+		return a.podAccounts[index]
+	}
 }
 
 func (a *Account) getPassword() (password string) {
@@ -304,6 +340,18 @@ func (a *Account) getPassword() (password string) {
 	passwd := string(bytePassword)
 	password = strings.TrimSpace(passwd)
 	return password
+}
+
+func (ai *AccountInfo) GetAddress() utils.Address {
+	return ai.address
+}
+
+func (ai *AccountInfo) GetPrivateKey() *ecdsa.PrivateKey {
+	return ai.privateKey
+}
+
+func (ai *AccountInfo) GetPublicKey() *ecdsa.PublicKey {
+	return ai.publicKey
 }
 
 // list accounts with balances

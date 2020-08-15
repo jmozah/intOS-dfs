@@ -49,13 +49,13 @@ func (p *Pod) ChangeDir(podName string, dirName string) (*Info, error) {
 
 	directory := podInfo.getDirectory()
 	fd := podInfo.getFeed()
-	acc := podInfo.getAccount()
+	accountInfo := podInfo.getAccountInfo()
 
 	if directoryName == ".." {
 		if podInfo.IsCurrentDirRoot() {
 			return podInfo, nil
 		}
-		_, dirInode, err := directory.GetDirNode(podInfo.GetCurrentDirPathOnly(), fd, acc)
+		_, dirInode, err := directory.GetDirNode(podInfo.GetCurrentDirPathOnly(), fd, accountInfo)
 		if err != nil {
 			return nil, fmt.Errorf("cd: error while fetching pod info: %w", err)
 		}

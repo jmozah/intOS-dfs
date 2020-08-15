@@ -22,27 +22,29 @@ import (
 	"sync"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
-	"github.com/jmozah/intOS-dfs/pkg/blockstore"
-	d "github.com/jmozah/intOS-dfs/pkg/dir"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
+
+	"github.com/jmozah/intOS-dfs/pkg/blockstore"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
 const (
-	maxPodId = 65535
+	maxPodId           = 65535
+	defaultPodPassword = "password"
 )
 
 type Pod struct {
-	client       blockstore.Client
-	rootFeed     *feed.API
-	rootAccount  *account.Account
-	rootDirInode *d.DirInode
-	podMap       map[string]*Info //  podName -> dir
-	podMu        *sync.RWMutex
+	fd     *feed.API
+	acc    *account.Account
+	client blockstore.Client
+	podMap map[string]*Info //  podName -> dir
+	podMu  *sync.RWMutex
 }
 
-func NewPod(client blockstore.Client) *Pod {
+func NewPod(client blockstore.Client, feed *feed.API, account *account.Account) *Pod {
 	return &Pod{
+		fd:     feed,
+		acc:    account,
 		client: client,
 		podMap: make(map[string]*Info),
 		podMu:  &sync.RWMutex{},

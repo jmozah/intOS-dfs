@@ -14,28 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package pod
+package user
 
 import (
-	"fmt"
+	"os"
+	"regexp"
+
+	"github.com/jmozah/intOS-dfs/pkg/account"
 )
 
-func (p *Pod) LogoutPod(podName string) error {
-	podName, err := CleanName(podName)
-	if err != nil {
-		return fmt.Errorf("login pod: %w", err)
+func (u *Users) IsUsernameAvailable(userName string, dataDir string) bool {
+	re := regexp.MustCompile("^[a-zA-Z0-9_]*$")
+	if !re.MatchString(userName) {
+		return false
 	}
 
-	if !p.isLoggedInToPod(podName) {
-		return fmt.Errorf("logout pod: login to pod to do this operation")
+	userKeyFileName := account.ConstructUserKeyFile(userName, dataDir)
+	info, err := os.Stat(userKeyFileName)
+	if os.IsNotExist(err) {
+		return false
 	}
-
-	podInfo, err := p.GetPodInfoFromPodMap(podName)
-	if err != nil {
-		return fmt.Errorf("logout pod: %w", err)
-	}
-
-	p.removePodFromPodMap(podName)
-	podInfo.dir.RemoveFromDirectoryMap(podName)
-	return nil
+	return !info.IsDir()
 }

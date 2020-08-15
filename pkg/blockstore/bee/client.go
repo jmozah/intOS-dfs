@@ -93,7 +93,7 @@ func (s *BeeClient) UploadChunk(ch swarm.Chunk) (address []byte, err error) {
 	}
 
 	if s.inCache(ch.Address().String()) {
-		s.addToCache(ch.Address().String(),ch.Data())
+		s.addToCache(ch.Address().String(), ch.Data())
 	}
 	return ch.Address().Bytes(), nil
 }
@@ -162,7 +162,7 @@ func (s *BeeClient) UploadBlob(data []byte) (address []byte, err error) {
 	}
 
 	if s.inCache(resp.Reference.String()) {
-		s.addToCache(resp.Reference.String(),data)
+		s.addToCache(resp.Reference.String(), data)
 	}
 	return resp.Reference.Bytes(), nil
 }

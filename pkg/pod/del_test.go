@@ -22,6 +22,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jmozah/intOS-dfs/pkg/account"
+	"github.com/jmozah/intOS-dfs/pkg/feed"
+
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
@@ -34,21 +37,23 @@ func TestDeleteNewPod(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	mockClient := mock.NewMockBeeClient()
-	pod1 := NewPod(mockClient)
-	err = pod1.LoadRootPod(tempDir, "password")
+	acc := account.New("user1", tempDir)
+	err = acc.CreateUserAccount("password")
 	if err != nil {
 		t.Fatal(err)
 	}
+	fd := feed.New(acc.GetAccountInfo(account.UserAccountIndex), mockClient)
+	pod1 := NewPod(mockClient, fd, acc)
+
 	podName1 := "test1"
 	podName2 := "test2"
-
 	t.Run("create-one-pod-and-del", func(t *testing.T) {
 		info, err := pod1.CreatePod(podName1, tempDir, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
 
-		pods, err := pod1.getRootFileContents()
+		pods, err := pod1.loadUserPods()
 		if err != nil {
 			t.Fatalf("error getting pods")
 		}
@@ -62,7 +67,7 @@ func TestDeleteNewPod(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		pods, err = pod1.getRootFileContents()
+		pods, err = pod1.loadUserPods()
 		if err != nil {
 			t.Fatalf("error getting pods")
 		}
@@ -100,7 +105,7 @@ func TestDeleteNewPod(t *testing.T) {
 			t.Fatalf("error creating pod %s", podName1)
 		}
 
-		pods, err := pod1.getRootFileContents()
+		pods, err := pod1.loadUserPods()
 		if err != nil {
 			t.Fatalf("error getting pods")
 		}
@@ -118,7 +123,7 @@ func TestDeleteNewPod(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		pods, err = pod1.getRootFileContents()
+		pods, err = pod1.loadUserPods()
 		if err != nil {
 			t.Fatalf("error getting pods")
 		}

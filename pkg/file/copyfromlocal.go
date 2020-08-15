@@ -17,6 +17,7 @@ limitations under the License.
 package datapod
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -67,6 +68,7 @@ func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo,
 				return nil, fmt.Errorf("copyFromLocal: %w", err)
 			}
 		}
+		fmt.Print(fmt.Sprintf("uploading block-%05d, ", i))
 
 		addr, err := f.client.UploadBlob(data[:r])
 		if err != nil {
@@ -80,6 +82,7 @@ func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo,
 		}
 
 		fileINode.FileBlocks = append(fileINode.FileBlocks, fileBlock)
+		fmt.Println(hex.EncodeToString(addr))
 		i++
 	}
 

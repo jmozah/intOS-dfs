@@ -42,7 +42,6 @@ func (m *MockBeeClient) UploadChunk(ch swarm.Chunk) (address []byte, err error) 
 	m.storerMu.Lock()
 	defer m.storerMu.Unlock()
 	m.storer[ch.Address().String()] = ch.Data()
-	fmt.Println("uploading ", ch.Address().Bytes())
 	return ch.Address().Bytes(), nil
 }
 
@@ -52,7 +51,6 @@ func (m *MockBeeClient) DownloadChunk(ctx context.Context, address []byte) (data
 	if data, ok := m.storer[swarm.NewAddress(address).String()]; ok {
 		return data, nil
 	}
-	fmt.Println("downloading ", address)
 	return nil, fmt.Errorf("error downloading data")
 }
 

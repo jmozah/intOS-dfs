@@ -18,11 +18,7 @@ package pod
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
-
-	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
 func (p *Pod) DeletePod(podName, dataDir string) error {
@@ -31,14 +27,16 @@ func (p *Pod) DeletePod(podName, dataDir string) error {
 		return fmt.Errorf("delete pod: %w", err)
 	}
 
-	pods, err := p.getRootFileContents()
+	pods, err := p.loadUserPods()
 	if err != nil {
 		return fmt.Errorf("delete pod: %w", err)
 	}
 	found := false
+	var podIndex int
 	for index, pod := range pods {
 		if strings.Trim(pod, "\n") == podName {
 			delete(pods, index)
+			podIndex = index
 			found = true
 		}
 	}
@@ -52,13 +50,13 @@ func (p *Pod) DeletePod(podName, dataDir string) error {
 		pods[0] = ""
 	}
 
-	err = p.storeAsRootFile(pods)
+	err = p.storeUserPods(pods)
 	if err != nil {
 		return fmt.Errorf("delete pod: %w", err)
 	}
 
 	if p.isLoggedInToPod(podName) {
-		return p.LogoutPod(podName)
+		return p.ClosePod(podName)
 	} else {
 		podInfo, err := p.GetPodInfoFromPodMap(podName)
 		if err != nil {
@@ -67,12 +65,6 @@ func (p *Pod) DeletePod(podName, dataDir string) error {
 		podInfo.dir.RemoveFromDirectoryMap(podName)
 		p.removePodFromPodMap(podName)
 	}
-
-	keyStore := filepath.Join(dataDir, "keystore")
-	err = os.Remove(keyStore + string(utils.PathSeperator) + podName + ".key")
-	if err != nil {
-		return fmt.Errorf("delete pod: %w", err)
-	}
-
+	p.acc.DeletePodAccount(podIndex)
 	return nil
 }

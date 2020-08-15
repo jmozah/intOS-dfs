@@ -31,7 +31,7 @@ type Info struct {
 	podId           int
 	dir             *d.Directory
 	file            *f.File
-	account         *account.Account
+	accountInfo     *account.AccountInfo
 	feed            *feed.API
 	currentPodInode *d.DirInode
 	curPodMu        sync.RWMutex
@@ -55,8 +55,8 @@ func (i *Info) getFile() *f.File {
 	return i.file
 }
 
-func (i *Info) getAccount() *account.Account {
-	return i.account
+func (i *Info) getAccountInfo() *account.AccountInfo {
+	return i.accountInfo
 }
 
 func (i *Info) getFeed() *feed.API {
