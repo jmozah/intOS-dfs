@@ -43,7 +43,7 @@ type Handler struct {
 	client      blockstore.Client
 	hasherPool  *bmtlegacy.TreePool
 	HashSize    int
-	cache       map[uint64]*cacheEntry
+	cache       map[uint64]*CacheEntry
 	cacheLock   sync.RWMutex
 }
 
@@ -64,7 +64,7 @@ func NewHandler(accountInfo *account.AccountInfo, client blockstore.Client, hash
 		accountInfo: accountInfo,
 		client:      client,
 		hasherPool:  hasherPool,
-		cache:       make(map[uint64]*cacheEntry),
+		cache:       make(map[uint64]*CacheEntry),
 	}
 	for i := 0; i < hasherCount; i++ {
 		hashfunc := crypto.SHA256.New()
@@ -109,7 +109,7 @@ func (h *Handler) GetContent(feed *Feed) (swarm.Address, []byte, error) {
 // Lookup works differently depending on the configuration of `query`
 // See the `query` documentation and helper functions:
 // `NewQueryLatest` and `NewQuery`
-func (h *Handler) Lookup(ctx context.Context, query *Query) (*cacheEntry, error) {
+func (h *Handler) Lookup(ctx context.Context, query *Query) (*CacheEntry, error) {
 
 	timeLimit := query.TimeLimit
 	if timeLimit == 0 { // if time limit is set to zero, the user wants to get the latest update
@@ -144,10 +144,6 @@ func (h *Handler) Lookup(ctx context.Context, query *Query) (*cacheEntry, error)
 		ctx, cancel := context.WithTimeout(ctx, defaultRetrieveTimeout)
 		defer cancel()
 
-		//if id.Level == 0 {
-		//	return nil, fmt.Errorf("lookups exhausted")
-		//}
-
 		addr, err := h.getAddress(id.Topic, query.Feed.User, epoch)
 		if err != nil {
 			return nil, err
@@ -177,7 +173,6 @@ func (h *Handler) Lookup(ctx context.Context, query *Query) (*cacheEntry, error)
 		return nil, NewError(ErrNotFound, "no feed updates found")
 	}
 	return h.updateCache(request)
-
 }
 
 // fromChunk populates this structure from chunk data. It does not verify the signature is valid.
@@ -206,14 +201,14 @@ func (h *Handler) fromChunk(chunk swarm.Chunk, r *Request, q *Query, id *ID) err
 }
 
 // update feed updates cache with specified content
-func (h *Handler) updateCache(request *Request) (*cacheEntry, error) {
+func (h *Handler) updateCache(request *Request) (*CacheEntry, error) {
 	updateAddr := request.idAddr.Bytes()
 	entry, err := h.get(&request.Feed)
 	if err != nil {
 		return nil, err
 	}
 	if entry == nil {
-		entry = &cacheEntry{}
+		entry = &CacheEntry{}
 		err := h.set(&request.Feed, entry)
 		if err != nil {
 			return nil, err
@@ -359,7 +354,7 @@ func epocId(time uint64, level uint8) lookup.EpochID {
 }
 
 // Retrieves the feed update cache value for the given nameHash
-func (h *Handler) get(feed *Feed) (*cacheEntry, error) {
+func (h *Handler) get(feed *Feed) (*CacheEntry, error) {
 	mapKey, err := feed.mapKey()
 	if err != nil {
 		return nil, err
@@ -371,7 +366,7 @@ func (h *Handler) get(feed *Feed) (*cacheEntry, error) {
 }
 
 // Sets the feed update cache value for the given feed
-func (h *Handler) set(feed *Feed, feedUpdate *cacheEntry) error {
+func (h *Handler) set(feed *Feed, feedUpdate *CacheEntry) error {
 	mapKey, err := feed.mapKey()
 	if err != nil {
 		return err

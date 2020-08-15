@@ -27,19 +27,19 @@ const (
 	defaultRetrieveTimeout = 100 * time.Millisecond
 )
 
-// cacheEntry caches the last known update of a specific Swarm feed.
-type cacheEntry struct {
+// CacheEntry caches the last known update of a specific Swarm feed.
+type CacheEntry struct {
 	Update
 	*bytes.Reader
 	lastKey []byte
 }
 
 // implements storage.LazySectionReader
-func (r *cacheEntry) Size(ctx context.Context, _ chan bool) (int64, error) {
+func (r *CacheEntry) Size(ctx context.Context, _ chan bool) (int64, error) {
 	return int64(len(r.Update.data)), nil
 }
 
 //returns the feed's topic
-func (r *cacheEntry) Topic() Topic {
+func (r *CacheEntry) Topic() Topic {
 	return r.Feed.Topic
 }

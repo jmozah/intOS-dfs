@@ -54,7 +54,7 @@ func (e *Epoch) ID() EpochID {
 // MarshalBinary implements the encoding.BinaryMarshaller interface
 func (e *Epoch) MarshalBinary() (data []byte, err error) {
 	b := make([]byte, 8)
-	binary.LittleEndian.PutUint64(b[:], e.Time)
+	binary.LittleEndian.PutUint64(b, e.Time)
 	b[7] = e.Level
 	return b, nil
 }

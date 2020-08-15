@@ -125,7 +125,5 @@ func (s *Store) Get(ctx context.Context, epoch lookup.Epoch, now uint64) (value 
 // MakeReadFunc returns a read function suitable for the lookup algorithm, mapped
 // to this mock storage
 func (s *Store) MakeReadFunc() lookup.ReadFunc {
-	return func(ctx context.Context, epoch lookup.Epoch, now uint64) (interface{}, error) {
-		return s.Get(ctx, epoch, now)
-	}
+	return s.Get
 }

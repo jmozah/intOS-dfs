@@ -152,7 +152,7 @@ func Encode(b []byte) string {
 
 // Decode decodes a hex string with 0x prefix.
 func Decode(input string) ([]byte, error) {
-	if len(input) == 0 {
+	if input == "" {
 		return nil, ErrEmptyString
 	}
 	if !has0xPrefix(input) {
