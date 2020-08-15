@@ -52,5 +52,7 @@ jobs:
     - name: Build
       run: make build
     - name: Test with Race Detector
-      # do not tests with race detector on windows
-      # until the issue wi
+      run: make test-race
+    - name: Test
+      if: matrix.os == 'windows-latest'
+      run: make test
