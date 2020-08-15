@@ -17,8 +17,6 @@ limitations under the License.
 package utils
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
 	"encoding/hex"
 	"hash"
 	"os"
@@ -26,7 +24,6 @@ import (
 	"strconv"
 	"unsafe"
 
-	"github.com/btcsuite/btcd/btcec"
 	"github.com/ethersphere/bee/pkg/swarm"
 	bmtlegacy "github.com/ethersphere/bmt/legacy"
 	"golang.org/x/crypto/sha3"
@@ -84,12 +81,15 @@ var (
 func (a Address) Hex() string {
 	unchecksummed := hex.EncodeToString(a[:])
 	sha := sha3.NewLegacyKeccak256()
-	sha.Write([]byte(unchecksummed))
-	hash := sha.Sum(nil)
+	_, err := sha.Write([]byte(unchecksummed))
+	if err != nil {
+		return ""
+	}
+	sumHash := sha.Sum(nil)
 
 	result := []byte(unchecksummed)
 	for i := 0; i < len(result); i++ {
-		hashByte := hash[i/2]
+		hashByte := sumHash[i/2]
 		if i%2 == 0 {
 			hashByte = hashByte >> 4
 		} else {
@@ -187,26 +187,6 @@ func mapError(err error) error {
 	return err
 }
 
-func PubkeyToAddress(p ecdsa.PublicKey) Address {
-	pubBytes := FromECDSAPub(&p)
-	return BytesToAddress(Keccak256(pubBytes[1:])[12:])
-}
-func FromECDSAPub(pub *ecdsa.PublicKey) []byte {
-	if pub == nil || pub.X == nil || pub.Y == nil {
-		return nil
-	}
-	return elliptic.Marshal(S256(), pub.X, pub.Y)
-}
-func S256() elliptic.Curve {
-	return btcec.S256()
-}
-func Keccak256(data ...[]byte) []byte {
-	d := sha3.NewLegacyKeccak256()
-	for _, b := range data {
-		d.Write(b)
-	}
-	return d.Sum(nil)
-}
 func BytesToAddress(b []byte) Address {
 	var a Address
 	a.SetBytes(b)
@@ -219,17 +199,10 @@ func (a *Address) SetBytes(b []byte) {
 	copy(a[AddressLength-len(b):], b)
 }
 
-func BytesToHash(b []byte) Hash {
-	var h Hash
-	h.SetBytes(b)
-	return h
-}
-
 func (h *Hash) SetBytes(b []byte) {
 	if len(b) > len(h) {
 		b = b[len(b)-HashLength:]
 	}
-
 	copy(h[HashLength-len(b):], b)
 }
 

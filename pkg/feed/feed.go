@@ -35,15 +35,21 @@ type Feed struct {
 const feedLength = TopicLength + utils.AddressLength
 
 // mapKey calculates a unique id for this feed. Used by the cache map in `Handler`
-func (f *Feed) mapKey() uint64 {
+func (f *Feed) mapKey() (uint64, error) {
 	serializedData := make([]byte, feedLength)
-	f.binaryPut(serializedData)
+	err := f.binaryPut(serializedData)
+	if err != nil {
+		return 0, err
+	}
 	hasher := hashPool.Get().(hash.Hash)
 	defer hashPool.Put(hasher)
 	hasher.Reset()
-	hasher.Write(serializedData)
-	hash := hasher.Sum(nil)
-	return *(*uint64)(unsafe.Pointer(&hash[0]))
+	_, err = hasher.Write(serializedData)
+	if err != nil {
+		return 0, err
+	}
+	sumHash := hasher.Sum(nil)
+	return *(*uint64)(unsafe.Pointer(&sumHash[0])), nil
 }
 
 // binaryPut serializes this feed instance into the provided slice
@@ -56,25 +62,5 @@ func (f *Feed) binaryPut(serializedData []byte) error {
 	cursor += TopicLength
 
 	copy(serializedData[cursor:cursor+utils.AddressLength], f.User[:])
-	return nil
-}
-
-// binaryLength returns the expected size of this structure when serialized
-func (f *Feed) binaryLength() int {
-	return feedLength
-}
-
-// binaryGet restores the current instance from the information contained in the passed slice
-func (f *Feed) binaryGet(serializedData []byte) error {
-	if len(serializedData) != feedLength {
-		return NewErrorf(ErrInvalidValue, "Incorrect slice size to read feed. Expected %d, got %d", feedLength, len(serializedData))
-	}
-
-	var cursor int
-	copy(f.Topic[:], serializedData[cursor:cursor+TopicLength])
-	cursor += TopicLength
-
-	copy(f.User[:], serializedData[cursor:cursor+utils.AddressLength])
-
 	return nil
 }

@@ -95,7 +95,10 @@ func (h *Handler) GetContent(feed *Feed) (swarm.Address, []byte, error) {
 	if feed == nil {
 		return swarm.ZeroAddress, nil, NewError(ErrInvalidValue, "feed is nil")
 	}
-	feedUpdate := h.get(feed)
+	feedUpdate, err := h.get(feed)
+	if err != nil {
+		return swarm.ZeroAddress, nil, err
+	}
 	if feedUpdate == nil {
 		return swarm.ZeroAddress, nil, NewError(ErrNotFound, "feed update not cached")
 	}
@@ -114,7 +117,10 @@ func (h *Handler) Lookup(ctx context.Context, query *Query) (*cacheEntry, error)
 	}
 
 	if query.Hint == lookup.NoClue { // try to use our cache
-		entry := h.get(&query.Feed)
+		entry, err := h.get(&query.Feed)
+		if err != nil {
+			return nil, err
+		}
 		if entry != nil && entry.Epoch.Time <= timeLimit { // avoid bad hints
 			query.Hint = entry.Epoch
 		}
@@ -202,10 +208,16 @@ func (h *Handler) fromChunk(chunk swarm.Chunk, r *Request, q *Query, id *ID) err
 // update feed updates cache with specified content
 func (h *Handler) updateCache(request *Request) (*cacheEntry, error) {
 	updateAddr := request.idAddr.Bytes()
-	entry := h.get(&request.Feed)
+	entry, err := h.get(&request.Feed)
+	if err != nil {
+		return nil, err
+	}
 	if entry == nil {
 		entry = &cacheEntry{}
-		h.set(&request.Feed, entry)
+		err := h.set(&request.Feed, entry)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// update our rsrcs entry map
@@ -347,20 +359,27 @@ func epocId(time uint64, level uint8) lookup.EpochID {
 }
 
 // Retrieves the feed update cache value for the given nameHash
-func (h *Handler) get(feed *Feed) *cacheEntry {
-	mapKey := feed.mapKey()
+func (h *Handler) get(feed *Feed) (*cacheEntry, error) {
+	mapKey, err := feed.mapKey()
+	if err != nil {
+		return nil, err
+	}
 	h.cacheLock.RLock()
 	defer h.cacheLock.RUnlock()
 	feedUpdate := h.cache[mapKey]
-	return feedUpdate
+	return feedUpdate, nil
 }
 
 // Sets the feed update cache value for the given feed
-func (h *Handler) set(feed *Feed, feedUpdate *cacheEntry) {
-	mapKey := feed.mapKey()
+func (h *Handler) set(feed *Feed, feedUpdate *cacheEntry) error {
+	mapKey, err := feed.mapKey()
+	if err != nil {
+		return err
+	}
 	h.cacheLock.Lock()
 	defer h.cacheLock.Unlock()
 	h.cache[mapKey] = feedUpdate
+	return nil
 }
 
 // toSignDigest creates a digest suitable for signing to represent the soc.

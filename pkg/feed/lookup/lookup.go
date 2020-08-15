@@ -22,6 +22,7 @@ package lookup
 
 import (
 	"context"
+	"sync"
 	"time"
 )
 
@@ -52,6 +53,7 @@ var Lookup Algorithm = LongEarthAlgorithm
 // This is here so that tests can replace it with
 // a mock up timer factory to simulate time deterministically
 var TimeAfter = time.After
+var TimeAfterMu = sync.RWMutex{}
 
 // ReadFunc is a handler called by Lookup each time it attempts to find a value
 // It should return <nil> if a value is not found

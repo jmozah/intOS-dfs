@@ -94,7 +94,7 @@ func (w *Wallet) decryptMnemonic(password string) (string, error) {
 	aesKey := sha256.Sum256([]byte(password))
 
 	//decrypt the message
-	mnemonic, err := decrypt(aesKey[:], string(w.encryptedmnemonic))
+	mnemonic, err := decrypt(aesKey[:], w.encryptedmnemonic)
 	if err != nil {
 		return "", err
 	}

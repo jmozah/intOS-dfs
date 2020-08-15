@@ -59,14 +59,6 @@ func NewDirectory(podName string, client blockstore.Client, fd *feed.API, acc *a
 	}
 }
 
-func (d *Directory) getPodName() string {
-	return d.podName
-}
-
-func (d *Directory) getClient() blockstore.Client {
-	return d.client
-}
-
 func (d *Directory) getFeed() *feed.API {
 	return d.fd
 }

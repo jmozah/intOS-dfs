@@ -55,20 +55,8 @@ func NewFile(podName string, client blockstore.Client, fd *feed.API, acc *accoun
 	}
 }
 
-func (f *File) getPodName() string {
-	return f.podName
-}
-
 func (f *File) getClient() blockstore.Client {
 	return f.client
-}
-
-func (f *File) getFeed() *feed.API {
-	return f.fd
-}
-
-func (f *File) getAccount() *account.AccountInfo {
-	return f.acc
 }
 
 func (f *File) AddToFileMap(filePath string, meta *m.FileMetaData) {

@@ -28,7 +28,6 @@ import (
 
 type Info struct {
 	podName         string
-	podId           int
 	dir             *d.Directory
 	file            *f.File
 	accountInfo     *account.AccountInfo
@@ -37,14 +36,6 @@ type Info struct {
 	curPodMu        sync.RWMutex
 	currentDirInode *d.DirInode
 	curDirMu        sync.RWMutex
-}
-
-func (i *Info) getPodName() string {
-	return i.podName
-}
-
-func (i *Info) getPodId() int {
-	return i.podId
 }
 
 func (i *Info) getDirectory() *d.Directory {

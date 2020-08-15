@@ -29,8 +29,7 @@ import (
 )
 
 const (
-	maxPodId           = 65535
-	defaultPodPassword = "password"
+	maxPodId = 65535
 )
 
 type Pod struct {

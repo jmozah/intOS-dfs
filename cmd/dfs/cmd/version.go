@@ -14,10 +14,35 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package cmd
 
-import "github.com/jmozah/intOS-dfs/cmd"
+import (
+	"fmt"
+	"github.com/spf13/cobra"
+)
 
-func main() {
-	cmd.Execute()
+var (
+	version    = "0.1.0"
+	commitHash string
+)
+
+// versionCmd shows the version of dfs
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "prints version",
+	Long:  `Shows the version of dfs.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println(showVersion())
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(versionCmd)
+}
+
+func showVersion() string {
+	if commitHash != "" {
+		return version + "-" + commitHash
+	}
+	return version + "-dev"
 }

@@ -61,14 +61,14 @@ func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo,
 		if err != nil {
 			if err == io.EOF {
 				if totalLength < uint64(fileInfo.Size()) {
-					return nil, fmt.Errorf("copyFromLocal: invalid file lenght of file data received")
+					return nil, fmt.Errorf("copyFromLocal: invalid file length of file data received")
 				}
 				break
 			} else {
 				return nil, fmt.Errorf("copyFromLocal: %w", err)
 			}
 		}
-		fmt.Print(fmt.Sprintf("uploading block-%05d, ", i))
+		fmt.Printf("uploading block-%05d, ", i)
 
 		addr, err := f.client.UploadBlob(data[:r])
 		if err != nil {

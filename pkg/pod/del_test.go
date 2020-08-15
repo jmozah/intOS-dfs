@@ -149,7 +149,7 @@ func TestDeleteNewPod(t *testing.T) {
 			t.Fatalf("pod directory not deleted from directory map")
 		}
 
-		infoGot, err = pod1.GetPodInfoFromPodMap(podName2)
+		_, err = pod1.GetPodInfoFromPodMap(podName2)
 		if err != nil {
 			t.Fatalf("removed wrong pod")
 		}

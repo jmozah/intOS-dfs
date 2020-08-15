@@ -23,26 +23,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"io"
-	"log"
 )
-
-func main() {
-	CIPHER_KEY := []byte("0123456789012345")
-	msg := "A quick brown fox jumped over the lazy dog."
-
-	if encrypted, err := encrypt(CIPHER_KEY, msg); err != nil {
-		log.Println(err)
-	} else {
-		log.Printf("CIPHER KEY: %s\n", string(CIPHER_KEY))
-		log.Printf("ENCRYPTED: %s\n", encrypted)
-
-		if decrypted, err := decrypt(CIPHER_KEY, encrypted); err != nil {
-			log.Println(err)
-		} else {
-			log.Printf("DECRYPTED: %s\n", decrypted)
-		}
-	}
-}
 
 func encrypt(key []byte, message string) (encmess string, err error) {
 	plainText := []byte(message)

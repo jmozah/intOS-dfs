@@ -242,7 +242,7 @@ func (a *Account) DeletePodAccount(accountId int) {
 
 func (a *Account) LoadEncryptedMnemonicFromDisk(passPhrase string) error {
 	if !a.IsAlreadyInitialized() {
-		return fmt.Errorf("dfs not initalised. use the \"init\" command to intialise the system")
+		return fmt.Errorf("dfs not initialised. use the \"init\" command to intialise the system")
 	}
 
 	encryptedMessage, err := ioutil.ReadFile(a.mnemonicFileName)

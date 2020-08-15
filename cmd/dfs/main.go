@@ -14,20 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package datapod
+package main
 
 import (
-	"github.com/jmozah/intOS-dfs/pkg/utils"
+	cmd2 "github.com/jmozah/intOS-dfs/cmd/dfs/cmd"
 )
 
-func (d *DirInode) IsDirInodeRoot() bool {
-	return d.Meta.Path == utils.PathSeperator
-}
-
-func (d *DirInode) GetDirInodePathAndNameForRoot() string {
-	return d.Meta.Path + d.Meta.Name
-}
-
-func (d *DirInode) GetDirInodePathAndName() string {
-	return d.Meta.Path + utils.PathSeperator + d.Meta.Name
+func main() {
+	cmd2.Execute()
 }

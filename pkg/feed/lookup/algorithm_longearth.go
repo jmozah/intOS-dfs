@@ -3,6 +3,7 @@ package lookup
 import (
 	"context"
 	"errors"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -43,6 +44,9 @@ func LongEarthAlgorithm(ctx context.Context, now uint64, hint Epoch, read ReadFu
 		stepID := atomic.AddInt32(&stepCounter, 1) // give an ID to this call instance
 		trace(stepID, "init: t=%d, last=%s", t, last.String())
 		var valueA, valueB, valueR interface{}
+		var valueAMu sync.RWMutex
+		var valueBMu sync.RWMutex
+		var valueRMu sync.RWMutex
 
 		// initialize the three read contexts
 		ctxR, cancelR := context.WithCancel(ctxS) // will handle the current read operation
@@ -53,11 +57,15 @@ func LongEarthAlgorithm(ctx context.Context, now uint64, hint Epoch, read ReadFu
 
 		// define the lookAhead function, which will follow the path as if R was successful
 		lookAhead := func() {
-			valueA = step(ctxA, t, epoch) // launch the next step, recursively.
-			if valueA != nil {            // if this path is successful, we don't need R or B.
+			valuea := step(ctxA, t, epoch) // launch the next step, recursively.
+			valueAMu.Lock()
+			valueA = valuea
+			valueAMu.Unlock()
+			if valuea != nil { // if this path is successful, we don't need R or B.
 				cancelB()
 				cancelR()
 			}
+
 		}
 
 		// define the lookBack function, which will follow the path as if R was unsuccessful
@@ -69,14 +77,20 @@ func LongEarthAlgorithm(ctx context.Context, now uint64, hint Epoch, read ReadFu
 			if base == 0 {
 				return
 			}
-			valueB = step(ctxB, base-1, last)
+			valueb := step(ctxB, base-1, last)
+			valueBMu.Lock()
+			valueB = valueb
+			valueBMu.Unlock()
 		}
 
 		go func() { //goroutine to read the current epoch (R)
 			defer cancelR()
 			var err error
-			valueR, err = read(ctxR, epoch, now) // read this epoch
-			if valueR == nil {                   // if unsuccessful, cancel lookahead, otherwise cancel lookback.
+			valuer, err := read(ctxR, epoch, now) // read this epoch
+			valueRMu.Lock()
+			valueR = valuer
+			valueRMu.Unlock()
+			if valuer == nil { // if unsuccessful, cancel lookahead, otherwise cancel lookback.
 				cancelA()
 			} else {
 				cancelB()
@@ -97,13 +111,15 @@ func LongEarthAlgorithm(ctx context.Context, now uint64, hint Epoch, read ReadFu
 			if epoch.Level == LowestLevel || epoch.Equals(last) {
 				return
 			}
-
 			// give a head start to R, or launch immediately if R finishes early enough
 			select {
 			case <-TimeAfter(LongEarthLookaheadDelay):
 				lookAhead()
 			case <-ctxR.Done():
-				if valueR != nil {
+				valueRMu.Lock()
+				valuer := valueR
+				valueRMu.Unlock()
+				if valuer != nil {
 					lookAhead() // only look ahead if R was successful
 				}
 			case <-ctxA.Done():
@@ -112,13 +128,15 @@ func LongEarthAlgorithm(ctx context.Context, now uint64, hint Epoch, read ReadFu
 
 		go func() { // goroutine to give a headstart to R and then launch lookback.
 			defer cancelB()
-
 			// give a head start to R, or launch immediately if R finishes early enough
 			select {
 			case <-TimeAfter(LongEarthLookbackDelay):
 				lookBack()
 			case <-ctxR.Done():
-				if valueR == nil {
+				valueRMu.Lock()
+				valuer := valueR
+				valueRMu.Unlock()
+				if valuer == nil {
 					lookBack() // only look back in case R failed
 				}
 			case <-ctxB.Done():
@@ -126,19 +144,29 @@ func LongEarthAlgorithm(ctx context.Context, now uint64, hint Epoch, read ReadFu
 		}()
 
 		<-ctxA.Done()
-		if valueA != nil {
-			trace(stepID, "Returning valueA=%v", valueA)
-			return valueA
+		valueAMu.Lock()
+		valuea := valueA
+		valueAMu.Unlock()
+		if valuea != nil {
+			trace(stepID, "Returning valueA=%v", valuea)
+			return valuea
 		}
 
 		<-ctxR.Done()
-		if valueR != nil {
-			trace(stepID, "Returning valueR=%v", valueR)
-			return valueR
+		valueRMu.Lock()
+		valuer := valueR
+		valueRMu.Unlock()
+		if valuer != nil {
+			trace(stepID, "Returning valueR=%v", valuer)
+			return valuer
 		}
+
 		<-ctxB.Done()
-		trace(stepID, "Returning valueB=%v", valueB)
-		return valueB
+		valueBMu.Lock()
+		valueb := valueB
+		valueBMu.Unlock()
+		trace(stepID, "Returning valueB=%v", valueb)
+		return valueb
 	}
 
 	var value interface{}
