@@ -37,7 +37,7 @@ var startCmd = &cobra.Command{
 	Long: `Serves all the dfs commands through an HTTP server so that the upper layers
 can consume it.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		handler = web.NewHandler()
+		handler = web.NewHandler(dataDir, beeHost, beePort)
 		startHttpService()
 	},
 }
@@ -56,30 +56,30 @@ func startHttpService() {
 	router.HandleFunc("/signup_page", handler.SignupPageHandler).Methods("POST")
 
 	router.HandleFunc("/user/signup", handler.UserSignupHandler).Methods("POST")
-	router.HandleFunc("/user/delete", handler.UserDeleteHandler).Methods("POST")
-	router.HandleFunc("/user/login", handler.UserLoginHandler).Methods("POST")
-	router.HandleFunc("/user/logout", handler.LogoutHandler).Methods("POST")
-	router.HandleFunc("/user/present", handler.UserPresentHandler).Methods("POST")
-	router.HandleFunc("/user/ls", handler.UserListHandler).Methods("POST")
-
-	router.HandleFunc("/pod/new", handler.PodCreateHandler).Methods("POST")
-	router.HandleFunc("/pod/delete", handler.PodDeleteHandler).Methods("POST")
-	router.HandleFunc("/pod/open", handler.PodOpenHandler).Methods("POST")
-	router.HandleFunc("/pod/close", handler.PodCloseHandler).Methods("POST")
-	router.HandleFunc("/pod/ls", handler.PodListHandler).Methods("POST")
-	router.HandleFunc("/pod/stat", handler.PodStatHandler).Methods("POST")
-	router.HandleFunc("/pod/sync", handler.PodSyncHandler).Methods("POST")
-
-	router.HandleFunc("/dir/mkdir", handler.MakeDirectoryHandler).Methods("POST")
-	router.HandleFunc("/dir/rmdir", handler.RemoveDirectoryHandler).Methods("POST")
-	router.HandleFunc("/dir/cd", handler.ChangeDirectoryHandler).Methods("POST")
-	router.HandleFunc("/dir/ls", handler.ListDirectoryHandler).Methods("POST")
-	router.HandleFunc("/dir/stat", handler.StatDirectoryHandler).Methods("POST")
-	router.HandleFunc("/dir/pwd", handler.CurrentDirectoryHandler).Methods("POST")
-
-	router.HandleFunc("/file/copyToLocal", handler.FileCopyToLocalHandler).Methods("POST")
-	router.HandleFunc("/file/copyFromLocal", handler.FileCopyFromLocalHandler).Methods("POST")
-	router.HandleFunc("/file/stat", handler.FileStatHandler).Methods("POST")
+	//router.HandleFunc("/user/delete", handler.UserDeleteHandler).Methods("POST")
+	//router.HandleFunc("/user/login", handler.UserLoginHandler).Methods("POST")
+	//router.HandleFunc("/user/logout", handler.LogoutHandler).Methods("POST")
+	//router.HandleFunc("/user/present", handler.UserPresentHandler).Methods("POST")
+	//router.HandleFunc("/user/ls", handler.UserListHandler).Methods("POST")
+	//
+	//router.HandleFunc("/pod/new", handler.PodCreateHandler).Methods("POST")
+	//router.HandleFunc("/pod/delete", handler.PodDeleteHandler).Methods("POST")
+	//router.HandleFunc("/pod/open", handler.PodOpenHandler).Methods("POST")
+	//router.HandleFunc("/pod/close", handler.PodCloseHandler).Methods("POST")
+	//router.HandleFunc("/pod/ls", handler.PodListHandler).Methods("POST")
+	//router.HandleFunc("/pod/stat", handler.PodStatHandler).Methods("POST")
+	//router.HandleFunc("/pod/sync", handler.PodSyncHandler).Methods("POST")
+	//
+	//router.HandleFunc("/dir/mkdir", handler.MakeDirectoryHandler).Methods("POST")
+	//router.HandleFunc("/dir/rmdir", handler.RemoveDirectoryHandler).Methods("POST")
+	//router.HandleFunc("/dir/cd", handler.ChangeDirectoryHandler).Methods("POST")
+	//router.HandleFunc("/dir/ls", handler.ListDirectoryHandler).Methods("POST")
+	//router.HandleFunc("/dir/stat", handler.StatDirectoryHandler).Methods("POST")
+	//router.HandleFunc("/dir/pwd", handler.CurrentDirectoryHandler).Methods("POST")
+	//
+	//router.HandleFunc("/file/copyToLocal", handler.FileCopyToLocalHandler).Methods("POST")
+	//router.HandleFunc("/file/copyFromLocal", handler.FileCopyFromLocalHandler).Methods("POST")
+	//router.HandleFunc("/file/stat", handler.FileStatHandler).Methods("POST")
 
 	http.Handle("/", router)
 

@@ -19,10 +19,25 @@ package web
 import (
 	"fmt"
 	"net/http"
+
+	"resenje.org/jsonhttp"
 )
 
-func (h *Handler) SignupHandler(w http.ResponseWriter, r *http.Request) {
+type SignupResponse struct {
+	Reference string `json:"reference"`
+	Mnemonic  string `json:"mnemonic"`
+}
+
+func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	password := r.FormValue("password")
-	fmt.Println("Signup: ", user, password)
+	reference, mnemonic, err := h.dfsAPI.CreateUser(user, password)
+	if err != nil {
+		fmt.Println("signup: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
+	jsonhttp.Created(w, &SignupResponse{
+		Reference: reference,
+		Mnemonic:  mnemonic,
+	})
 }

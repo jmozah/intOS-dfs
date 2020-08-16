@@ -25,5 +25,6 @@ func (h *Handler) LoginPageHandler(w http.ResponseWriter, r *http.Request) {
 	err := h.loginPageTmpl.Execute(w, nil)
 	if err != nil {
 		fmt.Println("login handler: ", err)
+		return
 	}
 }

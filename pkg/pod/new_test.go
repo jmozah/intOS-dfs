@@ -37,7 +37,7 @@ func TestPod_New(t *testing.T) {
 
 	mockClient := mock.NewMockBeeClient()
 	acc := account.New("user1", tempDir)
-	err = acc.CreateUserAccount("password")
+	_, err = acc.CreateUserAccount("password")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
 	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
-	github.com/btcsuite/btcd v0.20.1-beta
+	github.com/btcsuite/btcd v0.20.1-beta // indirect
 	github.com/c-bata/go-prompt v0.2.3
 	github.com/dustin/go-humanize v1.0.0
 	github.com/ethereum/go-ethereum v1.9.5
@@ -26,5 +26,6 @@ require (
 	github.com/vishvananda/netlink v1.0.0 // indirect
 	github.com/vishvananda/netns v0.0.0-20190625233234-7109fa855b0f // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	resenje.org/jsonhttp v0.2.0
 	resenje.org/jsonresponse v0.1.2 // indirect
 )

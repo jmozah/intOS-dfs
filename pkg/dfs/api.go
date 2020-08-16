@@ -44,7 +44,7 @@ func NewDfsAPI(dataDir, host, port string) *DfsAPI {
 //
 //  User related APIs
 //
-func (d *DfsAPI) CreateUser(userName string, passPhrase string) error {
+func (d *DfsAPI) CreateUser(userName string, passPhrase string) (string, string, error) {
 	return d.users.CreateNewUser(userName, passPhrase, d.dataDir, d.client)
 }
 

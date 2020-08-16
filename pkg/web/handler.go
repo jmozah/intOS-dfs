@@ -16,17 +16,23 @@ limitations under the License.
 
 package web
 
-import "html/template"
+import (
+	"html/template"
+
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
+)
 
 type Handler struct {
+	dfsAPI         *dfs.DfsAPI
 	indexTmpl      *template.Template
 	loginPageTmpl  *template.Template
 	signupPageTmpl *template.Template
 	errorTmpl      *template.Template
 }
 
-func NewHandler() *Handler {
+func NewHandler(dataDir string, beeHost string, beePort string) *Handler {
 	return &Handler{
+		dfsAPI:         dfs.NewDfsAPI(dataDir, beeHost, beePort),
 		indexTmpl:      template.Must(template.ParseFiles("pkg/web/template/index.html")),
 		loginPageTmpl:  template.Must(template.ParseFiles("pkg/web/template/login.html")),
 		signupPageTmpl: template.Must(template.ParseFiles("pkg/web/template/signup.html")),

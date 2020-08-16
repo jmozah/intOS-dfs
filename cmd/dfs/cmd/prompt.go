@@ -133,11 +133,18 @@ func executor(in string) {
 				return
 			}
 			userName := blocks[2]
-			err := dfsAPI.CreateUser(userName, "")
+			ref, mnemonic, err := dfsAPI.CreateUser(userName, "")
 			if err != nil {
 				fmt.Println("create user: ", err)
 				return
 			}
+			fmt.Println("user created with address ", ref)
+			fmt.Println("Please store the following 24 words safely")
+			fmt.Println("if you loose this, you cannot recover the data in-case of an emergency.")
+			fmt.Println("you can also use this mnemonic to access the data from another device")
+			fmt.Println("=============== Mnemonic ==========================")
+			fmt.Println(mnemonic)
+			fmt.Println("=============== Mnemonic ==========================")
 			currentUser = userName
 			currentPodInfo = nil
 			currentPrompt = getCurrentPrompt()

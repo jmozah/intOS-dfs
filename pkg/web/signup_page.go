@@ -25,5 +25,6 @@ func (h *Handler) SignupPageHandler(w http.ResponseWriter, r *http.Request) {
 	err := h.signupPageTmpl.Execute(w, nil)
 	if err != nil {
 		fmt.Println("signup handler: ", err)
+		return
 	}
 }
