@@ -17,12 +17,24 @@ limitations under the License.
 package web
 
 import (
-	"fmt"
 	"net/http"
+
+	"resenje.org/jsonhttp"
 )
 
-func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) PodDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
-	password := r.FormValue("password")
-	fmt.Println("Login: ", user, password)
+	pod := r.FormValue("pod")
+	if user == "" {
+		jsonhttp.BadRequest(w, "argument missing: user ")
+		return
+	}
+	if pod == "" {
+		jsonhttp.BadRequest(w, "argument missing: pod")
+		return
+	}
+
+	// TODO: delete pod
+
+	w.WriteHeader(http.StatusNoContent)
 }

@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,15 +17,32 @@ limitations under the License.
 package web
 
 import (
-	"github.com/jmozah/intOS-dfs/pkg/dfs"
+	"net/http"
+
+	"resenje.org/jsonhttp"
 )
 
-type Handler struct {
-	dfsAPI *dfs.DfsAPI
+type UserPresentResponse struct {
+	Present bool `json:"present"`
 }
 
-func NewHandler(dataDir, beeHost string, beePort string) *Handler {
-	return &Handler{
-		dfsAPI: dfs.NewDfsAPI(dataDir, beeHost, beePort),
+func (h *Handler) UserPresentHandler(w http.ResponseWriter, r *http.Request) {
+	user := r.FormValue("user")
+	if user == "" {
+		jsonhttp.BadRequest(w, "argument missing: user ")
+		return
 	}
+
+	// TODO: check if user is present
+
+	if user == mockAddress1 {
+		jsonhttp.OK(w, &UserPresentResponse{
+			Present: true,
+		})
+	} else {
+		jsonhttp.OK(w, &UserPresentResponse{
+			Present: false,
+		})
+	}
+
 }

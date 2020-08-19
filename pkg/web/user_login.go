@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,14 +17,24 @@ limitations under the License.
 package web
 
 import (
-	"fmt"
 	"net/http"
+
+	"resenje.org/jsonhttp"
 )
 
-func (h *Handler) LoginPageHandler(w http.ResponseWriter, r *http.Request) {
-	err := h.loginPageTmpl.Execute(w, nil)
-	if err != nil {
-		fmt.Println("login handler: ", err)
+func (h *Handler) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
+	user := r.FormValue("user")
+	password := r.FormValue("password")
+	if user == "" {
+		jsonhttp.BadRequest(w, "argument missing: user ")
 		return
 	}
+	if password == "" {
+		jsonhttp.BadRequest(w, "argument missing: password")
+		return
+	}
+
+	// TODO: login to the user account
+
+	jsonhttp.OK(w, nil)
 }

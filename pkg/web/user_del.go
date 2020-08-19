@@ -17,14 +17,24 @@ limitations under the License.
 package web
 
 import (
-	"fmt"
 	"net/http"
+
+	"resenje.org/jsonhttp"
 )
 
-func (h *Handler) SignupPageHandler(w http.ResponseWriter, r *http.Request) {
-	err := h.signupPageTmpl.Execute(w, nil)
-	if err != nil {
-		fmt.Println("signup handler: ", err)
+func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	user := r.FormValue("user")
+	password := r.FormValue("password")
+	if user == "" {
+		jsonhttp.BadRequest(w, "argument missing: user ")
 		return
 	}
+	if password == "" {
+		jsonhttp.BadRequest(w, "argument missing: password")
+		return
+	}
+
+	// TODO: delete the user
+
+	w.WriteHeader(http.StatusNoContent)
 }

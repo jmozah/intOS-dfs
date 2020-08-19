@@ -17,27 +17,32 @@ limitations under the License.
 package web
 
 import (
-	"fmt"
+	"math/rand"
 	"net/http"
 
 	"resenje.org/jsonhttp"
 )
 
-type SignupResponse struct {
-	Reference string `json:"reference"`
-	Mnemonic  string `json:"mnemonic"`
-}
-
-func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
-	password := r.FormValue("password")
-	reference, mnemonic, err := h.dfsAPI.CreateUser(user, password)
-	if err != nil {
-		fmt.Println("signup: %w", err)
-		jsonhttp.InternalServerError(w, err)
+	pod := r.FormValue("pod")
+	podFile := r.FormValue("file")
+	if user == "" {
+		jsonhttp.BadRequest(w, "argument missing: user ")
+		return
 	}
-	jsonhttp.Created(w, &SignupResponse{
-		Reference: reference,
-		Mnemonic:  mnemonic,
-	})
+	if pod == "" {
+		jsonhttp.BadRequest(w, "argument missing: pod")
+		return
+	}
+	if podFile == "" {
+		jsonhttp.BadRequest(w, "argument missing: filer")
+		return
+	}
+
+	// TODO: copy file from bee
+
+	data := make([]byte, 1024)
+	rand.Read(data)
+	jsonhttp.OK(w, &data)
 }
