@@ -30,7 +30,7 @@ type Handler struct {
 	errorTmpl      *template.Template
 }
 
-func NewHandler(dataDir string, beeHost string, beePort string) *Handler {
+func NewHandler(dataDir, beeHost string, beePort string) *Handler {
 	return &Handler{
 		dfsAPI:         dfs.NewDfsAPI(dataDir, beeHost, beePort),
 		indexTmpl:      template.Must(template.ParseFiles("pkg/web/template/index.html")),

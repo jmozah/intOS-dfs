@@ -27,7 +27,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
-func (u *Users) CreateNewUser(userName string, passPhrase string, dataDir string, client blockstore.Client) (string, string, error) {
+func (u *Users) CreateNewUser(userName, passPhrase, dataDir string, client blockstore.Client) (string, string, error) {
 	if u.IsUsernameAvailable(userName, dataDir) {
 		return "", "", fmt.Errorf("user create: user name already present")
 	}

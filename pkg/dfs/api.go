@@ -44,11 +44,11 @@ func NewDfsAPI(dataDir, host, port string) *DfsAPI {
 //
 //  User related APIs
 //
-func (d *DfsAPI) CreateUser(userName string, passPhrase string) (string, string, error) {
+func (d *DfsAPI) CreateUser(userName, passPhrase string) (string, string, error) {
 	return d.users.CreateNewUser(userName, passPhrase, d.dataDir, d.client)
 }
 
-func (d *DfsAPI) LoginUser(userName string, passPhrase string) error {
+func (d *DfsAPI) LoginUser(userName, passPhrase string) error {
 	return d.users.LoginUser(userName, passPhrase, d.dataDir, d.client)
 }
 
