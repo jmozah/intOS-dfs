@@ -17,6 +17,7 @@ limitations under the License.
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -26,15 +27,20 @@ func (h *Handler) PodDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
 	if user == "" {
-		jsonhttp.BadRequest(w, "argument missing: user ")
+		jsonhttp.BadRequest(w, "delete pod: \"user\" argument missing")
 		return
 	}
 	if pod == "" {
-		jsonhttp.BadRequest(w, "argument missing: pod")
+		jsonhttp.BadRequest(w, "delete pod: \"pod\" argument missing")
 		return
 	}
 
-	// TODO: delete pod
+	// delete pod
+	err := h.dfsAPI.DeletePod(user, pod)
+	if err != nil {
+		fmt.Println("delete pod: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
 
 	w.WriteHeader(http.StatusNoContent)
 }

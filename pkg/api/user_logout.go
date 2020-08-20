@@ -26,7 +26,7 @@ import (
 func (h *Handler) UserLogoutHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	if user == "" {
-		jsonhttp.BadRequest(w, "argument missing: user ")
+		jsonhttp.BadRequest(w, "logout: \"user\" argument missing")
 		return
 	}
 

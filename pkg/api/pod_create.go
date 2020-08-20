@@ -17,6 +17,7 @@ limitations under the License.
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -28,19 +29,27 @@ type PodCreateResponse struct {
 
 func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
+	password := r.FormValue("password")
 	pod := r.FormValue("pod")
 	if user == "" {
-		jsonhttp.BadRequest(w, "argument missing: user ")
+		jsonhttp.BadRequest(w, "create pod: \"user\" argument missing")
+		return
+	}
+	if password == "" {
+		jsonhttp.BadRequest(w, "create pod: \"password\" argument missing")
 		return
 	}
 	if pod == "" {
-		jsonhttp.BadRequest(w, "argument missing: pod")
+		jsonhttp.BadRequest(w, "create pod: \"pod\" argument missing")
 		return
 	}
 
-	// TODO: create pod
+	// create pod
+	_, err := h.dfsAPI.CreatePod(user, pod, password)
+	if err != nil {
+		fmt.Println("create pod: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
 
-	jsonhttp.Created(w, &PodCreateResponse{
-		Reference: mockAddress3,
-	})
+	jsonhttp.Created(w, nil)
 }

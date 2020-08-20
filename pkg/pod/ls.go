@@ -18,16 +18,23 @@ package pod
 
 import "fmt"
 
-func (p *Pod) ListPods() error {
+func (p *Pod) ListPods(print bool) ([]string, error) {
 	pods, err := p.loadUserPods()
 	if err != nil {
-		return fmt.Errorf("list pods: %w", err)
+		return nil, fmt.Errorf("list pods: %w", err)
 	}
+
+	var listPods []string
 	for _, pod := range pods {
-		fmt.Print("Pod: ", pod)
+		if print {
+			fmt.Print("Pod: ", pod)
+		}
+		listPods = append(listPods, pod)
 	}
-	fmt.Println("")
-	return nil
+	if print {
+		fmt.Println("")
+	}
+	return listPods, nil
 }
 
 func (p *Pod) ListEntiesInDir(podName string) ([]string, error) {

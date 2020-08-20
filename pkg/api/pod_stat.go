@@ -17,6 +17,7 @@ limitations under the License.
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -35,22 +36,27 @@ func (h *Handler) PodStatHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
 	if user == "" {
-		jsonhttp.BadRequest(w, "argument missing: user ")
+		jsonhttp.BadRequest(w, "stat pod: \"user\" argument missing")
 		return
 	}
 	if pod == "" {
-		jsonhttp.BadRequest(w, "argument missing: pod")
+		jsonhttp.BadRequest(w, "stat pod: \"pod\" argument missing")
 		return
 	}
 
-	// TODO: fetch pod stat
+	// fetch pod stat
+	stat, err := h.dfsAPI.PodStat(user, pod)
+	if err != nil {
+		fmt.Println("stat pod: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
 
 	jsonhttp.OK(w, &PodStatResponse{
-		Version:          "1",
-		PodName:          pod,
-		PodPath:          "/",
-		CreationTime:     "2006-01-02 15:04:05.999999999 +05:30 UTC",
-		AccessTime:       "2006-01-02 15:04:05.999999999 +05:30 UTC",
-		ModificationTime: "2006-01-02 15:04:05.999999999 +05:30 UTC",
+		Version:          stat.Version,
+		PodName:          stat.PodName,
+		PodPath:          stat.PodPath,
+		CreationTime:     stat.CreationTime,
+		AccessTime:       stat.AccessTime,
+		ModificationTime: stat.ModificationTime,
 	})
 }

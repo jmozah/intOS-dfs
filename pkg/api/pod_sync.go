@@ -17,6 +17,7 @@ limitations under the License.
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -26,15 +27,20 @@ func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
 	if user == "" {
-		jsonhttp.BadRequest(w, "argument missing: user ")
+		jsonhttp.BadRequest(w, "sync pod: \"user\" argument missing")
 		return
 	}
 	if pod == "" {
-		jsonhttp.BadRequest(w, "argument missing: pod")
+		jsonhttp.BadRequest(w, "sync pod: \"pod\" argument missing")
 		return
 	}
 
-	// TODO: fetch pods and list them
+	// fetch pods and list them
+	err := h.dfsAPI.SyncPod(user, pod)
+	if err != nil {
+		fmt.Println("sync pod: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
 
 	jsonhttp.OK(w, nil)
 }

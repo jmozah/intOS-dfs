@@ -17,6 +17,7 @@ limitations under the License.
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -29,13 +30,18 @@ type PodListResponse struct {
 func (h *Handler) PodListHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	if user == "" {
-		jsonhttp.BadRequest(w, "argument missing: user ")
+		jsonhttp.BadRequest(w, "ls pod: \"user\" argument missing")
 		return
 	}
 
-	// TODO: fetch pods and list them
+	// fetch pods and list them
+	pods, err := h.dfsAPI.ListPods(user, false)
+	if err != nil {
+		fmt.Println("ls pod: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
 
 	jsonhttp.OK(w, &PodListResponse{
-		Pods: []string{"pod1", "pod2", "pod3"},
+		Pods: pods,
 	})
 }

@@ -161,19 +161,19 @@ func (d *DfsAPI) SyncPod(userName string, podName string) error {
 	return nil
 }
 
-func (d *DfsAPI) ListPods(userName string) error {
+func (d *DfsAPI) ListPods(userName string, print bool) ([]string, error) {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return fmt.Errorf("sync pod: login as a user to execute this command")
+		return nil, fmt.Errorf("sync pod: login as a user to execute this command")
 	}
 
 	// list pods of a user
-	err := ui.GetPod().ListPods()
+	pods, err := ui.GetPod().ListPods(print)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return pods, nil
 }
 
 //

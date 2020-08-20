@@ -27,11 +27,11 @@ func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	password := r.FormValue("password")
 	if user == "" {
-		jsonhttp.BadRequest(w, "argument missing: user ")
+		jsonhttp.BadRequest(w, "delete: \"user\" argument missing")
 		return
 	}
 	if password == "" {
-		jsonhttp.BadRequest(w, "argument missing: password")
+		jsonhttp.BadRequest(w, "delete: \"password\" argument missing")
 		return
 	}
 
