@@ -32,7 +32,7 @@ func (p *Pod) CopyFromLocal(podName string, localFile string, podDir string, blo
 		return fmt.Errorf("copyFromLocal: login to pod to do this operation")
 	}
 
-	if len(localFile) > utils.FileNameLength {
+	if len(filepath.Base(localFile)) > utils.FileNameLength {
 		return fmt.Errorf("copyFromLocal: file Name length is > %v", utils.FileNameLength)
 	}
 
