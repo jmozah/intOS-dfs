@@ -34,9 +34,9 @@ const (
 	AddressLength       = 20
 	SignatureLength     = 65
 	MaxChunkLength      = 4096
-	FileNameLength      = 25
-	DirectoryNameLength = 25
-	PodNameLength       = 25
+	FileNameLength      = 50
+	DirectoryNameLength = 50
+	PodNameLength       = 50
 	SHA3Hash            = "SHA3"
 	DefaultRoot         = "dfs_root"
 	PodsInfoFile        = "dfs_pods_info"
