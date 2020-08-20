@@ -56,8 +56,8 @@ func (d *DfsAPI) LogoutUser(userName string) error {
 	return d.users.LogoutUser(userName, d.dataDir)
 }
 
-func (d *DfsAPI) DeleteUser(userName string) error {
-	return d.users.DeleteUser(userName, d.dataDir)
+func (d *DfsAPI) DeleteUser(userName, passPhrase string) error {
+	return d.users.DeleteUser(userName, d.dataDir, passPhrase)
 }
 
 func (d *DfsAPI) IsUserNameAvailable(userName string) bool {

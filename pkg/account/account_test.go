@@ -49,8 +49,8 @@ func TestAccount_CreateRootAccount(t *testing.T) {
 	}
 
 	words := strings.Split(plainMnemonic, " ")
-	if len(words) != 24 {
-		t.Fatal("mnemonic is not 24 words")
+	if len(words) != 12 {
+		t.Fatal("mnemonic is not 12 words")
 	}
 
 	if !acc.IsAlreadyInitialized() {

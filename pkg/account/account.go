@@ -115,7 +115,7 @@ func (a *Account) CreateUserAccount(passPhrase string) (string, error) {
 	}
 
 	if passPhrase == "" {
-		fmt.Println("Please store the following 24 words safely")
+		fmt.Println("Please store the following 12 words safely")
 		fmt.Println("if can use this to import the wallet in another machine")
 		fmt.Println("=============== Mnemonic ==========================")
 		fmt.Println(mnemonic)
@@ -194,6 +194,22 @@ func (a *Account) LoadUserAccount(passPhrase string) error {
 	return nil
 }
 
+func (a *Account) Authorise(password string) bool {
+	if password == "" {
+		fmt.Print("Enter user password to create a pod: ")
+		password = a.getPassword()
+	}
+	plainMnemonic, err := a.wallet.decryptMnemonic(password)
+	if err != nil {
+		return false
+	}
+	words := strings.Split(plainMnemonic, " ")
+	if len(words) != 12 {
+		return false
+	}
+	return true
+}
+
 func (a *Account) CreatePodAccount(accountId int, passPhrase string) error {
 	if !a.IsAlreadyInitialized() {
 		return fmt.Errorf("user not created")
@@ -246,6 +262,8 @@ func (a *Account) CreatePodAccount(accountId int, passPhrase string) error {
 func (a *Account) DeletePodAccount(accountId int) {
 	delete(a.podAccounts, accountId)
 }
+
+
 
 func (a *Account) LoadEncryptedMnemonicFromDisk(passPhrase string) error {
 	if !a.IsAlreadyInitialized() {

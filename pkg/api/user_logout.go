@@ -17,6 +17,7 @@ limitations under the License.
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -29,7 +30,12 @@ func (h *Handler) UserLogoutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: logout user
+	// logout user
+	err := h.dfsAPI.LogoutUser(user)
+	if err != nil {
+		fmt.Println("logout: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
 
 	jsonhttp.OK(w, nil)
 }

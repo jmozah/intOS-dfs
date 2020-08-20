@@ -23,7 +23,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/account"
 )
 
-func (u *Users) DeleteUser(userName string, dataDir string) error {
+func (u *Users) DeleteUser(userName string, dataDir string, password string) error {
 
 	// Logout user
 	if u.IsUserLoggedIn(userName) {
@@ -33,6 +33,12 @@ func (u *Users) DeleteUser(userName string, dataDir string) error {
 	// remove the user key if it is present
 	if !u.IsUsernameAvailable(userName, dataDir) {
 		return fmt.Errorf("user del: user name not present")
+	}
+
+	userInfo := u.getUserFromMap(userName)
+	acc := userInfo.account
+	if !acc.Authorise(password) {
+		return fmt.Errorf("user del: invalid password")
 	}
 
 	userKeyFileName := account.ConstructUserKeyFile(userName, dataDir)

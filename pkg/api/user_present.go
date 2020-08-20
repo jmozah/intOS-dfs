@@ -33,9 +33,8 @@ func (h *Handler) UserPresentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: check if user is present
-
-	if user == mockAddress1 {
+	// check if user is present
+	if h.dfsAPI.IsUserNameAvailable(user) {
 		jsonhttp.OK(w, &UserPresentResponse{
 			Present: true,
 		})
@@ -44,5 +43,4 @@ func (h *Handler) UserPresentHandler(w http.ResponseWriter, r *http.Request) {
 			Present: false,
 		})
 	}
-
 }

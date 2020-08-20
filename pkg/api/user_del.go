@@ -17,6 +17,7 @@ limitations under the License.
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -34,7 +35,11 @@ func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: delete the user
-
+	// delete user
+	err := h.dfsAPI.DeleteUser(user, password)
+	if err != nil {
+		fmt.Println("delete: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
 	w.WriteHeader(http.StatusNoContent)
 }

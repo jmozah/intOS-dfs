@@ -17,6 +17,7 @@ limitations under the License.
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -31,22 +32,24 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	password := r.FormValue("password")
 	if user == "" {
-		jsonhttp.BadRequest(w, "argument missing: user ")
+		jsonhttp.BadRequest(w, "signup: \"user\" argument missing")
 		return
 	}
 	if password == "" {
-		jsonhttp.BadRequest(w, "argument missing: password")
+		jsonhttp.BadRequest(w, "signup: \"password\" argument missing")
 		return
 	}
 
-	// TODO: create user
-	//reference, mnemonic, err := h.dfsAPI.CreateUser(user, password)
-	//if err != nil {
-	//	fmt.Println("signup: %w", err)
-	//	jsonhttp.InternalServerError(w, err)
-	//}
+	// create user
+	reference, mnemonic, err := h.dfsAPI.CreateUser(user, password)
+	if err != nil {
+		fmt.Println("signup: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
+
+	// sed the response
 	jsonhttp.Created(w, &UserSignupResponse{
-		Reference: mockAddress1,
-		Mnemonic:  mockMnemonic,
+		Reference: reference,
+		Mnemonic:  mnemonic,
 	})
 }
