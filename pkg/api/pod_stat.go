@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package web
+package api
 
 import (
 	"net/http"
@@ -22,7 +22,16 @@ import (
 	"resenje.org/jsonhttp"
 )
 
-func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
+type PodStatResponse struct {
+	Version          string `json:"version"`
+	PodName          string `json:"name"`
+	PodPath          string `json:"path"`
+	CreationTime     string `json:"cTime"`
+	AccessTime       string `json:"aTime"`
+	ModificationTime string `json:"mTime"`
+}
+
+func (h *Handler) PodStatHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
 	if user == "" {
@@ -34,7 +43,14 @@ func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: fetch pods and list them
+	// TODO: fetch pod stat
 
-	jsonhttp.OK(w, nil)
+	jsonhttp.OK(w, &PodStatResponse{
+		Version:          "1",
+		PodName:          pod,
+		PodPath:          "/",
+		CreationTime:     "2006-01-02 15:04:05.999999999 +05:30 UTC",
+		AccessTime:       "2006-01-02 15:04:05.999999999 +05:30 UTC",
+		ModificationTime: "2006-01-02 15:04:05.999999999 +05:30 UTC",
+	})
 }

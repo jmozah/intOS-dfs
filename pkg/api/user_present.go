@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package web
+package api
 
 import (
 	"net/http"
@@ -22,32 +22,27 @@ import (
 	"resenje.org/jsonhttp"
 )
 
-type ListFileResponse struct {
-	Files       []string `json:"files"`
-	Directories []string `json:"directories"`
+type UserPresentResponse struct {
+	Present bool `json:"present"`
 }
 
-func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UserPresentHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
-	pod := r.FormValue("pod")
-	dir := r.FormValue("dir")
 	if user == "" {
 		jsonhttp.BadRequest(w, "argument missing: user ")
 		return
 	}
-	if pod == "" {
-		jsonhttp.BadRequest(w, "argument missing: pod")
-		return
-	}
-	if dir == "" {
-		jsonhttp.BadRequest(w, "argument missing: dir")
-		return
+
+	// TODO: check if user is present
+
+	if user == mockAddress1 {
+		jsonhttp.OK(w, &UserPresentResponse{
+			Present: true,
+		})
+	} else {
+		jsonhttp.OK(w, &UserPresentResponse{
+			Present: false,
+		})
 	}
 
-	// TODO: list directory
-
-	jsonhttp.OK(w, &ListFileResponse{
-		Files:       []string{"file1", "file2", "file3"},
-		Directories: []string{"dir1", "dir2", "dir3"},
-	})
 }

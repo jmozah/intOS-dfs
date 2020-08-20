@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package web
+package api
 
 import (
 	"net/http"
@@ -22,12 +22,7 @@ import (
 	"resenje.org/jsonhttp"
 )
 
-type UserSignupResponse struct {
-	Reference string `json:"reference"`
-	Mnemonic  string `json:"mnemonic"`
-}
-
-func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	password := r.FormValue("password")
 	if user == "" {
@@ -39,14 +34,7 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: create user
-	//reference, mnemonic, err := h.dfsAPI.CreateUser(user, password)
-	//if err != nil {
-	//	fmt.Println("signup: %w", err)
-	//	jsonhttp.InternalServerError(w, err)
-	//}
-	jsonhttp.Created(w, &UserSignupResponse{
-		Reference: mockAddress1,
-		Mnemonic:  mockMnemonic,
-	})
+	// TODO: delete the user
+
+	w.WriteHeader(http.StatusNoContent)
 }

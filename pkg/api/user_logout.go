@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package web
+package api
 
 import (
 	"net/http"
@@ -22,19 +22,14 @@ import (
 	"resenje.org/jsonhttp"
 )
 
-func (h *Handler) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UserLogoutHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
-	password := r.FormValue("password")
 	if user == "" {
 		jsonhttp.BadRequest(w, "argument missing: user ")
 		return
 	}
-	if password == "" {
-		jsonhttp.BadRequest(w, "argument missing: password")
-		return
-	}
 
-	// TODO: login to the user account
+	// TODO: logout user
 
 	jsonhttp.OK(w, nil)
 }

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package web
+package api
 
 import (
 	"net/http"
@@ -22,19 +22,25 @@ import (
 	"resenje.org/jsonhttp"
 )
 
-func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
+type PodCreateResponse struct {
+	Reference string `json:"reference"`
+}
+
+func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
-	password := r.FormValue("password")
+	pod := r.FormValue("pod")
 	if user == "" {
 		jsonhttp.BadRequest(w, "argument missing: user ")
 		return
 	}
-	if password == "" {
-		jsonhttp.BadRequest(w, "argument missing: password")
+	if pod == "" {
+		jsonhttp.BadRequest(w, "argument missing: pod")
 		return
 	}
 
-	// TODO: delete the user
+	// TODO: create pod
 
-	w.WriteHeader(http.StatusNoContent)
+	jsonhttp.Created(w, &PodCreateResponse{
+		Reference: mockAddress3,
+	})
 }

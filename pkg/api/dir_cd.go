@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package web
+package api
 
 import (
 	"net/http"
@@ -22,14 +22,32 @@ import (
 	"resenje.org/jsonhttp"
 )
 
-func (h *Handler) UserLogoutHandler(w http.ResponseWriter, r *http.Request) {
+type CurrentDirResponse struct {
+	Pod     string `json:"pod"`
+	CurrDir string `json:"dir"`
+}
+
+func (h *Handler) DirectoryCdHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
+	pod := r.FormValue("pod")
+	dir := r.FormValue("dir")
 	if user == "" {
 		jsonhttp.BadRequest(w, "argument missing: user ")
 		return
 	}
+	if pod == "" {
+		jsonhttp.BadRequest(w, "argument missing: pod")
+		return
+	}
+	if dir == "" {
+		jsonhttp.BadRequest(w, "argument missing: dir")
+		return
+	}
 
-	// TODO: logout user
+	// TODO: change directory
 
-	jsonhttp.OK(w, nil)
+	jsonhttp.OK(w, &CurrentDirResponse{
+		Pod:     "pod1",
+		CurrDir: "/d1/d2",
+	})
 }

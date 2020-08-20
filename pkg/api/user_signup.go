@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package web
+package api
 
 import (
 	"net/http"
@@ -22,32 +22,31 @@ import (
 	"resenje.org/jsonhttp"
 )
 
-type CurrentDirResponse struct {
-	Pod     string `json:"pod"`
-	CurrDir string `json:"dir"`
+type UserSignupResponse struct {
+	Reference string `json:"reference"`
+	Mnemonic  string `json:"mnemonic"`
 }
 
-func (h *Handler) DirectoryCdHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
-	pod := r.FormValue("pod")
-	dir := r.FormValue("dir")
+	password := r.FormValue("password")
 	if user == "" {
 		jsonhttp.BadRequest(w, "argument missing: user ")
 		return
 	}
-	if pod == "" {
-		jsonhttp.BadRequest(w, "argument missing: pod")
-		return
-	}
-	if dir == "" {
-		jsonhttp.BadRequest(w, "argument missing: dir")
+	if password == "" {
+		jsonhttp.BadRequest(w, "argument missing: password")
 		return
 	}
 
-	// TODO: change directory
-
-	jsonhttp.OK(w, &CurrentDirResponse{
-		Pod:     "pod1",
-		CurrDir: "/d1/d2",
+	// TODO: create user
+	//reference, mnemonic, err := h.dfsAPI.CreateUser(user, password)
+	//if err != nil {
+	//	fmt.Println("signup: %w", err)
+	//	jsonhttp.InternalServerError(w, err)
+	//}
+	jsonhttp.Created(w, &UserSignupResponse{
+		Reference: mockAddress1,
+		Mnemonic:  mockMnemonic,
 	})
 }

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package web
+package api
 
 import (
 	"net/http"
@@ -22,11 +22,7 @@ import (
 	"resenje.org/jsonhttp"
 )
 
-type PodCreateResponse struct {
-	Reference string `json:"reference"`
-}
-
-func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
 	if user == "" {
@@ -38,9 +34,7 @@ func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: create pod
+	// TODO: fetch pods and list them
 
-	jsonhttp.Created(w, &PodCreateResponse{
-		Reference: mockAddress3,
-	})
+	jsonhttp.OK(w, nil)
 }

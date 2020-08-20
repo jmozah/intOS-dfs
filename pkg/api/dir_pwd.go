@@ -14,19 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package web
+package api
 
 import (
-	"math/rand"
 	"net/http"
 
 	"resenje.org/jsonhttp"
 )
 
-func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
+type PwdResponse struct {
+	Pwd string `json:"reference"`
+}
+
+func (h *Handler) DirectoryPwdHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
-	podFile := r.FormValue("file")
 	if user == "" {
 		jsonhttp.BadRequest(w, "argument missing: user ")
 		return
@@ -35,14 +37,10 @@ func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		jsonhttp.BadRequest(w, "argument missing: pod")
 		return
 	}
-	if podFile == "" {
-		jsonhttp.BadRequest(w, "argument missing: filer")
-		return
-	}
 
-	// TODO: copy file from bee
+	// TODO: get pwd
 
-	data := make([]byte, 1024)
-	rand.Read(data)
-	jsonhttp.OK(w, &data)
+	jsonhttp.OK(w, &PwdResponse{
+		Pwd: "/d1",
+	})
 }

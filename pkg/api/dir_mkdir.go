@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package web
+package api
 
 import (
 	"net/http"
@@ -22,20 +22,30 @@ import (
 	"resenje.org/jsonhttp"
 )
 
-type PodListResponse struct {
-	Pods []string `json:"name"`
+type MkdirResponse struct {
+	Reference string `json:"reference"`
 }
 
-func (h *Handler) PodListHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
+	pod := r.FormValue("pod")
+	dir := r.FormValue("dir")
 	if user == "" {
 		jsonhttp.BadRequest(w, "argument missing: user ")
 		return
 	}
+	if pod == "" {
+		jsonhttp.BadRequest(w, "argument missing: pod")
+		return
+	}
+	if dir == "" {
+		jsonhttp.BadRequest(w, "argument missing: dir")
+		return
+	}
 
-	// TODO: fetch pods and list them
+	// TODO: make directory
 
-	jsonhttp.OK(w, &PodListResponse{
-		Pods: []string{"pod1", "pod2", "pod3"},
+	jsonhttp.Created(w, &MkdirResponse{
+		Reference: mockAddress2,
 	})
 }

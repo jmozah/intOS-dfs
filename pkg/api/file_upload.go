@@ -14,21 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package web
+package api
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	"resenje.org/jsonhttp"
 )
 
-type PwdResponse struct {
-	Pwd string `json:"reference"`
-}
-
-func (h *Handler) DirectoryPwdHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
+	podDir := r.FormValue("pod_dir")
+	blockSize := r.FormValue("block_size")
 	if user == "" {
 		jsonhttp.BadRequest(w, "argument missing: user ")
 		return
@@ -37,10 +36,21 @@ func (h *Handler) DirectoryPwdHandler(w http.ResponseWriter, r *http.Request) {
 		jsonhttp.BadRequest(w, "argument missing: pod")
 		return
 	}
+	if podDir == "" {
+		jsonhttp.BadRequest(w, "argument missing: pod_dir")
+		return
+	}
+	if blockSize == "" {
+		jsonhttp.BadRequest(w, "argument missing: block_size")
+		return
+	}
+	_, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		jsonhttp.BadRequest(w, "missing body")
+		return
+	}
 
-	// TODO: get pwd
+	// TODO: copy file to bee
 
-	jsonhttp.OK(w, &PwdResponse{
-		Pwd: "/d1",
-	})
+	jsonhttp.OK(w, nil)
 }

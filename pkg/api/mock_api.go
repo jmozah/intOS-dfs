@@ -1,4 +1,4 @@
-package web
+package api
 
 const (
 	mockAddress1 = "0x7411eE559041AEAf847626e14Dee5436106d1aCe"
