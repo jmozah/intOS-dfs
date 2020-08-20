@@ -33,10 +33,6 @@ func (p *Pod) MakeDir(podName string, dirName string) error {
 		return fmt.Errorf("mkdir: error cleaning directory Name")
 	}
 
-	if len(directoryName) > utils.DirectoryNameLength {
-		return fmt.Errorf("mkdir: directory Name length is > %v", utils.DirectoryNameLength)
-	}
-
 	if !p.isLoggedInToPod(podName) {
 		return fmt.Errorf("mkdir: login to pod to do this operation")
 	}
@@ -55,6 +51,11 @@ func (p *Pod) MakeDir(podName string, dirName string) error {
 	addToPod := false
 
 	dirs := strings.Split(directoryName, utils.PathSeperator)
+	for _, dirName := range dirs {
+		if len(dirName) > utils.DirectoryNameLength {
+			return fmt.Errorf("mkdir: directory Name length is > %v", utils.DirectoryNameLength)
+		}
+	}
 
 	// ex: mkdir make/all/this/dir
 	if len(dirs) > 1 {
