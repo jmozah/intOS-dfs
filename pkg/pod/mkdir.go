@@ -33,8 +33,6 @@ func (p *Pod) MakeDir(podName string, dirName string) error {
 		return fmt.Errorf("mkdir: error cleaning directory Name")
 	}
 
-
-
 	if !p.isLoggedInToPod(podName) {
 		return fmt.Errorf("mkdir: login to pod to do this operation")
 	}
