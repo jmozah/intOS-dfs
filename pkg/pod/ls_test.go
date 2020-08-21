@@ -48,7 +48,7 @@ func TestPod_ListPods(t *testing.T) {
 	podName2 := "test2"
 
 	t.Run("list-without-pods", func(t *testing.T) {
-		err = pod1.ListPods()
+		_, err = pod1.ListPods()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -64,9 +64,16 @@ func TestPod_ListPods(t *testing.T) {
 			t.Fatalf("error creating pod %s", podName1)
 		}
 
-		err = pod1.ListPods()
+		pods, err := pod1.ListPods()
 		if err != nil {
 			t.Fatal(err)
+		}
+
+		if pods[0] != podName1 || pods[1] != podName1 {
+			t.Fatalf("pod not found")
+		}
+		if pods[0] != podName2 || pods[1] != podName2 {
+			t.Fatalf("pod not found")
 		}
 	})
 }

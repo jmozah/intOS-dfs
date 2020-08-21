@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package datapod
+package dir
 
 import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"

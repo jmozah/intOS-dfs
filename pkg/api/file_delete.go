@@ -23,39 +23,29 @@ import (
 	"resenje.org/jsonhttp"
 )
 
-type FileStatResponse struct {
-	Blocks []BlockInfo
-}
-
-type BlockInfo struct {
-	Name      string `json:"name"`
-	Reference string `json:"reference"`
-	Size      string `json:"size"`
-}
-
-func (h *Handler) FileStatHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
-	podFile := r.FormValue("file")
+	podFile := r.FormValue("pod_file")
 	if user == "" {
-		jsonhttp.BadRequest(w, "stat: \"user\" argument missing")
+		jsonhttp.BadRequest(w, "delete: \"user\" argument missing")
 		return
 	}
 	if pod == "" {
-		jsonhttp.BadRequest(w, "stat: \"pod\" argument missing")
+		jsonhttp.BadRequest(w, "delete: \"pod\" argument missing")
 		return
 	}
 	if podFile == "" {
-		jsonhttp.BadRequest(w, "upload: \"file\" argument missing")
+		jsonhttp.BadRequest(w, "delete: \"path_in_pod\" argument missing")
 		return
 	}
 
-	// get file stat
-	stat, err := h.dfsAPI.FileStat(user, pod, podFile)
+	// delete file
+	err := h.dfsAPI.DeleteFile(user, pod, podFile)
 	if err != nil {
-		fmt.Println("file stat: %w", err)
+		fmt.Println("delete: %w", err)
 		jsonhttp.InternalServerError(w, err)
 	}
 
-	jsonhttp.OK(w, stat)
+	w.WriteHeader(http.StatusNoContent)
 }

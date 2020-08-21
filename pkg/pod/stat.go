@@ -22,7 +22,8 @@ import (
 	"time"
 
 	"github.com/ethersphere/bee/pkg/swarm"
-	datapod "github.com/jmozah/intOS-dfs/pkg/dir"
+	"github.com/jmozah/intOS-dfs/pkg/dir"
+	"github.com/jmozah/intOS-dfs/pkg/file"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
@@ -51,7 +52,7 @@ func (p *Pod) PodStat(podName string) (*PodStat, error) {
 	}, nil
 }
 
-func (p *Pod) DirectoryStat(podName, podFileOrDir string) (*datapod.DirStats, error) {
+func (p *Pod) DirectoryStat(podName, podFileOrDir string) (*dir.DirStats, error) {
 	if !p.isLoggedInToPod(podName) {
 		return nil, fmt.Errorf("login to pod to do this operation")
 	}
@@ -78,7 +79,7 @@ func (p *Pod) DirectoryStat(podName, podFileOrDir string) (*datapod.DirStats, er
 	return nil, fmt.Errorf("directory not found")
 }
 
-func (p *Pod) FileStat(podName, podFileOrDir string, print bool) (*datapod.FileStats, error) {
+func (p *Pod) FileStat(podName, podFileOrDir string) (*file.FileStats, error) {
 	if !p.isLoggedInToPod(podName) {
 		return nil, fmt.Errorf("login to pod to do this operation")
 	}
@@ -95,5 +96,5 @@ func (p *Pod) FileStat(podName, podFileOrDir string, print bool) (*datapod.FileS
 	if !info.file.IsFileAlreadyPResent(path) {
 		return nil, fmt.Errorf("file not present in pod")
 	}
-	return info.file.FileStat(podName, path, account, print), nil
+	return info.file.FileStat(podName, path, account)
 }

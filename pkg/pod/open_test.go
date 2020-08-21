@@ -81,7 +81,7 @@ func TestPod_LoginPod(t *testing.T) {
 		}
 
 		//Make a dir
-		err = pod1.MakeDir(podName1, firstDir)
+		err = pod1.MakeDir(podName1, firstDir, "")
 		if err != nil {
 			t.Fatalf("error creating directory %s", firstDir)
 		}

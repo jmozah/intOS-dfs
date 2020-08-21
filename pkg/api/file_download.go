@@ -17,7 +17,8 @@ limitations under the License.
 package api
 
 import (
-	"math/rand"
+	"fmt"
+	"io"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -26,23 +27,32 @@ import (
 func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
-	podFile := r.FormValue("file")
+	podFile := r.FormValue("pod_file")
 	if user == "" {
-		jsonhttp.BadRequest(w, "argument missing: user ")
+		jsonhttp.BadRequest(w, "download: \"user\" argument missing")
 		return
 	}
 	if pod == "" {
-		jsonhttp.BadRequest(w, "argument missing: pod")
+		jsonhttp.BadRequest(w, "download: \"pod\" argument missing")
 		return
 	}
 	if podFile == "" {
-		jsonhttp.BadRequest(w, "argument missing: filer")
+		jsonhttp.BadRequest(w, "download: \"path_in_pod\" argument missing")
 		return
 	}
 
-	// TODO: copy file from bee
+	// download file from bee
+	reader, reference, size, err := h.dfsAPI.DownloadFile(user, pod, podFile)
+	if err != nil {
+		fmt.Println("download: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
 
-	data := make([]byte, 1024)
-	rand.Read(data)
-	jsonhttp.OK(w, &data)
+	w.Header().Set("ETag", fmt.Sprintf("%q", reference))
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", size))
+	_, err = io.Copy(w, reader)
+	if err != nil {
+		fmt.Println("download: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
 }

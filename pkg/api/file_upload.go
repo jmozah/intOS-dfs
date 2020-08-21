@@ -17,31 +17,41 @@ limitations under the License.
 package api
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"resenje.org/jsonhttp"
 )
 
+type uploadFiletResponse struct {
+	Reference string `json:"reference"`
+}
+
 func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
 	podDir := r.FormValue("pod_dir")
 	blockSize := r.FormValue("block_size")
+	fileName := r.FormValue("file_name")
 	if user == "" {
-		jsonhttp.BadRequest(w, "argument missing: user ")
+		jsonhttp.BadRequest(w, "upload: \"user\" argument missing")
 		return
 	}
 	if pod == "" {
-		jsonhttp.BadRequest(w, "argument missing: pod")
+		jsonhttp.BadRequest(w, "upload: \"pod\" argument missing")
 		return
 	}
 	if podDir == "" {
-		jsonhttp.BadRequest(w, "argument missing: pod_dir")
+		jsonhttp.BadRequest(w, "upload: \"pod_dir\" argument missing")
 		return
 	}
 	if blockSize == "" {
-		jsonhttp.BadRequest(w, "argument missing: block_size")
+		jsonhttp.BadRequest(w, "upload: \"block_size\" argument missing")
+		return
+	}
+	if fileName == "" {
+		jsonhttp.BadRequest(w, "upload: \"file_namee\" argument missing")
 		return
 	}
 	_, err := ioutil.ReadAll(r.Body)
@@ -49,8 +59,17 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		jsonhttp.BadRequest(w, "missing body")
 		return
 	}
+	fileSize := r.ContentLength
 
-	// TODO: copy file to bee
+	// upload file to bee
+	reference, err := h.dfsAPI.UploadFile(user, pod, fileName, fileSize, r.Body, podDir, blockSize)
+	if err != nil {
+		fmt.Println("upload: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
 
-	jsonhttp.OK(w, nil)
+	w.Header().Set("ETag", fmt.Sprintf("%q", reference))
+	jsonhttp.OK(w, &uploadFiletResponse{
+		Reference: reference,
+	})
 }

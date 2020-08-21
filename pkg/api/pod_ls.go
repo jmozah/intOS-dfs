@@ -35,7 +35,7 @@ func (h *Handler) PodListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// fetch pods and list them
-	pods, err := h.dfsAPI.ListPods(user, false)
+	pods, err := h.dfsAPI.ListPods(user)
 	if err != nil {
 		fmt.Println("ls pod: %w", err)
 		jsonhttp.InternalServerError(w, err)

@@ -18,10 +18,12 @@ package dfs
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee"
-	datapod "github.com/jmozah/intOS-dfs/pkg/dir"
+	"github.com/jmozah/intOS-dfs/pkg/dir"
+	"github.com/jmozah/intOS-dfs/pkg/file"
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 	"github.com/jmozah/intOS-dfs/pkg/user"
 )
@@ -224,7 +226,7 @@ func (d *DfsAPI) ListDir(userName string, podName string, currentDir string) ([]
 	return fl, dl, nil
 }
 
-func (d *DfsAPI) DirectoryStat(userName string, podName string, directoryName string) (*datapod.DirStats, error) {
+func (d *DfsAPI) DirectoryStat(userName string, podName string, directoryName string) (*dir.DirStats, error) {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
@@ -298,7 +300,7 @@ func (d *DfsAPI) Cat(userName string, podName string, fileName string) error {
 	return nil
 }
 
-func (d *DfsAPI) RemoveFile(userName string, podName string, podFile string) error {
+func (d *DfsAPI) DeleteFile(userName string, podName string, podFile string) error {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
@@ -310,4 +312,46 @@ func (d *DfsAPI) RemoveFile(userName string, podName string, podFile string) err
 		return err
 	}
 	return nil
+}
+
+func (d *DfsAPI) FileStat(userName string, podName string, fileName string) (*file.FileStats, error) {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(userName)
+	if ui == nil {
+		return nil, fmt.Errorf("stat: login as a user to execute this command")
+	}
+
+	ds, err := ui.GetPod().FileStat(podName, fileName)
+	if err != nil {
+		return nil, err
+	}
+	return ds, nil
+}
+
+func (d *DfsAPI) UploadFile(userName string, podName string, fileName string, fileSize int64, reader io.ReadCloser, podDir string, blockSize string) (string, error) {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(userName)
+	if ui == nil {
+		return "", fmt.Errorf("upload: login as a user to execute this command")
+	}
+
+	ref, err := ui.GetPod().UploadFile(podName, fileName, fileSize, reader, podDir, blockSize)
+	if err != nil {
+		return "", err
+	}
+	return ref, nil
+}
+
+func (d *DfsAPI) DownloadFile(userName string, podName string, podFile string) (io.ReadCloser, string, string, error) {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(userName)
+	if ui == nil {
+		return nil, "", "", fmt.Errorf("upload: login as a user to execute this command")
+	}
+
+	reader, ref, size, err := ui.GetPod().DownloadFile(podName, podFile)
+	if err != nil {
+		return nil, "", "", err
+	}
+	return reader, ref, size, nil
 }

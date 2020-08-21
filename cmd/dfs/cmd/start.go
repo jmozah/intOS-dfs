@@ -68,15 +68,14 @@ func startHttpService() {
 	// directory related handlers
 	router.HandleFunc("/v0/dir/mkdir", handler.DirectoryMkdirHandler).Methods("POST")
 	router.HandleFunc("/v0/dir/rmdir", handler.DirectoryRmdirHandler).Methods("POST")
-	router.HandleFunc("/v0/dir/cd", handler.DirectoryCdHandler).Methods("POST")
 	router.HandleFunc("/v0/dir/ls", handler.DirectoryLsHandler).Methods("POST")
 	router.HandleFunc("/v0/dir/stat", handler.DirectoryStatHandler).Methods("POST")
-	router.HandleFunc("/v0/dir/pwd", handler.DirectoryPwdHandler).Methods("POST")
 
 	// file related handlers
 	router.HandleFunc("/v0/file/download", handler.FileDownloadHandler).Methods("POST")
 	router.HandleFunc("/v0/file/upload", handler.FileUploadHandler).Methods("POST")
 	router.HandleFunc("/v0/file/stat", handler.FileStatHandler).Methods("POST")
+	router.HandleFunc("/v0/file/delete", handler.FileDeleteHandler).Methods("POST")
 
 	http.Handle("/", router)
 

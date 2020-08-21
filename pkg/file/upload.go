@@ -21,24 +21,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"time"
 
 	m "github.com/jmozah/intOS-dfs/pkg/meta"
 )
 
-const (
-	MaxRoutinesPerUpload = 128
-)
-
-func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo, blockSize uint32, filePath string) ([]byte, error) {
+func (f *File) Upload(reader io.ReadCloser, fileName string, fileSize int64, blockSize uint32, filePath string) ([]byte, error) {
 	now := time.Now().Unix()
 	meta := m.FileMetaData{
 		Version:          m.FileMetaVersion,
 		Path:             filepath.Dir(filePath),
-		Name:             fileInfo.Name(),
-		FileSize:         uint64(fileInfo.Size()),
+		Name:             fileName,
+		FileSize:         uint64(fileSize),
 		BlockSize:        blockSize,
 		CreationTime:     now,
 		AccessTime:       now,
@@ -47,32 +42,26 @@ func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo,
 
 	fileINode := FileINode{}
 
-	fl, err := os.Open(localFileName)
-	if err != nil {
-		return nil, fmt.Errorf("copyFromLocal: %w", err)
-	}
-
 	data := make([]byte, blockSize)
 	var totalLength uint64
 	i := 0
 	for {
-		r, err := fl.Read(data)
+		r, err := reader.Read(data)
 		totalLength += uint64(r)
 		if err != nil {
 			if err == io.EOF {
-				if totalLength < uint64(fileInfo.Size()) {
-					return nil, fmt.Errorf("copyFromLocal: invalid file length of file data received")
+				if totalLength < uint64(fileSize) {
+					return nil, fmt.Errorf("uplaod: invalid file length of file data received")
 				}
 				break
 			} else {
-				return nil, fmt.Errorf("copyFromLocal: %w", err)
+				return nil, fmt.Errorf("uplaod: %w", err)
 			}
 		}
-		fmt.Printf("uploading block-%05d, ", i)
 
 		addr, err := f.client.UploadBlob(data[:r])
 		if err != nil {
-			return nil, fmt.Errorf("copyFromLocal: %w", err)
+			return nil, fmt.Errorf("uplaod: %w", err)
 		}
 
 		fileBlock := &FileBlock{
@@ -88,22 +77,22 @@ func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo,
 
 	fileInodeData, err := json.Marshal(fileINode)
 	if err != nil {
-		return nil, fmt.Errorf("copyFromLocal: %v", fileInfo.Name())
+		return nil, fmt.Errorf("uplaod: %v", fileName)
 	}
 
 	addr, err := f.client.UploadBlob(fileInodeData)
 	if err != nil {
-		return nil, fmt.Errorf("copyFromLocal: %w", err)
+		return nil, fmt.Errorf("uplaod: %w", err)
 	}
 
 	meta.InodeAddress = addr
 	fileMetaBytes, err := json.Marshal(meta)
 	if err != nil {
-		return nil, fmt.Errorf("copyFromLocal: %v", fileInfo.Name())
+		return nil, fmt.Errorf("uplaod: %v", fileName)
 	}
 	metaAddr, err := f.client.UploadBlob(fileMetaBytes)
 	if err != nil {
-		return nil, fmt.Errorf("copyFromLocal: %w", err)
+		return nil, fmt.Errorf("uplaod: %w", err)
 	}
 
 	f.AddToFileMap(filePath, &meta)

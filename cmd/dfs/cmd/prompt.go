@@ -418,21 +418,23 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		ds, err := dfsAPI.DirectoryStat(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		fs, err := dfsAPI.FileStat(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
 		if err != nil {
 			fmt.Println("stat failed: ", err)
 			return
 		}
-		fmt.Println("Account 	: ", ds.Account)
-		fmt.Println("Pod Address	: ", ds.PodReference)
-		fmt.Println("PodName 	: ", ds.PodName)
-		fmt.Println("Dir Path	: ", ds.DirPath)
-		fmt.Println("Dir Name	: ", ds.DirName)
-		fmt.Println("Cr. Time	: ", ds.CreationTime)
-		fmt.Println("Mo. Time	: ", ds.ModificationTime)
-		fmt.Println("Ac. Time	: ", ds.AccessTime)
-		fmt.Println("Child Dirs	: ", ds.NoOfDirectories)
-		fmt.Println("Child files	: ", ds.NoOfFiles)
+		fmt.Println("Account 	: ", fs.Account)
+		fmt.Println("PodName 	: ", fs.PodName)
+		fmt.Println("File Path	: ", fs.FilePath)
+		fmt.Println("File Name	: ", fs.FileName)
+		fmt.Println("File Size	: ", fs.FileSize)
+		fmt.Println("Cr. Time	: ", fs.CreationTime)
+		fmt.Println("Mo. Time	: ", fs.ModificationTime)
+		fmt.Println("Ac. Time	: ", fs.AccessTime)
+		for _, b := range fs.Blocks {
+			blkStr := fmt.Sprintf("%s, 0x%s, %d bytes", b.Name, b.Reference, b.Size)
+			fmt.Println(blkStr)
+		}
 	case "pwd":
 		if !isPodOpened() {
 			return
@@ -452,7 +454,7 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.RemoveFile(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		err := dfsAPI.DeleteFile(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
 		if err != nil {
 			fmt.Println("rm failed: ", err)
 			return
