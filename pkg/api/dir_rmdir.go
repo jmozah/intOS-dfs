@@ -17,6 +17,7 @@ limitations under the License.
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -27,19 +28,24 @@ func (h *Handler) DirectoryRmdirHandler(w http.ResponseWriter, r *http.Request) 
 	pod := r.FormValue("pod")
 	dir := r.FormValue("dir")
 	if user == "" {
-		jsonhttp.BadRequest(w, "argument missing: user ")
+		jsonhttp.BadRequest(w, "rmdir: \"user\" argument missing")
 		return
 	}
 	if pod == "" {
-		jsonhttp.BadRequest(w, "argument missing: pod")
+		jsonhttp.BadRequest(w, "rmdir: \"pod\" argument missing")
 		return
 	}
 	if dir == "" {
-		jsonhttp.BadRequest(w, "argument missing: dir")
+		jsonhttp.BadRequest(w, "rmdir: \"dir\" argument missing")
 		return
 	}
 
-	// TODO: remove directory
+	// remove directory
+	err := h.dfsAPI.RmDir(user, pod, dir)
+	if err != nil {
+		fmt.Println("rmdir: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
 
-	jsonhttp.OK(w, nil)
+	w.WriteHeader(http.StatusNoContent)
 }

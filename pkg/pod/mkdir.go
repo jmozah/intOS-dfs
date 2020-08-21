@@ -27,7 +27,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (p *Pod) MakeDir(podName string, dirName string) error {
+func (p *Pod) MakeDir(podName string, dirName string, baseDirectory string) error {
 	directoryName, err := CleanName(dirName)
 	if err != nil {
 		return fmt.Errorf("mkdir: error cleaning directory Name")
@@ -103,7 +103,16 @@ func (p *Pod) MakeDir(podName string, dirName string) error {
 		}
 		topic = firstTopic
 	} else {
-		_, topic, err = directory.CreateDirINode(podName, directoryName, podInfo.GetCurrentDirInode())
+		// baseDirectory is not empty in http API
+		if baseDirectory != "" {
+			_, dirInode, err = directory.GetDirNode(baseDirectory, podInfo.getFeed(), podInfo.getAccountInfo())
+			if err != nil {
+				return fmt.Errorf("mkdir: %w", err)
+			}
+		} else {
+			dirInode = podInfo.GetCurrentDirInode()
+		}
+		_, topic, err = directory.CreateDirINode(podName, directoryName, dirInode)
 		if err != nil {
 			return fmt.Errorf("mkdir: %w", err)
 		}

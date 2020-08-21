@@ -25,10 +25,10 @@ import (
 	//"github.com/jmozah/intOS-dfs/pkg/api"
 	"github.com/spf13/cobra"
 
-	"github.com/jmozah/intOS-dfs/pkg/web"
+	"github.com/jmozah/intOS-dfs/pkg/api"
 )
 
-var handler *web.Handler
+var handler *api.Handler
 
 // startCmd represents the start command
 var startCmd = &cobra.Command{
@@ -37,7 +37,7 @@ var startCmd = &cobra.Command{
 	Long: `Serves all the dfs commands through an HTTP server so that the upper layers
 can consume it.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		handler = web.NewHandler(dataDir, beeHost, beePort)
+		handler = api.NewHandler(dataDir, beeHost, beePort)
 		startHttpService()
 	},
 }

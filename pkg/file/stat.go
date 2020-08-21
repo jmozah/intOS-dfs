@@ -23,6 +23,9 @@ import (
 	"time"
 )
 
+type FileStats struct {
+}
+
 func (f *File) FileStat(podName string, fileName string, account string) error {
 	meta := f.GetFromFileMap(fileName)
 	if meta == nil {

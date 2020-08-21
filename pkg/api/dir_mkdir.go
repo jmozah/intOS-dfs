@@ -17,6 +17,7 @@ limitations under the License.
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -29,21 +30,31 @@ type MkdirResponse struct {
 func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
-	dir := r.FormValue("dir")
+	dirToCreate := r.FormValue("dir")
+	baseDir := r.FormValue("base_dir")
 	if user == "" {
-		jsonhttp.BadRequest(w, "argument missing: user ")
+		jsonhttp.BadRequest(w, "mkdir: \"user\" argument missing")
 		return
 	}
 	if pod == "" {
-		jsonhttp.BadRequest(w, "argument missing: pod")
+		jsonhttp.BadRequest(w, "mkdir: \"pod\" argument missing")
 		return
 	}
-	if dir == "" {
-		jsonhttp.BadRequest(w, "argument missing: dir")
+	if dirToCreate == "" {
+		jsonhttp.BadRequest(w, "mkdir: \"dir\" argument missing")
+		return
+	}
+	if baseDir == "" {
+		jsonhttp.BadRequest(w, "mkdir: \"base_dir\" argument missing")
 		return
 	}
 
-	// TODO: make directory
+	// make directory
+	err := h.dfsAPI.Mkdir(user, pod, dirToCreate, baseDir)
+	if err != nil {
+		fmt.Println("mkdir: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
 
 	jsonhttp.Created(w, &MkdirResponse{
 		Reference: mockAddress2,

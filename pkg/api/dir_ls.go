@@ -17,6 +17,7 @@ limitations under the License.
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -30,24 +31,29 @@ type ListFileResponse struct {
 func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
-	dir := r.FormValue("dir")
+	currentDir := r.FormValue("curr_dir")
 	if user == "" {
-		jsonhttp.BadRequest(w, "argument missing: user ")
+		jsonhttp.BadRequest(w, "ls dir: \"user\" argument missing")
 		return
 	}
 	if pod == "" {
-		jsonhttp.BadRequest(w, "argument missing: pod")
+		jsonhttp.BadRequest(w, "ls dir: \"pod\" argument missing")
 		return
 	}
-	if dir == "" {
-		jsonhttp.BadRequest(w, "argument missing: dir")
+	if currentDir == "" {
+		jsonhttp.BadRequest(w, "ls dir: \"curr_dir\" argument missing")
 		return
 	}
 
-	// TODO: list directory
+	// list directory
+	fl, dl, err := h.dfsAPI.ListDir(user, pod, currentDir)
+	if err != nil {
+		fmt.Println("ls dir: %w", err)
+		jsonhttp.InternalServerError(w, err)
+	}
 
 	jsonhttp.OK(w, &ListFileResponse{
-		Files:       []string{"file1", "file2", "file3"},
-		Directories: []string{"dir1", "dir2", "dir3"},
+		Files:       fl,
+		Directories: dl,
 	})
 }

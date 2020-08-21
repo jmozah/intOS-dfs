@@ -18,7 +18,7 @@ package pod
 
 import "fmt"
 
-func (p *Pod) ListPods(print bool) ([]string, error) {
+func (p *Pod) ListPods() ([]string, error) {
 	pods, err := p.loadUserPods()
 	if err != nil {
 		return nil, fmt.Errorf("list pods: %w", err)
@@ -26,33 +26,31 @@ func (p *Pod) ListPods(print bool) ([]string, error) {
 
 	var listPods []string
 	for _, pod := range pods {
-		if print {
-			fmt.Print("Pod: ", pod)
-		}
 		listPods = append(listPods, pod)
-	}
-	if print {
-		fmt.Println("")
 	}
 	return listPods, nil
 }
 
-func (p *Pod) ListEntiesInDir(podName string) ([]string, error) {
+func (p *Pod) ListEntiesInDir(podName string, dirName string) ([]string, []string, error) {
 	if !p.isLoggedInToPod(podName) {
-		return nil, fmt.Errorf("ls: login to pod to do this operation")
+		return nil, nil, fmt.Errorf("ls: login to pod to do this operation")
 	}
 
 	info, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return nil, fmt.Errorf("ls: %w", err)
+		return nil, nil, fmt.Errorf("ls: %w", err)
 	}
 
 	directory := info.getDirectory()
-
-	path := info.GetCurrentDirPathAndName()
-	if info.IsCurrentDirRoot() {
-		path = info.GetCurrentPodPathAndName()
+	printNames := false
+	path := dirName // dirname is supplied in API, in REPL it is picked up from the current dir
+	if path == "" {
+		printNames = true
+		path = info.GetCurrentDirPathAndName()
+		if info.IsCurrentDirRoot() {
+			path = info.GetCurrentPodPathAndName()
+		}
 	}
-
-	return directory.ListDir(podName, path), nil
+	fl, dl := directory.ListDir(podName, path, printNames)
+	return fl, dl, nil
 }

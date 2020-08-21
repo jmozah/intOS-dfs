@@ -21,6 +21,7 @@ import (
 
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee"
+	datapod "github.com/jmozah/intOS-dfs/pkg/dir"
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 	"github.com/jmozah/intOS-dfs/pkg/user"
 )
@@ -161,7 +162,7 @@ func (d *DfsAPI) SyncPod(userName string, podName string) error {
 	return nil
 }
 
-func (d *DfsAPI) ListPods(userName string, print bool) ([]string, error) {
+func (d *DfsAPI) ListPods(userName string) ([]string, error) {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
@@ -169,7 +170,7 @@ func (d *DfsAPI) ListPods(userName string, print bool) ([]string, error) {
 	}
 
 	// list pods of a user
-	pods, err := ui.GetPod().ListPods(print)
+	pods, err := ui.GetPod().ListPods()
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +181,7 @@ func (d *DfsAPI) ListPods(userName string, print bool) ([]string, error) {
 //  Directory related APIs
 //
 
-func (d *DfsAPI) Mkdir(userName string, podName string, directoryName string) error {
+func (d *DfsAPI) Mkdir(userName string, podName string, directoryName string, baseDir string) error {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
@@ -188,7 +189,7 @@ func (d *DfsAPI) Mkdir(userName string, podName string, directoryName string) er
 	}
 
 	// make dir
-	err := ui.GetPod().MakeDir(podName, directoryName)
+	err := ui.GetPod().MakeDir(podName, directoryName, baseDir)
 	if err != nil {
 		return err
 	}
@@ -209,32 +210,32 @@ func (d *DfsAPI) RmDir(userName string, podName string, directoryName string) er
 	return nil
 }
 
-func (d *DfsAPI) ListDir(userName string, podName string) ([]string, error) {
+func (d *DfsAPI) ListDir(userName string, podName string, currentDir string) ([]string, []string, error) {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return nil, fmt.Errorf("ls dir: login as a user to execute this command")
+		return nil, nil, fmt.Errorf("ls dir: login as a user to execute this command")
 	}
 
-	listing, err := ui.GetPod().ListEntiesInDir(podName)
+	fl, dl, err := ui.GetPod().ListEntiesInDir(podName, currentDir)
+	if err != nil {
+		return nil, nil, err
+	}
+	return fl, dl, nil
+}
+
+func (d *DfsAPI) DirectoryStat(userName string, podName string, directoryName string) (*datapod.DirStats, error) {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(userName)
+	if ui == nil {
+		return nil, fmt.Errorf("stat: login as a user to execute this command")
+	}
+
+	ds, err := ui.GetPod().DirectoryStat(podName, directoryName)
 	if err != nil {
 		return nil, err
 	}
-	return listing, nil
-}
-
-func (d *DfsAPI) DirectoryOrFileStat(userName string, podName string, directoryName string) error {
-	// get the logged in user information
-	ui := d.users.GetLoggedInUserInfo(userName)
-	if ui == nil {
-		return fmt.Errorf("stat: login as a user to execute this command")
-	}
-
-	err := ui.GetPod().DirectoryOrFileStat(podName, directoryName)
-	if err != nil {
-		return err
-	}
-	return nil
+	return ds, nil
 }
 
 func (d *DfsAPI) ChangeDirectory(userName string, podName string, directoryName string) (*pod.Info, error) {

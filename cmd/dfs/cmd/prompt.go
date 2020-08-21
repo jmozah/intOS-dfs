@@ -154,7 +154,7 @@ func executor(in string) {
 				return
 			}
 			userName := blocks[2]
-			err := dfsAPI.DeleteUser(userName)
+			err := dfsAPI.DeleteUser(userName, "")
 			if err != nil {
 				fmt.Println("delete user: ", err)
 				return
@@ -301,11 +301,15 @@ func executor(in string) {
 			fmt.Println("pod synced.")
 			currentPrompt = getCurrentPrompt()
 		case "ls":
-			err := dfsAPI.ListPods(currentUser)
+			pods, err := dfsAPI.ListPods(currentUser)
 			if err != nil {
 				fmt.Println("error while listing pods: %w", err)
 				return
 			}
+			for _, pod := range pods {
+				fmt.Println(pod)
+			}
+			fmt.Println("")
 			currentPrompt = getCurrentPrompt()
 		default:
 			fmt.Println("invalid pod command!!")
@@ -330,12 +334,15 @@ func executor(in string) {
 		if !isPodOpened() {
 			return
 		}
-		listing, err := dfsAPI.ListDir(currentUser, currentPodInfo.GetCurrentPodNameOnly())
+		fl, dl, err := dfsAPI.ListDir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), "")
 		if err != nil {
 			fmt.Println("ls failed: ", err)
 			return
 		}
-		for _, l := range listing {
+		for _, l := range fl {
+			fmt.Println(l)
+		}
+		for _, l := range dl {
 			fmt.Println(l)
 		}
 	case "copyToLocal":
@@ -372,7 +379,7 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.Mkdir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		err := dfsAPI.Mkdir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1], "")
 		if err != nil {
 			fmt.Println("mkdir failed: ", err)
 			return
@@ -411,11 +418,21 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.DirectoryOrFileStat(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		ds, err := dfsAPI.DirectoryStat(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
 		if err != nil {
 			fmt.Println("stat failed: ", err)
 			return
 		}
+		fmt.Println("Account 	: ", ds.Account)
+		fmt.Println("Pod Address	: ", ds.PodReference)
+		fmt.Println("PodName 	: ", ds.PodName)
+		fmt.Println("Dir Path	: ", ds.DirPath)
+		fmt.Println("Dir Name	: ", ds.DirName)
+		fmt.Println("Cr. Time	: ", ds.CreationTime)
+		fmt.Println("Mo. Time	: ", ds.ModificationTime)
+		fmt.Println("Ac. Time	: ", ds.AccessTime)
+		fmt.Println("Child Dirs	: ", ds.NoOfDirectories)
+		fmt.Println("Child files	: ", ds.NoOfFiles)
 	case "pwd":
 		if !isPodOpened() {
 			return

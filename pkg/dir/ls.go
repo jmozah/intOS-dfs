@@ -23,14 +23,17 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (d *Directory) ListDir(podName, path string) []string {
+func (d *Directory) ListDir(podName, path string, printNames bool) ([]string, []string) {
 	d.dirMu.Lock()
 	defer d.dirMu.Unlock()
-	var listing []string
+	var fileListing []string
+	var dirListing []string
+
+	directory := ("<Dir>  : ")
+	f := ("<File> : ")
 	for k := range d.dirMap {
 		if strings.HasPrefix(k, path) {
 			if k != podName {
-				directory := ("<Dir>  : ")
 				name := strings.TrimPrefix(k, path)
 				name = strings.TrimSpace(name)
 				name = strings.TrimPrefix(name, utils.PathSeperator)
@@ -38,13 +41,16 @@ func (d *Directory) ListDir(podName, path string) []string {
 					name = utils.PathSeperator + name
 				}
 				if name != "" {
-					listing = append(listing, directory+name)
+					if printNames {
+						dirListing = append(dirListing, directory+name)
+					} else {
+						dirListing = append(dirListing, name)
+					}
 				}
 			}
 
 			// Get the files inside the dir
 			fileList := d.file.ListFiles(k)
-			f := ("<File> : ")
 			for _, file := range fileList {
 				if strings.HasPrefix(file, path) {
 					if filepath.Dir(file) != k {
@@ -57,10 +63,14 @@ func (d *Directory) ListDir(podName, path string) []string {
 					if strings.ContainsAny(fileName, utils.PathSeperator) {
 						fileName = utils.PathSeperator + fileName
 					}
-					listing = append(listing, f+fileName)
+					if printNames {
+						fileListing = append(fileListing, f+fileName)
+					} else {
+						fileListing = append(fileListing, fileName)
+					}
 				}
 			}
 		}
 	}
-	return listing
+	return fileListing, dirListing
 }

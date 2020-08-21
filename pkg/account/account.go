@@ -263,8 +263,6 @@ func (a *Account) DeletePodAccount(accountId int) {
 	delete(a.podAccounts, accountId)
 }
 
-
-
 func (a *Account) LoadEncryptedMnemonicFromDisk(passPhrase string) error {
 	if !a.IsAlreadyInitialized() {
 		return fmt.Errorf("dfs not initialised. use the \"init\" command to intialise the system")

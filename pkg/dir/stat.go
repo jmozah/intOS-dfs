@@ -17,21 +17,32 @@ limitations under the License.
 package datapod
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (d *Directory) DirStat(podName, dirName string, dirInode *DirInode, account string, podAddr string) error {
+type DirStats struct {
+	Account          string `json:"account"`
+	PodReference     string `json:"pod_reference"`
+	PodName          string `json:"pod_name"`
+	DirPath          string `json:"dir_path"`
+	DirName          string `json:"dir_name"`
+	CreationTime     string `json:"creation_time"`
+	ModificationTime string `json:"modification_time"`
+	AccessTime       string `json:"access_time"`
+	NoOfDirectories  string `json:"no_of_directories"`
+	NoOfFiles        string `json:"no_of_files"`
+}
 
+func (d *Directory) DirStat(podName, dirName string, dirInode *DirInode, account string, podAddr string) (*DirStats, error) {
 	meta := dirInode.Meta
-	listing := d.ListDir(podName, dirName)
+	fl, dl := d.ListDir(podName, dirName, true)
 
 	files := 0
 	dirs := 0
-	for _, list := range listing {
+	for _, list := range dl {
 		if strings.HasPrefix(list, "<Dir>") {
 			dirs++
 		} else {
@@ -43,15 +54,16 @@ func (d *Directory) DirStat(podName, dirName string, dirInode *DirInode, account
 		path = utils.PathSeperator
 	}
 
-	fmt.Println("Account 	: ", account)
-	fmt.Println("Pod Address	: ", podAddr)
-	fmt.Println("PodName 	: ", podName)
-	fmt.Println("Dir Path	: ", path)
-	fmt.Println("Dir Name	: ", meta.Name)
-	fmt.Println("Cr. Time	: ", time.Unix(meta.CreationTime, 0).String())
-	fmt.Println("Mo. Time	: ", time.Unix(meta.ModificationTime, 0).String())
-	fmt.Println("Ac. Time	: ", time.Unix(meta.AccessTime, 0).String())
-	fmt.Println("Child Dirs	: ", dirs)
-	fmt.Println("Child files	: ", files)
-	return nil
+	return &DirStats{
+		Account:          account,
+		PodReference:     podAddr,
+		PodName:          podName,
+		DirPath:          path,
+		DirName:          meta.Name,
+		CreationTime:     time.Unix(meta.CreationTime, 0).String(),
+		ModificationTime: time.Unix(meta.ModificationTime, 0).String(),
+		NoOfDirectories:  string(rune(len(dl))),
+		NoOfFiles:        string(len(fl)),
+	}, nil
+
 }
