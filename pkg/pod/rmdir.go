@@ -28,9 +28,7 @@ func (p *Pod) RemoveDir(podName string, dirName string) error {
 	if !p.isPodOpened(podName) {
 		return ErrPodNotOpened
 	}
-	if strings.HasPrefix(dirName, utils.PathSeperator) {
-		dirName = strings.TrimPrefix(dirName, utils.PathSeperator)
-	}
+	dirName = strings.TrimPrefix(dirName, utils.PathSeperator)
 
 	info, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
