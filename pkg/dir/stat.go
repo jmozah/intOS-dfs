@@ -38,7 +38,7 @@ type DirStats struct {
 
 func (d *Directory) DirStat(podName, dirName string, dirInode *DirInode, account string, podAddr string) (*DirStats, error) {
 	meta := dirInode.Meta
-	fl, dl := d.ListDir(podName, dirName, true)
+	fl, dl := d.ListDir(podName, dirName, false)
 
 	files := 0
 	dirs := 0

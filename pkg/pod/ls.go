@@ -18,6 +18,9 @@ package pod
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
 func (p *Pod) ListPods() ([]string, error) {
@@ -52,7 +55,11 @@ func (p *Pod) ListEntiesInDir(podName string, dirName string) ([]string, []strin
 		if info.IsCurrentDirRoot() {
 			path = info.GetCurrentPodPathAndName()
 		}
+	} else {
+		path = utils.PathSeperator + podName + path
+		path = strings.TrimSuffix(path, utils.PathSeperator)
 	}
+
 	fl, dl := directory.ListDir(podName, path, printNames)
 	return fl, dl, nil
 }

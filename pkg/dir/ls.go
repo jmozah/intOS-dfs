@@ -29,9 +29,6 @@ func (d *Directory) ListDir(podName, path string, printNames bool) ([]string, []
 	var fileListing []string
 	var dirListing []string
 
-	path = utils.PathSeperator + podName + path
-	path = strings.TrimSuffix(path, utils.PathSeperator)
-
 	directory := ("<Dir>  : ")
 	f := ("<File> : ")
 	for k := range d.dirMap {
