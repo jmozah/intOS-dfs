@@ -57,7 +57,7 @@ func TestPod_LoginPod(t *testing.T) {
 			t.Fatalf("could not logout")
 		}
 
-		infoLogin, err := pod1.OpenPod(podName1, tempDir, "password")
+		infoLogin, err := pod1.OpenPod(podName1, "password")
 		if err != nil {
 			t.Fatalf("login failed")
 		}
@@ -81,7 +81,7 @@ func TestPod_LoginPod(t *testing.T) {
 		}
 
 		//Make a dir
-		err = pod1.MakeDir(podName1, firstDir, "")
+		err = pod1.MakeDir(podName1, firstDir)
 		if err != nil {
 			t.Fatalf("error creating directory %s", firstDir)
 		}
@@ -110,7 +110,7 @@ func TestPod_LoginPod(t *testing.T) {
 		}
 
 		// Now login and check if the dir and file exists
-		infoLogin, err := pod1.OpenPod(podName1, tempDir, "password")
+		infoLogin, err := pod1.OpenPod(podName1, "password")
 		if err != nil {
 			t.Fatalf("login failed")
 		}

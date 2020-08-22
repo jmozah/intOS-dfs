@@ -126,7 +126,7 @@ func (d *DfsAPI) OpenPod(userName string, podName string, passPhrase string) (*p
 	}
 
 	// open the pod
-	po, err := ui.GetPod().OpenPod(podName, d.dataDir, passPhrase)
+	po, err := ui.GetPod().OpenPod(podName, passPhrase)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +217,7 @@ func (d *DfsAPI) ListPods(userName string) ([]string, error) {
 //  Directory related APIs
 //
 
-func (d *DfsAPI) Mkdir(userName string, podName string, directoryName string, baseDir string) error {
+func (d *DfsAPI) Mkdir(userName string, podName string, directoryName string) error {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return ErrInvalidUserName
@@ -230,7 +230,7 @@ func (d *DfsAPI) Mkdir(userName string, podName string, directoryName string, ba
 	}
 
 	// make dir
-	err := ui.GetPod().MakeDir(podName, directoryName, baseDir)
+	err := ui.GetPod().MakeDir(podName, directoryName)
 	if err != nil {
 		return err
 	}

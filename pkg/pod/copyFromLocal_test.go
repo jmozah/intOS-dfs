@@ -102,7 +102,7 @@ func TestPod_CopyFromLocal(t *testing.T) {
 			t.Fatalf("error creating pod %s", podName1)
 		}
 
-		err = pod1.MakeDir(podName1, firstDir, "")
+		err = pod1.MakeDir(podName1, firstDir)
 		if err != nil {
 			t.Fatalf("error creating directory %s", firstDir)
 		}
@@ -137,7 +137,7 @@ func TestPod_CopyFromLocal(t *testing.T) {
 			t.Fatalf("error creating pod %s", podName1)
 		}
 
-		err = pod1.MakeDir(podName1, firstDir, "")
+		err = pod1.MakeDir(podName1, firstDir)
 		if err != nil {
 			t.Fatalf("error creating directory %s", firstDir)
 		}

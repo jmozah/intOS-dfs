@@ -34,7 +34,6 @@ func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) 
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
 	dirToCreate := r.FormValue("dir")
-	baseDir := r.FormValue("base_dir")
 	if user == "" {
 		jsonhttp.BadRequest(w, "mkdir: \"user\" argument missing")
 		return
@@ -47,13 +46,9 @@ func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) 
 		jsonhttp.BadRequest(w, "mkdir: \"dir\" argument missing")
 		return
 	}
-	if baseDir == "" {
-		jsonhttp.BadRequest(w, "mkdir: \"base_dir\" argument missing")
-		return
-	}
 
 	// make directory
-	err := h.dfsAPI.Mkdir(user, pod, dirToCreate, baseDir)
+	err := h.dfsAPI.Mkdir(user, pod, dirToCreate)
 	if err != nil {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidDirectory ||

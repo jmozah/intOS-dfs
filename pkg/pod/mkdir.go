@@ -26,7 +26,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (p *Pod) MakeDir(podName string, dirName string, baseDirectory string) error {
+func (p *Pod) MakeDir(podName string, dirName string) error {
 	dirs, err := CleanDirName(dirName)
 	if err != nil {
 		return err
@@ -60,10 +60,8 @@ func (p *Pod) MakeDir(podName string, dirName string, baseDirectory string) erro
 						addToPod = true
 					}
 					dirInode, topic, err = directory.CreateDirINode(podName, dirName, podInfo.GetCurrentDirInode())
-					fmt.Println("created dir ", dirName)
 				} else {
 					dirInode, topic, err = directory.CreateDirINode(podName, dirName, previousDirINode)
-					fmt.Println("created dir ", dirName)
 				}
 				if err != nil {
 					return fmt.Errorf("mkdir: %w", err)
@@ -89,22 +87,12 @@ func (p *Pod) MakeDir(podName string, dirName string, baseDirectory string) erro
 						}
 					}
 				}
-			} else {
-				fmt.Println("not creating ", dirName, path, dirInode.Meta.Path, dirInode.Meta.Name)
 			}
 			previousDirINode = dirInode
 		}
 		topic = firstTopic
 	} else {
-		// baseDirectory is not empty in http API
-		if baseDirectory != "" {
-			_, dirInode, err = directory.GetDirNode(baseDirectory, podInfo.getFeed(), podInfo.getAccountInfo())
-			if err != nil {
-				return fmt.Errorf("mkdir: %w", err)
-			}
-		} else {
-			dirInode = podInfo.GetCurrentDirInode()
-		}
+		dirInode = podInfo.GetCurrentDirInode()
 		_, topic, err = directory.CreateDirINode(podName, dirs[0], dirInode)
 		if err != nil {
 			return fmt.Errorf("mkdir: %w", err)
@@ -113,7 +101,11 @@ func (p *Pod) MakeDir(podName string, dirName string, baseDirectory string) erro
 	}
 
 	if addToPod {
-		err = p.UpdateTillThePod(podName, directory, topic, true)
+		path := podInfo.GetCurrentDirPathAndName()
+		if podInfo.IsCurrentDirRoot() {
+			path = podInfo.GetCurrentPodPathAndName()
+		}
+		err = p.UpdateTillThePod(podName, directory, topic, path, true)
 		if err != nil {
 			return fmt.Errorf("mkdir: %w", err)
 		}
@@ -122,17 +114,10 @@ func (p *Pod) MakeDir(podName string, dirName string, baseDirectory string) erro
 }
 
 // Assumption is that the d.currentDirInode is the newly updated one
-func (p *Pod) UpdateTillThePod(podName string, directory *d.Directory, topic []byte, isAddHash bool) error {
+func (p *Pod) UpdateTillThePod(podName string, directory *d.Directory, topic []byte, path string, isAddHash bool) error {
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
 		return fmt.Errorf("mkdir: %w", err)
-	}
-
-	var path string
-	if podInfo.IsCurrentDirRoot() {
-		path = podInfo.GetCurrentPodPathAndName()
-	} else {
-		path = podInfo.GetCurrentDirPathAndName()
 	}
 
 	var dirInode *d.DirInode
@@ -168,6 +153,7 @@ func (p *Pod) UpdateTillThePod(podName string, directory *d.Directory, topic []b
 				}
 			}
 			dirInode.Hashes = newHashes
+			isAddHash = true // after the first deletion, the rest of the parent links should be updated
 		}
 		dirInode.Meta.ModificationTime = time.Now().Unix()
 

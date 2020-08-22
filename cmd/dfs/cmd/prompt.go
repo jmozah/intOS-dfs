@@ -379,7 +379,7 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.Mkdir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1], "")
+		err := dfsAPI.Mkdir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
 		if err != nil {
 			fmt.Println("mkdir failed: ", err)
 			return

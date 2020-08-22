@@ -27,14 +27,14 @@ import (
 )
 
 type ListFileResponse struct {
-	Files       []string `json:"files"`
-	Directories []string `json:"directories"`
+	Files       []string `json:"files,omitempty"`
+	Directories []string `json:"directories,omitempty"`
 }
 
 func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
-	currentDir := r.FormValue("curr_dir")
+	dir := r.FormValue("dir")
 	if user == "" {
 		jsonhttp.BadRequest(w, "ls dir: \"user\" argument missing")
 		return
@@ -43,13 +43,13 @@ func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 		jsonhttp.BadRequest(w, "ls dir: \"pod\" argument missing")
 		return
 	}
-	if currentDir == "" {
-		jsonhttp.BadRequest(w, "ls dir: \"curr_dir\" argument missing")
+	if dir == "" {
+		jsonhttp.BadRequest(w, "ls dir: \"dir\" argument missing")
 		return
 	}
 
 	// list directory
-	fl, dl, err := h.dfsAPI.ListDir(user, pod, currentDir)
+	fl, dl, err := h.dfsAPI.ListDir(user, pod, dir)
 	if err != nil {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {

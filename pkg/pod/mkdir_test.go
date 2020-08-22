@@ -60,7 +60,7 @@ func TestPod_MakeDir(t *testing.T) {
 			t.Fatalf("error creating pod %s", podName1)
 		}
 
-		err = pod1.MakeDir(podName1, firstDir, "")
+		err = pod1.MakeDir(podName1, firstDir)
 		if err != nil {
 			t.Fatalf("error creating directory %s", firstDir)
 		}
@@ -93,7 +93,7 @@ func TestPod_MakeDir(t *testing.T) {
 			t.Fatalf("error creating pod %s", podName2)
 		}
 
-		err = pod1.MakeDir(podName2, firstDir, "")
+		err = pod1.MakeDir(podName2, firstDir)
 		if err != nil {
 			t.Fatalf("error creating directory %s", firstDir)
 		}
@@ -103,7 +103,7 @@ func TestPod_MakeDir(t *testing.T) {
 			t.Fatalf("error changing directory")
 		}
 
-		err = pod1.MakeDir(podName2, secondDir, "")
+		err = pod1.MakeDir(podName2, secondDir)
 		if err != nil {
 			t.Fatalf("error creating directory %s", secondDir)
 		}
@@ -136,12 +136,12 @@ func TestPod_MakeDir(t *testing.T) {
 			t.Fatalf("error creating pod %s", podName3)
 		}
 
-		err = pod1.MakeDir(podName3, firstDir, "")
+		err = pod1.MakeDir(podName3, firstDir)
 		if err != nil {
 			t.Fatalf("error creating directory %s", err)
 		}
 		time.Sleep(1 * time.Second)
-		err = pod1.MakeDir(podName3, firstDir+utils.PathSeperator+secondDir, "")
+		err = pod1.MakeDir(podName3, firstDir+utils.PathSeperator+secondDir)
 		if err != nil {
 			t.Fatalf("error creating directory %s", err)
 		}
@@ -174,7 +174,7 @@ func TestPod_MakeDir(t *testing.T) {
 			t.Fatalf("error creating pod %s", podName4)
 		}
 
-		err = pod1.MakeDir(podName4, thirdDir, "")
+		err = pod1.MakeDir(podName4, thirdDir)
 		if err != nil {
 			t.Fatalf("error creating directory %s", thirdDir)
 		}
@@ -224,7 +224,7 @@ func TestPod_MakeDir(t *testing.T) {
 			t.Fatalf("error creating pod %s", podName5)
 		}
 
-		err = pod1.MakeDir(podName5, fourthDir, "")
+		err = pod1.MakeDir(podName5, fourthDir)
 		if err != nil {
 			t.Fatalf("error creating directory %s", fourthDir)
 		}

@@ -31,3 +31,7 @@ func (d *DirInode) GetDirInodePathAndNameForRoot() string {
 func (d *DirInode) GetDirInodePathAndName() string {
 	return d.Meta.Path + utils.PathSeperator + d.Meta.Name
 }
+
+func (d *DirInode) GetDirInodePathOnly() string {
+	return d.Meta.Path
+}
