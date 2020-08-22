@@ -17,7 +17,6 @@ limitations under the License.
 package dfs
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
@@ -75,14 +74,19 @@ func (d *DfsAPI) ListAllUsers() []string {
 //  Pods related APIs
 //
 func (d *DfsAPI) CreatePod(userName string, podName string, passPhrase string) (*pod.Info, error) {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return nil, ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return nil, fmt.Errorf("create pod: login as a user to execute this command")
+		return nil, ErrUserNotLoggedIn
 	}
 
 	// create the pod
-	pi, err := ui.GetPod().CreatePod(podName, d.dataDir, passPhrase)
+	pi, err := ui.GetPod().CreatePod(podName, passPhrase)
 	if err != nil {
 		return nil, err
 	}
@@ -90,14 +94,19 @@ func (d *DfsAPI) CreatePod(userName string, podName string, passPhrase string) (
 }
 
 func (d *DfsAPI) DeletePod(userName string, podName string) error {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return fmt.Errorf("delete pod: login as a user to execute this command")
+		return ErrUserNotLoggedIn
 	}
 
 	// delete the pod
-	err := ui.GetPod().DeletePod(podName, d.dataDir)
+	err := ui.GetPod().DeletePod(podName)
 	if err != nil {
 		return err
 	}
@@ -105,10 +114,15 @@ func (d *DfsAPI) DeletePod(userName string, podName string) error {
 }
 
 func (d *DfsAPI) OpenPod(userName string, podName string, passPhrase string) (*pod.Info, error) {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return nil, ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return nil, fmt.Errorf("open pod: login as a user to execute this command")
+		return nil, ErrUserNotLoggedIn
 	}
 
 	// open the pod
@@ -120,10 +134,15 @@ func (d *DfsAPI) OpenPod(userName string, podName string, passPhrase string) (*p
 }
 
 func (d *DfsAPI) ClosePod(userName string, podName string) error {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return fmt.Errorf("close pod: login as a user to execute this command")
+		return ErrUserNotLoggedIn
 	}
 
 	// close the pod
@@ -135,10 +154,15 @@ func (d *DfsAPI) ClosePod(userName string, podName string) error {
 }
 
 func (d *DfsAPI) PodStat(userName string, podName string) (*pod.PodStat, error) {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return nil, ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return nil, fmt.Errorf("pod stat: login as a user to execute this command")
+		return nil, ErrUserNotLoggedIn
 	}
 
 	// get the pod stat
@@ -150,10 +174,15 @@ func (d *DfsAPI) PodStat(userName string, podName string) (*pod.PodStat, error) 
 }
 
 func (d *DfsAPI) SyncPod(userName string, podName string) error {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return fmt.Errorf("sync pod: login as a user to execute this command")
+		return ErrUserNotLoggedIn
 	}
 
 	// sync the pod
@@ -165,10 +194,15 @@ func (d *DfsAPI) SyncPod(userName string, podName string) error {
 }
 
 func (d *DfsAPI) ListPods(userName string) ([]string, error) {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return nil, ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return nil, fmt.Errorf("sync pod: login as a user to execute this command")
+		return nil, ErrUserNotLoggedIn
 	}
 
 	// list pods of a user
@@ -184,10 +218,15 @@ func (d *DfsAPI) ListPods(userName string) ([]string, error) {
 //
 
 func (d *DfsAPI) Mkdir(userName string, podName string, directoryName string, baseDir string) error {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return fmt.Errorf("mkdir: login as a user to execute this command")
+		return ErrUserNotLoggedIn
 	}
 
 	// make dir
@@ -199,10 +238,15 @@ func (d *DfsAPI) Mkdir(userName string, podName string, directoryName string, ba
 }
 
 func (d *DfsAPI) RmDir(userName string, podName string, directoryName string) error {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return fmt.Errorf("rmdir: login as a user to execute this command")
+		return ErrUserNotLoggedIn
 	}
 
 	err := ui.GetPod().RemoveDir(podName, directoryName)
@@ -213,10 +257,15 @@ func (d *DfsAPI) RmDir(userName string, podName string, directoryName string) er
 }
 
 func (d *DfsAPI) ListDir(userName string, podName string, currentDir string) ([]string, []string, error) {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return nil, nil, ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return nil, nil, fmt.Errorf("ls dir: login as a user to execute this command")
+		return nil, nil, ErrUserNotLoggedIn
 	}
 
 	fl, dl, err := ui.GetPod().ListEntiesInDir(podName, currentDir)
@@ -227,10 +276,15 @@ func (d *DfsAPI) ListDir(userName string, podName string, currentDir string) ([]
 }
 
 func (d *DfsAPI) DirectoryStat(userName string, podName string, directoryName string) (*dir.DirStats, error) {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return nil, ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return nil, fmt.Errorf("stat: login as a user to execute this command")
+		return nil, ErrUserNotLoggedIn
 	}
 
 	ds, err := ui.GetPod().DirectoryStat(podName, directoryName)
@@ -241,10 +295,15 @@ func (d *DfsAPI) DirectoryStat(userName string, podName string, directoryName st
 }
 
 func (d *DfsAPI) ChangeDirectory(userName string, podName string, directoryName string) (*pod.Info, error) {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return nil, ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return nil, fmt.Errorf("cd: login as a user to execute this command")
+		return nil, ErrUserNotLoggedIn
 	}
 
 	podInfo, err := ui.GetPod().ChangeDir(podName, directoryName)
@@ -259,10 +318,15 @@ func (d *DfsAPI) ChangeDirectory(userName string, podName string, directoryName 
 //
 
 func (d *DfsAPI) CopyFromLocal(userName string, podName, localFile string, podDir string, blockSize string) error {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return fmt.Errorf("copyFromLocal: login as a user to execute this command")
+		return ErrUserNotLoggedIn
 	}
 
 	err := ui.GetPod().CopyFromLocal(podName, localFile, podDir, blockSize)
@@ -273,10 +337,15 @@ func (d *DfsAPI) CopyFromLocal(userName string, podName, localFile string, podDi
 }
 
 func (d *DfsAPI) CopyToLocal(userName string, podName, localDir string, podFile string) error {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return fmt.Errorf("copyToLocal: login as a user to execute this command")
+		return ErrUserNotLoggedIn
 	}
 
 	err := ui.GetPod().CopyToLocal(podName, localDir, podFile)
@@ -287,10 +356,15 @@ func (d *DfsAPI) CopyToLocal(userName string, podName, localDir string, podFile 
 }
 
 func (d *DfsAPI) Cat(userName string, podName string, fileName string) error {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return fmt.Errorf("cat: login as a user to execute this command")
+		return ErrUserNotLoggedIn
 	}
 
 	err := ui.GetPod().Cat(podName, fileName)
@@ -301,10 +375,15 @@ func (d *DfsAPI) Cat(userName string, podName string, fileName string) error {
 }
 
 func (d *DfsAPI) DeleteFile(userName string, podName string, podFile string) error {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return fmt.Errorf("cat: login as a user to execute this command")
+		return ErrUserNotLoggedIn
 	}
 
 	err := ui.GetPod().RemoveFile(podName, podFile)
@@ -315,10 +394,15 @@ func (d *DfsAPI) DeleteFile(userName string, podName string, podFile string) err
 }
 
 func (d *DfsAPI) FileStat(userName string, podName string, fileName string) (*file.FileStats, error) {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return nil, ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return nil, fmt.Errorf("stat: login as a user to execute this command")
+		return nil, ErrUserNotLoggedIn
 	}
 
 	ds, err := ui.GetPod().FileStat(podName, fileName)
@@ -329,10 +413,15 @@ func (d *DfsAPI) FileStat(userName string, podName string, fileName string) (*fi
 }
 
 func (d *DfsAPI) UploadFile(userName string, podName string, fileName string, fileSize int64, reader io.ReadCloser, podDir string, blockSize string) (string, error) {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return "", ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return "", fmt.Errorf("upload: login as a user to execute this command")
+		return "", ErrUserNotLoggedIn
 	}
 
 	ref, err := ui.GetPod().UploadFile(podName, fileName, fileSize, reader, podDir, blockSize)
@@ -343,10 +432,15 @@ func (d *DfsAPI) UploadFile(userName string, podName string, fileName string, fi
 }
 
 func (d *DfsAPI) DownloadFile(userName string, podName string, podFile string) (io.ReadCloser, string, string, error) {
+	// check if the user is valid
+	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
+		return nil, "", "", ErrInvalidUserName
+	}
+
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName)
 	if ui == nil {
-		return nil, "", "", fmt.Errorf("upload: login as a user to execute this command")
+		return nil, "", "", ErrUserNotLoggedIn
 	}
 
 	reader, ref, size, err := ui.GetPod().DownloadFile(podName, podFile)

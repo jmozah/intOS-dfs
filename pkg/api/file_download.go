@@ -49,7 +49,7 @@ func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("ETag", fmt.Sprintf("%q", reference))
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", size))
+	w.Header().Set("Content-Length", size)
 	_, err = io.Copy(w, reader)
 	if err != nil {
 		fmt.Println("download: %w", err)

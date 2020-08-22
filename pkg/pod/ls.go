@@ -32,8 +32,8 @@ func (p *Pod) ListPods() ([]string, error) {
 }
 
 func (p *Pod) ListEntiesInDir(podName string, dirName string) ([]string, []string, error) {
-	if !p.isLoggedInToPod(podName) {
-		return nil, nil, fmt.Errorf("ls: login to pod to do this operation")
+	if !p.isPodOpened(podName) {
+		return nil, nil, ErrPodNotOpened
 	}
 
 	info, err := p.GetPodInfoFromPodMap(podName)

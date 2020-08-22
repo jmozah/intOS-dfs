@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 
+	u "github.com/jmozah/intOS-dfs/pkg/user"
 	"resenje.org/jsonhttp"
 )
 
@@ -43,11 +44,17 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	// create user
 	reference, mnemonic, err := h.dfsAPI.CreateUser(user, password)
 	if err != nil {
-		fmt.Println("signup: %w", err)
+		if err == u.ErrUserAlreadyPresent {
+			fmt.Println("signup: ", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+		fmt.Println("signup: ", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 
-	// sed the response
+	// send the response
 	jsonhttp.Created(w, &UserSignupResponse{
 		Reference: reference,
 		Mnemonic:  mnemonic,

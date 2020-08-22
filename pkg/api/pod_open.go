@@ -21,6 +21,8 @@ import (
 	"net/http"
 
 	"resenje.org/jsonhttp"
+	p "github.com/jmozah/intOS-dfs/pkg/pod"
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
 )
 
 type PodOpenResponse struct {
@@ -47,8 +49,15 @@ func (h *Handler) PodOpenHandler(w http.ResponseWriter, r *http.Request) {
 	// open pod
 	_, err := h.dfsAPI.OpenPod(user, pod, password)
 	if err != nil {
-		fmt.Println("open pod: %w", err)
+		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
+			err == p.ErrInvalidPodName {
+			fmt.Println("open pod:", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+		fmt.Println("open pod: ", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 
 	jsonhttp.OK(w, nil)

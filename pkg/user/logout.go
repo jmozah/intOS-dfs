@@ -16,15 +16,13 @@ limitations under the License.
 
 package user
 
-import "fmt"
-
 func (u *Users) LogoutUser(userName string, dataDir string) error {
-	if !u.isUserPresentInMap(userName) {
-		return fmt.Errorf("user logout: user not logged in")
+	if !u.IsUsernameAvailable(userName, dataDir) {
+		return ErrInvalidUserName
 	}
 
-	if !u.IsUsernameAvailable(userName, dataDir) {
-		return fmt.Errorf("user logout: user name not present")
+	if !u.isUserPresentInMap(userName) {
+		return ErrUserNotLoggedIn
 	}
 
 	u.removeUserFromMap(userName)

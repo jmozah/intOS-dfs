@@ -21,6 +21,9 @@ import (
 	"net/http"
 
 	"resenje.org/jsonhttp"
+
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
+	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
 func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,8 +41,17 @@ func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
 	// fetch pods and list them
 	err := h.dfsAPI.SyncPod(user, pod)
 	if err != nil {
-		fmt.Println("sync pod: %w", err)
+		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
+			err == p.ErrInvalidPodName ||
+			err == p.ErrTooLongPodName ||
+			err == p.ErrPodNotOpened {
+			fmt.Println("sync pod: ", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+		fmt.Println("sync pod: ", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 
 	jsonhttp.OK(w, nil)

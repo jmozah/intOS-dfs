@@ -29,7 +29,7 @@ import (
 
 func (u *Users) CreateNewUser(userName, passPhrase, dataDir string, client blockstore.Client) (string, string, error) {
 	if u.IsUsernameAvailable(userName, dataDir) {
-		return "", "", fmt.Errorf("user create: user name already present")
+		return "", "", ErrUserAlreadyPresent
 	}
 	acc := account.New(userName, dataDir)
 	accountInfo := acc.GetAccountInfo(account.UserAccountIndex)

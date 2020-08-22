@@ -69,10 +69,10 @@ func TestPod_ListPods(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if pods[0] != podName1 || pods[1] != podName1 {
+		if pods[0] != podName1 && pods[1] != podName1 {
 			t.Fatalf("pod not found")
 		}
-		if pods[0] != podName2 || pods[1] != podName2 {
+		if pods[0] != podName2 && pods[1] != podName2 {
 			t.Fatalf("pod not found")
 		}
 	})

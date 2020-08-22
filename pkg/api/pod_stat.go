@@ -21,6 +21,9 @@ import (
 	"net/http"
 
 	"resenje.org/jsonhttp"
+
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
+	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
 type PodStatResponse struct {
@@ -47,8 +50,15 @@ func (h *Handler) PodStatHandler(w http.ResponseWriter, r *http.Request) {
 	// fetch pod stat
 	stat, err := h.dfsAPI.PodStat(user, pod)
 	if err != nil {
-		fmt.Println("stat pod: %w", err)
+		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
+			err == p.ErrInvalidPodName {
+			fmt.Println("stat pod: ", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+		fmt.Println("stat pod: ", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 
 	jsonhttp.OK(w, &PodStatResponse{

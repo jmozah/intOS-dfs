@@ -26,7 +26,7 @@ import (
 )
 
 func (p *Pod) UploadFile(podName string, fileName string, fileSize int64, reader io.ReadCloser, podDir string, blockSize string) (string, error) {
-	if !p.isLoggedInToPod(podName) {
+	if !p.isPodOpened(podName) {
 		return "", fmt.Errorf("upload: login to pod to do this operation")
 	}
 

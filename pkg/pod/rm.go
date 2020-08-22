@@ -30,7 +30,7 @@ import (
 )
 
 func (p *Pod) RemoveFile(podName string, podFile string) error {
-	if !p.isLoggedInToPod(podName) {
+	if !p.isPodOpened(podName) {
 		return fmt.Errorf("rm: login to pod to do this operation")
 	}
 

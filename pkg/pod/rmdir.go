@@ -27,10 +27,10 @@ import (
 func (p *Pod) RemoveDir(podName string, dirName string) error {
 	directoryName, err := CleanName(dirName)
 	if err != nil {
-		return fmt.Errorf("rmdir: %w", err)
+		return err
 	}
 
-	if !p.isLoggedInToPod(podName) {
+	if !p.isPodOpened(podName) {
 		return fmt.Errorf("rmdir: login to pod to do this operation")
 	}
 

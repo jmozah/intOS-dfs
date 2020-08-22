@@ -30,14 +30,14 @@ import (
 func (p *Pod) MakeDir(podName string, dirName string, baseDirectory string) error {
 	directoryName, err := CleanName(dirName)
 	if err != nil {
-		return fmt.Errorf("mkdir: error cleaning directory Name")
+		return err
 	}
 
 	if len(directoryName) > utils.DirectoryNameLength {
 		return fmt.Errorf("mkdir: directory Name length is > %v", utils.DirectoryNameLength)
 	}
 
-	if !p.isLoggedInToPod(podName) {
+	if !p.isPodOpened(podName) {
 		return fmt.Errorf("mkdir: login to pod to do this operation")
 	}
 

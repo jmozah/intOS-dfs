@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 
+	u "github.com/jmozah/intOS-dfs/pkg/user"
 	"resenje.org/jsonhttp"
 )
 
@@ -33,8 +34,14 @@ func (h *Handler) UserLogoutHandler(w http.ResponseWriter, r *http.Request) {
 	// logout user
 	err := h.dfsAPI.LogoutUser(user)
 	if err != nil {
-		fmt.Println("logout: %w", err)
+		if err == u.ErrUserNotLoggedIn || err == u.ErrInvalidUserName {
+			fmt.Println("logout: ", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+		fmt.Println("logout: ", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 
 	jsonhttp.OK(w, nil)

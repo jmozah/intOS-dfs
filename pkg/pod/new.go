@@ -33,10 +33,10 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (p *Pod) CreatePod(podName, dataDir string, passPhrase string) (*Info, error) {
+func (p *Pod) CreatePod(podName, passPhrase string) (*Info, error) {
 	podName, err := CleanName(podName)
 	if err != nil {
-		return nil, fmt.Errorf("create pod: %w", err)
+		return nil, err
 	}
 
 	// check if pods is present and get free index
@@ -45,7 +45,7 @@ func (p *Pod) CreatePod(podName, dataDir string, passPhrase string) (*Info, erro
 		return nil, fmt.Errorf("create pod: %w", err)
 	}
 	if p.checkIfPodPresent(pods, podName) {
-		return nil, fmt.Errorf("create pod: pod already exist")
+		return nil, ErrPodAlreadyExists
 	}
 	freeId, err := p.getFreeId(pods)
 	if err != nil {
@@ -151,7 +151,7 @@ func (p *Pod) getFreeId(pods map[int]string) (int, error) {
 			return i, nil
 		}
 	}
-	return 0, fmt.Errorf("max pods exhausted")
+	return 0, ErrMaxPodsReached
 }
 
 func (p *Pod) checkIfPodPresent(pods map[int]string, podName string) bool {

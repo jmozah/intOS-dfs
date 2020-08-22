@@ -21,6 +21,9 @@ import (
 	"net/http"
 
 	"resenje.org/jsonhttp"
+
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
+	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
 func (h *Handler) PodCloseHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,8 +41,15 @@ func (h *Handler) PodCloseHandler(w http.ResponseWriter, r *http.Request) {
 	// close pod
 	err := h.dfsAPI.ClosePod(user, pod)
 	if err != nil {
-		fmt.Println("close pod: %w", err)
+		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
+			err == p.ErrPodNotOpened {
+			fmt.Println("close pod:", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+		fmt.Println("close pod: ", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 
 	jsonhttp.OK(w, nil)

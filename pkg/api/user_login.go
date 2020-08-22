@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 
+	u "github.com/jmozah/intOS-dfs/pkg/user"
 	"resenje.org/jsonhttp"
 )
 
@@ -38,8 +39,16 @@ func (h *Handler) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 	// login user
 	err := h.dfsAPI.LoginUser(user, password)
 	if err != nil {
-		fmt.Println("login: %w", err)
+		if err == u.ErrUserAlreadyLoggedIn ||
+			err == u.ErrInvalidUserName ||
+			err == u.ErrInvalidPassword {
+			fmt.Println("login: ", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+		fmt.Println("login: ", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 
 	jsonhttp.OK(w, nil)

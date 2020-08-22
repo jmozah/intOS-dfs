@@ -24,7 +24,7 @@ import (
 )
 
 func (p *Pod) DownloadFile(podName string, podFile string) (io.ReadCloser, string, string, error) {
-	if !p.isLoggedInToPod(podName) {
+	if !p.isPodOpened(podName) {
 		return nil, "", "", fmt.Errorf("copyToLocal: login to pod to do this operation")
 	}
 

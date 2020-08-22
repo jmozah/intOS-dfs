@@ -25,22 +25,27 @@ import (
 
 func (u *Users) DeleteUser(userName string, dataDir string, password string) error {
 
+	if !u.IsUsernameAvailable(userName, dataDir) {
+		return ErrInvalidUserName
+	}
+
+	if !u.isUserPresentInMap(userName) {
+		return ErrUserNotLoggedIn
+	}
+
+	// check for valid password
+	userInfo := u.getUserFromMap(userName)
+	acc := userInfo.account
+	if !acc.Authorise(password) {
+		return ErrInvalidPassword
+	}
+
 	// Logout user
 	if u.IsUserLoggedIn(userName) {
 		u.removeUserFromMap(userName)
 	}
 
-	// remove the user key if it is present
-	if !u.IsUsernameAvailable(userName, dataDir) {
-		return fmt.Errorf("user del: user name not present")
-	}
-
-	userInfo := u.getUserFromMap(userName)
-	acc := userInfo.account
-	if !acc.Authorise(password) {
-		return fmt.Errorf("user del: invalid password")
-	}
-
+	// remove the user mnemonic file
 	userKeyFileName := account.ConstructUserKeyFile(userName, dataDir)
 	err := os.Remove(userKeyFileName)
 	if err != nil {

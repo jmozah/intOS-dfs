@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 
+	u "github.com/jmozah/intOS-dfs/pkg/user"
 	"resenje.org/jsonhttp"
 )
 
@@ -38,8 +39,16 @@ func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// delete user
 	err := h.dfsAPI.DeleteUser(user, password)
 	if err != nil {
-		fmt.Println("delete: %w", err)
+		if err == u.ErrInvalidUserName ||
+			err == u.ErrInvalidPassword ||
+			err == u.ErrUserNotLoggedIn {
+			fmt.Println("delete: ", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+		fmt.Println("delete: ", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 	w.WriteHeader(http.StatusNoContent)
 }

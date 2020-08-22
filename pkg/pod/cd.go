@@ -26,14 +26,14 @@ import (
 func (p *Pod) ChangeDir(podName string, dirName string) (*Info, error) {
 	directoryName, err := CleanName(dirName)
 	if err != nil {
-		return nil, fmt.Errorf("cd: error cleaning directory Name")
+		return nil, err
 	}
 
 	if len(directoryName) > utils.DirectoryNameLength {
 		return nil, fmt.Errorf("cd: directory Name length is > %v", utils.DirectoryNameLength)
 	}
 
-	if !p.isLoggedInToPod(podName) {
+	if !p.isPodOpened(podName) {
 		return nil, fmt.Errorf("cd: login to pod to do this operation")
 	}
 

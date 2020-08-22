@@ -21,13 +21,8 @@ import (
 )
 
 func (p *Pod) ClosePod(podName string) error {
-	podName, err := CleanName(podName)
-	if err != nil {
-		return fmt.Errorf("login pod: %w", err)
-	}
-
-	if !p.isLoggedInToPod(podName) {
-		return fmt.Errorf("logout pod: login to pod to do this operation")
+	if !p.isPodOpened(podName) {
+		return ErrOpenPodAndDoOperation
 	}
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)

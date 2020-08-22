@@ -39,7 +39,7 @@ type PodStat struct {
 func (p *Pod) PodStat(podName string) (*PodStat, error) {
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return nil, fmt.Errorf("pod stat: %w", err)
+		return nil, ErrInvalidPodName
 	}
 	podInode := podInfo.GetCurrentPodInode()
 	return &PodStat{
@@ -53,8 +53,8 @@ func (p *Pod) PodStat(podName string) (*PodStat, error) {
 }
 
 func (p *Pod) DirectoryStat(podName, podFileOrDir string) (*dir.DirStats, error) {
-	if !p.isLoggedInToPod(podName) {
-		return nil, fmt.Errorf("login to pod to do this operation")
+	if !p.isPodOpened(podName) {
+		return nil,ErrPodNotOpened
 	}
 
 	info, err := p.GetPodInfoFromPodMap(podName)
@@ -80,7 +80,7 @@ func (p *Pod) DirectoryStat(podName, podFileOrDir string) (*dir.DirStats, error)
 }
 
 func (p *Pod) FileStat(podName, podFileOrDir string) (*file.FileStats, error) {
-	if !p.isLoggedInToPod(podName) {
+	if !p.isPodOpened(podName) {
 		return nil, fmt.Errorf("login to pod to do this operation")
 	}
 

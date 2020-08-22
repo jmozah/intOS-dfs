@@ -32,11 +32,11 @@ import (
 func (p *Pod) SyncPod(podName string) error {
 	podName, err := CleanName(podName)
 	if err != nil {
-		return fmt.Errorf("sync pod: %w", err)
+		return err
 	}
 
-	if !p.isLoggedInToPod(podName) {
-		return fmt.Errorf("sync pod: login to pod to do this operation")
+	if !p.isPodOpened(podName) {
+		return ErrPodNotOpened
 	}
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)

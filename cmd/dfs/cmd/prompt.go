@@ -432,7 +432,7 @@ func executor(in string) {
 		fmt.Println("Mo. Time	: ", fs.ModificationTime)
 		fmt.Println("Ac. Time	: ", fs.AccessTime)
 		for _, b := range fs.Blocks {
-			blkStr := fmt.Sprintf("%s, 0x%s, %d bytes", b.Name, b.Reference, b.Size)
+			blkStr := fmt.Sprintf("%s, 0x%s, %s bytes", b.Name, b.Reference, b.Size)
 			fmt.Println(blkStr)
 		}
 	case "pwd":

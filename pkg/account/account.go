@@ -30,6 +30,7 @@ import (
 	"github.com/ethersphere/bee/pkg/crypto"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
+	"github.com/tyler-smith/go-bip39"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -203,8 +204,15 @@ func (a *Account) Authorise(password string) bool {
 	if err != nil {
 		return false
 	}
+	// check the validity of the mnemonic
+	if plainMnemonic == "" {
+		return false
+	}
 	words := strings.Split(plainMnemonic, " ")
 	if len(words) != 12 {
+		return false
+	}
+	if !bip39.IsMnemonicValid(plainMnemonic) {
 		return false
 	}
 	return true

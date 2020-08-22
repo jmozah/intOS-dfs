@@ -25,7 +25,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (p *Pod) isLoggedInToPod(podName string) bool {
+func (p *Pod) isPodOpened(podName string) bool {
 	p.podMu.Lock()
 	defer p.podMu.Unlock()
 	name1 := utils.PathSeperator + podName
@@ -61,10 +61,10 @@ func (p *Pod) GetAccountInfo(podName string) (*account.AccountInfo, error) {
 
 func CleanName(podName string) (string, error) {
 	if podName == "" {
-		return "", fmt.Errorf("empty pod name")
+		return "", ErrInvalidPodName
 	}
 	if len(podName) > utils.MaxPodNameLength {
-		return "", fmt.Errorf("very long podname")
+		return "", ErrTooLongPodName
 	}
 	podName = strings.TrimSpace(podName)
 	podName = strings.Trim(podName, "\\/,\t ")

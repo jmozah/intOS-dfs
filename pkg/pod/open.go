@@ -27,19 +27,15 @@ import (
 )
 
 func (p *Pod) OpenPod(podName string, dataDir string, passPhrase string) (*Info, error) {
-	podName, err := CleanName(podName)
-	if err != nil {
-		return nil, fmt.Errorf("open pod: %w", err)
-	}
-
 	// check if pods is present and get the index of the pod
 	pods, err := p.loadUserPods()
 	if err != nil {
 		return nil, fmt.Errorf("open pod: %w", err)
 	}
 	if !p.checkIfPodPresent(pods, podName) {
-		return nil, fmt.Errorf("open pod: pod does not exist")
+		return nil, ErrInvalidPodName
 	}
+
 	index := p.getIndex(pods, podName)
 	if index == -1 {
 		return nil, fmt.Errorf("open pod: pod does not exist")

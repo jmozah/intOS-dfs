@@ -21,6 +21,8 @@ import (
 	"net/http"
 
 	"resenje.org/jsonhttp"
+
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
 )
 
 func (h *Handler) PodDeleteHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,8 +40,14 @@ func (h *Handler) PodDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// delete pod
 	err := h.dfsAPI.DeletePod(user, pod)
 	if err != nil {
-		fmt.Println("delete pod: %w", err)
+		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn {
+			fmt.Println("delete pod:", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+		fmt.Println("delete pod:", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)

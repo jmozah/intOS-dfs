@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
+	p "github.com/jmozah/intOS-dfs/pkg/pod"
 	"resenje.org/jsonhttp"
 )
 
@@ -47,8 +49,18 @@ func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 	// create pod
 	_, err := h.dfsAPI.CreatePod(user, pod, password)
 	if err != nil {
-		fmt.Println("create pod: %w", err)
+		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
+			err == p.ErrInvalidPodName ||
+			err == p.ErrTooLongPodName ||
+			err == p.ErrPodAlreadyExists ||
+			err == p.ErrMaxPodsReached {
+			fmt.Println("create pod: ", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+		fmt.Println("create pod: ", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 
 	jsonhttp.Created(w, nil)
