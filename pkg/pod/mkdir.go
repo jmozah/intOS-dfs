@@ -156,7 +156,6 @@ func (p *Pod) UpdateTillThePod(podName string, directory *d.Directory, topic []b
 			isAddHash = true // after the first deletion, the rest of the parent links should be updated
 		}
 		dirInode.Meta.ModificationTime = time.Now().Unix()
-
 		topic, err = directory.UpdateDirectory(dirInode)
 		if err != nil {
 			return fmt.Errorf("update directory: %w", err)

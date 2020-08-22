@@ -16,7 +16,9 @@ limitations under the License.
 
 package pod
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func (p *Pod) ListPods() ([]string, error) {
 	pods, err := p.loadUserPods()

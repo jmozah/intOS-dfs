@@ -29,23 +29,21 @@ func (d *Directory) ListDir(podName, path string, printNames bool) ([]string, []
 	var fileListing []string
 	var dirListing []string
 
+	path = utils.PathSeperator + podName + path
+	path = strings.TrimSuffix(path, utils.PathSeperator)
+
 	directory := ("<Dir>  : ")
 	f := ("<File> : ")
 	for k := range d.dirMap {
 		if strings.HasPrefix(k, path) {
-			if k != podName {
-				name := strings.TrimPrefix(k, path)
-				name = strings.TrimSpace(name)
-				name = strings.TrimPrefix(name, utils.PathSeperator)
-				if strings.ContainsAny(name, utils.PathSeperator) {
-					name = utils.PathSeperator + name
-				}
-				if name != "" {
-					if printNames {
-						dirListing = append(dirListing, directory+name)
-					} else {
-						dirListing = append(dirListing, name)
-					}
+			name := strings.TrimPrefix(k, path)
+			name = strings.TrimSpace(name)
+			name = strings.TrimPrefix(k, path)
+			if name != "" {
+				if printNames {
+					dirListing = append(dirListing, directory+name)
+				} else {
+					dirListing = append(dirListing, name)
 				}
 			}
 
