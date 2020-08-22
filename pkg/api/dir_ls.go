@@ -21,6 +21,9 @@ import (
 	"net/http"
 
 	"resenje.org/jsonhttp"
+
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
+	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
 type ListFileResponse struct {
@@ -48,8 +51,15 @@ func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 	// list directory
 	fl, dl, err := h.dfsAPI.ListDir(user, pod, currentDir)
 	if err != nil {
-		fmt.Println("ls dir: %w", err)
+		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
+			err == p.ErrPodNotOpened {
+			fmt.Println("ls dir: ", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+		fmt.Println("ls dir: ", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 
 	jsonhttp.OK(w, &ListFileResponse{

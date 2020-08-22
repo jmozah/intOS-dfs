@@ -19,10 +19,11 @@ package pod
 import "errors"
 
 var (
-	ErrInvalidPodName = errors.New("invalid pod name")
-	ErrTooLongPodName = errors.New("too long pod name")
-	ErrPodAlreadyExists = errors.New("pod already exists")
-	ErrMaxPodsReached = errors.New("max number of pods reached")
-	ErrPodNotOpened   = errors.New("pod not opened")
-	ErrInvalidDirectory = errors.New("invalid directory name")
+	ErrInvalidPodName       = errors.New("invalid pod name")
+	ErrTooLongPodName       = errors.New("pod name too long")
+	ErrPodAlreadyExists     = errors.New("pod already exists")
+	ErrMaxPodsReached       = errors.New("max number of pods reached")
+	ErrPodNotOpened         = errors.New("pod not opened")
+	ErrInvalidDirectory     = errors.New("invalid directory name")
+	ErrTooLongDirectoryName = errors.New("directory name too long")
 )

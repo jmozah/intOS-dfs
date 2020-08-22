@@ -54,7 +54,7 @@ func (p *Pod) PodStat(podName string) (*PodStat, error) {
 
 func (p *Pod) DirectoryStat(podName, podFileOrDir string) (*dir.DirStats, error) {
 	if !p.isPodOpened(podName) {
-		return nil,ErrPodNotOpened
+		return nil, ErrPodNotOpened
 	}
 
 	info, err := p.GetPodInfoFromPodMap(podName)

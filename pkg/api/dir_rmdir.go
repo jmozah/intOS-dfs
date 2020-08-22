@@ -21,6 +21,9 @@ import (
 	"net/http"
 
 	"resenje.org/jsonhttp"
+
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
+	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
 func (h *Handler) DirectoryRmdirHandler(w http.ResponseWriter, r *http.Request) {
@@ -43,8 +46,15 @@ func (h *Handler) DirectoryRmdirHandler(w http.ResponseWriter, r *http.Request) 
 	// remove directory
 	err := h.dfsAPI.RmDir(user, pod, dir)
 	if err != nil {
-		fmt.Println("rmdir: %w", err)
+		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
+			err == p.ErrPodNotOpened {
+			fmt.Println("rmdir: ", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+		fmt.Println("rmdir: ", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)

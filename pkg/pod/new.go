@@ -34,7 +34,7 @@ import (
 )
 
 func (p *Pod) CreatePod(podName, passPhrase string) (*Info, error) {
-	podName, err := CleanName(podName)
+	podName, err := CleanPodName(podName)
 	if err != nil {
 		return nil, err
 	}

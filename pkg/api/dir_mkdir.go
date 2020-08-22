@@ -21,6 +21,9 @@ import (
 	"net/http"
 
 	"resenje.org/jsonhttp"
+
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
+	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
 type MkdirResponse struct {
@@ -52,8 +55,17 @@ func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) 
 	// make directory
 	err := h.dfsAPI.Mkdir(user, pod, dirToCreate, baseDir)
 	if err != nil {
-		fmt.Println("mkdir: %w", err)
+		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
+			err == p.ErrInvalidDirectory ||
+			err == p.ErrTooLongDirectoryName ||
+			err == p.ErrPodNotOpened {
+			fmt.Println("mkdir: ", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+		fmt.Println("mkdir: ", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 
 	jsonhttp.Created(w, &MkdirResponse{

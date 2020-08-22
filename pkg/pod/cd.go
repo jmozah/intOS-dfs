@@ -24,13 +24,13 @@ import (
 )
 
 func (p *Pod) ChangeDir(podName string, dirName string) (*Info, error) {
-	directoryName, err := CleanName(dirName)
+	directoryName, err := CleanDirName(dirName)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(directoryName) > utils.DirectoryNameLength {
-		return nil, fmt.Errorf("cd: directory Name length is > %v", utils.DirectoryNameLength)
+	if len(directoryName) > utils.MaxDirectoryNameLength {
+		return nil, fmt.Errorf("cd: directory Name length is > %v", utils.MaxDirectoryNameLength)
 	}
 
 	if !p.isPodOpened(podName) {
@@ -42,7 +42,7 @@ func (p *Pod) ChangeDir(podName string, dirName string) (*Info, error) {
 		return nil, fmt.Errorf("mkdir: %w", err)
 	}
 
-	if directoryName == "" || directoryName == utils.PathSeperator {
+	if directoryName[0] == "" || directoryName[0] == utils.PathSeperator {
 		podInfo.SetCurrentDirInode(podInfo.GetCurrentPodInode())
 		return podInfo, nil
 	}
@@ -51,7 +51,7 @@ func (p *Pod) ChangeDir(podName string, dirName string) (*Info, error) {
 	fd := podInfo.getFeed()
 	accountInfo := podInfo.getAccountInfo()
 
-	if directoryName == ".." {
+	if directoryName[0] == ".." {
 		if podInfo.IsCurrentDirRoot() {
 			return podInfo, nil
 		}
@@ -63,7 +63,7 @@ func (p *Pod) ChangeDir(podName string, dirName string) (*Info, error) {
 		return podInfo, nil
 	}
 
-	path := p.getDirectoryPath(directoryName, podInfo)
+	path := p.getDirectoryPath(directoryName[0], podInfo)
 	dirInode := directory.GetDirFromDirectoryMap(path)
 	if dirInode != nil {
 		podInfo.SetCurrentDirInode(dirInode)

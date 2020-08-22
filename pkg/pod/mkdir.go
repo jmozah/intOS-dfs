@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"fmt"
 	gopath "path"
-	"strings"
 	"time"
 
 	d "github.com/jmozah/intOS-dfs/pkg/dir"
@@ -28,17 +27,13 @@ import (
 )
 
 func (p *Pod) MakeDir(podName string, dirName string, baseDirectory string) error {
-	directoryName, err := CleanName(dirName)
+	dirs, err := CleanDirName(dirName)
 	if err != nil {
 		return err
 	}
 
-	if len(directoryName) > utils.DirectoryNameLength {
-		return fmt.Errorf("mkdir: directory Name length is > %v", utils.DirectoryNameLength)
-	}
-
 	if !p.isPodOpened(podName) {
-		return fmt.Errorf("mkdir: login to pod to do this operation")
+		return ErrPodNotOpened
 	}
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
@@ -53,8 +48,6 @@ func (p *Pod) MakeDir(podName string, dirName string, baseDirectory string) erro
 	var dirInode *d.DirInode
 	var previousDirINode *d.DirInode
 	addToPod := false
-
-	dirs := strings.Split(directoryName, utils.PathSeperator)
 
 	// ex: mkdir make/all/this/dir
 	if len(dirs) > 1 {
@@ -112,7 +105,7 @@ func (p *Pod) MakeDir(podName string, dirName string, baseDirectory string) erro
 		} else {
 			dirInode = podInfo.GetCurrentDirInode()
 		}
-		_, topic, err = directory.CreateDirINode(podName, directoryName, dirInode)
+		_, topic, err = directory.CreateDirINode(podName, dirs[0], dirInode)
 		if err != nil {
 			return fmt.Errorf("mkdir: %w", err)
 		}

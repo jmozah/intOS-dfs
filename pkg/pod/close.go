@@ -22,7 +22,7 @@ import (
 
 func (p *Pod) ClosePod(podName string) error {
 	if !p.isPodOpened(podName) {
-		return ErrOpenPodAndDoOperation
+		return ErrPodNotOpened
 	}
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)

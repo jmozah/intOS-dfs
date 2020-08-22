@@ -25,13 +25,11 @@ import (
 )
 
 func (p *Pod) RemoveDir(podName string, dirName string) error {
-	directoryName, err := CleanName(dirName)
-	if err != nil {
-		return err
-	}
-
 	if !p.isPodOpened(podName) {
-		return fmt.Errorf("rmdir: login to pod to do this operation")
+		return ErrPodNotOpened
+	}
+	if strings.HasPrefix(dirName, utils.PathSeperator) {
+		dirName = strings.TrimPrefix(dirName, utils.PathSeperator)
 	}
 
 	info, err := p.GetPodInfoFromPodMap(podName)
@@ -41,7 +39,7 @@ func (p *Pod) RemoveDir(podName string, dirName string) error {
 
 	directory := info.getDirectory()
 
-	dirInode, err := p.GetInodeFromName(directoryName, info.GetCurrentDirInode(), directory, info)
+	dirInode, err := p.GetInodeFromName(dirName, info.GetCurrentDirInode(), directory, info)
 	if err != nil {
 		return fmt.Errorf("rmdir: %w", err)
 	}
@@ -50,9 +48,9 @@ func (p *Pod) RemoveDir(podName string, dirName string) error {
 		return fmt.Errorf("rmdir: name is not a directory")
 	}
 
-	topic := info.GetCurrentDirPathAndName() + utils.PathSeperator + directoryName
+	topic := info.GetCurrentDirPathAndName() + utils.PathSeperator + dirName
 	if info.IsCurrentDirRoot() {
-		topic = info.GetCurrentPodPathAndName() + utils.PathSeperator + directoryName
+		topic = info.GetCurrentPodPathAndName() + utils.PathSeperator + dirName
 	}
 	topicBytes := utils.HashString(topic)
 	err = p.UpdateTillThePod(podName, directory, topicBytes, false)

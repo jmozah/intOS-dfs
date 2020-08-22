@@ -21,6 +21,9 @@ import (
 	"net/http"
 
 	"resenje.org/jsonhttp"
+
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
+	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
 func (h *Handler) DirectoryStatHandler(w http.ResponseWriter, r *http.Request) {
@@ -43,8 +46,15 @@ func (h *Handler) DirectoryStatHandler(w http.ResponseWriter, r *http.Request) {
 	// stat directory
 	ds, err := h.dfsAPI.DirectoryStat(user, pod, dir)
 	if err != nil {
-		fmt.Println("stat dir: %w", err)
+		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
+			err == p.ErrPodNotOpened {
+			fmt.Println("rmdir: ", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+		fmt.Println("stat dir: ", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 
 	jsonhttp.OK(w, ds)

@@ -30,7 +30,7 @@ import (
 )
 
 func (p *Pod) SyncPod(podName string) error {
-	podName, err := CleanName(podName)
+	podName, err := CleanPodName(podName)
 	if err != nil {
 		return err
 	}
