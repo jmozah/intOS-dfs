@@ -74,7 +74,7 @@ func (d *DfsAPI) ListAllUsers() []string {
 //
 //  Pods related APIs
 //
-func (d *DfsAPI) CreatePod(userName string, podName string, passPhrase string) (*pod.Info, error) {
+func (d *DfsAPI) CreatePod(userName, podName, passPhrase string) (*pod.Info, error) {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return nil, ErrInvalidUserName
@@ -94,7 +94,7 @@ func (d *DfsAPI) CreatePod(userName string, podName string, passPhrase string) (
 	return pi, nil
 }
 
-func (d *DfsAPI) DeletePod(userName string, podName string) error {
+func (d *DfsAPI) DeletePod(userName, podName string) error {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return ErrInvalidUserName
@@ -114,7 +114,7 @@ func (d *DfsAPI) DeletePod(userName string, podName string) error {
 	return nil
 }
 
-func (d *DfsAPI) OpenPod(userName string, podName string, passPhrase string) (*pod.Info, error) {
+func (d *DfsAPI) OpenPod(userName, podName string, passPhrase string) (*pod.Info, error) {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return nil, ErrInvalidUserName
@@ -218,7 +218,7 @@ func (d *DfsAPI) ListPods(userName string) ([]string, error) {
 //  Directory related APIs
 //
 
-func (d *DfsAPI) Mkdir(userName string, podName string, directoryName string) error {
+func (d *DfsAPI) Mkdir(userName, podName, directoryName string) error {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return ErrInvalidUserName
@@ -238,7 +238,7 @@ func (d *DfsAPI) Mkdir(userName string, podName string, directoryName string) er
 	return nil
 }
 
-func (d *DfsAPI) RmDir(userName string, podName string, directoryName string) error {
+func (d *DfsAPI) RmDir(userName, podName, directoryName string) error {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return ErrInvalidUserName
@@ -257,7 +257,7 @@ func (d *DfsAPI) RmDir(userName string, podName string, directoryName string) er
 	return nil
 }
 
-func (d *DfsAPI) ListDir(userName string, podName string, currentDir string) ([]string, []string, error) {
+func (d *DfsAPI) ListDir(userName, podName, currentDir string) ([]string, []string, error) {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return nil, nil, ErrInvalidUserName
@@ -276,7 +276,7 @@ func (d *DfsAPI) ListDir(userName string, podName string, currentDir string) ([]
 	return fl, dl, nil
 }
 
-func (d *DfsAPI) DirectoryStat(userName string, podName string, directoryName string) (*dir.DirStats, error) {
+func (d *DfsAPI) DirectoryStat(userName, podName, directoryName string) (*dir.DirStats, error) {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return nil, ErrInvalidUserName
@@ -295,7 +295,7 @@ func (d *DfsAPI) DirectoryStat(userName string, podName string, directoryName st
 	return ds, nil
 }
 
-func (d *DfsAPI) ChangeDirectory(userName string, podName string, directoryName string) (*pod.Info, error) {
+func (d *DfsAPI) ChangeDirectory(userName, podName, directoryName string) (*pod.Info, error) {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return nil, ErrInvalidUserName
@@ -318,7 +318,7 @@ func (d *DfsAPI) ChangeDirectory(userName string, podName string, directoryName 
 // File related API's
 //
 
-func (d *DfsAPI) CopyFromLocal(userName string, podName, localFile string, podDir string, blockSize string) error {
+func (d *DfsAPI) CopyFromLocal(userName, podName, localFile, podDir, blockSize string) error {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return ErrInvalidUserName
@@ -337,7 +337,7 @@ func (d *DfsAPI) CopyFromLocal(userName string, podName, localFile string, podDi
 	return nil
 }
 
-func (d *DfsAPI) CopyToLocal(userName string, podName, localDir string, podFile string) error {
+func (d *DfsAPI) CopyToLocal(userName, podName, localDir, podFile string) error {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return ErrInvalidUserName
@@ -356,7 +356,7 @@ func (d *DfsAPI) CopyToLocal(userName string, podName, localDir string, podFile 
 	return nil
 }
 
-func (d *DfsAPI) Cat(userName string, podName string, fileName string) error {
+func (d *DfsAPI) Cat(userName, podName, fileName string) error {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return ErrInvalidUserName
@@ -375,7 +375,7 @@ func (d *DfsAPI) Cat(userName string, podName string, fileName string) error {
 	return nil
 }
 
-func (d *DfsAPI) DeleteFile(userName string, podName string, podFile string) error {
+func (d *DfsAPI) DeleteFile(userName, podName, podFile string) error {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return ErrInvalidUserName
@@ -394,7 +394,7 @@ func (d *DfsAPI) DeleteFile(userName string, podName string, podFile string) err
 	return nil
 }
 
-func (d *DfsAPI) FileStat(userName string, podName string, fileName string) (*file.FileStats, error) {
+func (d *DfsAPI) FileStat(userName, podName, fileName string) (*file.FileStats, error) {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return nil, ErrInvalidUserName
@@ -413,7 +413,7 @@ func (d *DfsAPI) FileStat(userName string, podName string, fileName string) (*fi
 	return ds, nil
 }
 
-func (d *DfsAPI) UploadFile(userName string, podName string, fileName string, fileSize int64, fd multipart.File, podDir string, blockSize string) (string, error) {
+func (d *DfsAPI) UploadFile(userName, podName, fileName string, fileSize int64, fd multipart.File, podDir, blockSize string) (string, error) {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return "", ErrInvalidUserName
@@ -432,7 +432,7 @@ func (d *DfsAPI) UploadFile(userName string, podName string, fileName string, fi
 	return ref, nil
 }
 
-func (d *DfsAPI) DownloadFile(userName string, podName string, podFile string) (io.ReadCloser, string, string, error) {
+func (d *DfsAPI) DownloadFile(userName, podName, podFile string) (io.ReadCloser, string, string, error) {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return nil, "", "", ErrInvalidUserName

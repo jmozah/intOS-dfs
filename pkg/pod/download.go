@@ -23,7 +23,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (p *Pod) DownloadFile(podName string, podFile string) (io.ReadCloser, string, string, error) {
+func (p *Pod) DownloadFile(podName, podFile string) (io.ReadCloser, string, string, error) {
 	if !p.isPodOpened(podName) {
 		return nil, "", "", fmt.Errorf("copyToLocal: login to pod to do this operation")
 	}

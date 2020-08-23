@@ -24,7 +24,7 @@ type Handler struct {
 	dfsAPI *dfs.DfsAPI
 }
 
-func NewHandler(dataDir, beeHost string, beePort string) *Handler {
+func NewHandler(dataDir, beeHost, beePort string) *Handler {
 	return &Handler{
 		dfsAPI: dfs.NewDfsAPI(dataDir, beeHost, beePort),
 	}

@@ -23,7 +23,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/account"
 )
 
-func (u *Users) DeleteUser(userName string, dataDir string, password string) error {
+func (u *Users) DeleteUser(userName, dataDir, password string) error {
 
 	if !u.IsUsernameAvailable(userName, dataDir) {
 		return ErrInvalidUserName

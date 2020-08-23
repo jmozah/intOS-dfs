@@ -30,19 +30,19 @@ import (
 )
 
 const (
-	HashLength          = 32
-	AddressLength       = 20
-	SignatureLength     = 65
-	MaxChunkLength      = 4096
-	FileNameLength      = 50
-	DirectoryNameLength = 50
-	PodNameLength       = 50
-	SHA3Hash            = "SHA3"
-	DefaultRoot         = "dfs_root"
-	PodsInfoFile        = "dfs_pods_info"
-	PathSeperator       = string(os.PathSeparator)
-	MaxPodNameLength    = 25
-	SpanLength          = 8
+	HashLength             = 32
+	AddressLength          = 20
+	SignatureLength        = 65
+	MaxChunkLength         = 4096
+	FileNameLength         = 50
+	MaxDirectoryNameLength = 50
+	PodNameLength          = 50
+	SHA3Hash               = "SHA3"
+	DefaultRoot            = "dfs_root"
+	PodsInfoFile           = "dfs_pods_info"
+	PathSeperator          = string(os.PathSeparator)
+	MaxPodNameLength       = 25
+	SpanLength             = 8
 )
 
 type Hash [HashLength]byte

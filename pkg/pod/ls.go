@@ -36,7 +36,7 @@ func (p *Pod) ListPods() ([]string, error) {
 	return listPods, nil
 }
 
-func (p *Pod) ListEntiesInDir(podName string, dirName string) ([]string, []string, error) {
+func (p *Pod) ListEntiesInDir(podName, dirName string) ([]string, []string, error) {
 	if !p.isPodOpened(podName) {
 		return nil, nil, ErrPodNotOpened
 	}

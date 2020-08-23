@@ -43,7 +43,7 @@ type Blocks struct {
 	Size      string `json:"size"`
 }
 
-func (f *File) FileStat(podName string, fileName string, account string) (*FileStats, error) {
+func (f *File) FileStat(podName, fileName, account string) (*FileStats, error) {
 	meta := f.GetFromFileMap(fileName)
 	if meta == nil {
 		return nil, fmt.Errorf("file stat: file not found")

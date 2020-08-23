@@ -36,7 +36,7 @@ type DirStats struct {
 	NoOfFiles        string `json:"no_of_files"`
 }
 
-func (d *Directory) DirStat(podName, dirName string, dirInode *DirInode, account string, podAddr string) (*DirStats, error) {
+func (d *Directory) DirStat(podName, dirName string, dirInode *DirInode, account, podAddr string) (*DirStats, error) {
 	meta := dirInode.Meta
 	fl, dl := d.ListDir(podName, dirName, false)
 

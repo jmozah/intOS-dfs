@@ -26,7 +26,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (p *Pod) OpenPod(podName string, passPhrase string) (*Info, error) {
+func (p *Pod) OpenPod(podName, passPhrase string) (*Info, error) {
 	// check if pods is present and get the index of the pod
 	pods, err := p.loadUserPods()
 	if err != nil {
