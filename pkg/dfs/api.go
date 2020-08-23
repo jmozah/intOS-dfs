@@ -114,7 +114,7 @@ func (d *DfsAPI) DeletePod(userName, podName string) error {
 	return nil
 }
 
-func (d *DfsAPI) OpenPod(userName, podName string, passPhrase string) (*pod.Info, error) {
+func (d *DfsAPI) OpenPod(userName, podName, passPhrase string) (*pod.Info, error) {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return nil, ErrInvalidUserName
