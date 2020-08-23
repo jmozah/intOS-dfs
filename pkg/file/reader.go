@@ -24,7 +24,6 @@ import (
 )
 
 type Reader struct {
-	totalBytes  int64
 	offset      int64
 	client      blockstore.Client
 	fileInode   FileINode
@@ -56,7 +55,7 @@ func (r *Reader) Read(b []byte) (n int, err error) {
 			r.blockCursor += bytesToRead
 			r.offset += int64(bytesToRead)
 			bytesRead = int(bytesToRead)
-			bytesToRead = 0 // read all the bytes
+			//bytesToRead = 0
 			if r.blockCursor == r.blockSize {
 				r.lastBlock = nil
 				r.blockCursor = 0

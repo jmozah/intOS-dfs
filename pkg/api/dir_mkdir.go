@@ -26,10 +26,6 @@ import (
 	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
-type MkdirResponse struct {
-	Reference string `json:"reference"`
-}
-
 func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
@@ -63,7 +59,5 @@ func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	jsonhttp.Created(w, &MkdirResponse{
-		Reference: mockAddress2,
-	})
+	jsonhttp.Created(w, nil)
 }

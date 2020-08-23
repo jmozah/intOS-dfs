@@ -34,8 +34,6 @@ func (d *Directory) ListDir(podName, path string, printNames bool) ([]string, []
 	for k := range d.dirMap {
 		if strings.HasPrefix(k, path) {
 			name := strings.TrimPrefix(k, path)
-			name = strings.TrimSpace(name)
-			name = strings.TrimPrefix(k, path)
 			if name != "" {
 				if printNames {
 					dirListing = append(dirListing, directory+name)
