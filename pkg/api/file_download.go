@@ -27,7 +27,7 @@ import (
 func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
-	podFile := r.FormValue("pod_file")
+	podFile := r.FormValue("file")
 	if user == "" {
 		jsonhttp.BadRequest(w, "download: \"user\" argument missing")
 		return
@@ -37,22 +37,23 @@ func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if podFile == "" {
-		jsonhttp.BadRequest(w, "download: \"path_in_pod\" argument missing")
+		jsonhttp.BadRequest(w, "download: \"file\" argument missing")
 		return
 	}
 
 	// download file from bee
 	reader, reference, size, err := h.dfsAPI.DownloadFile(user, pod, podFile)
 	if err != nil {
-		fmt.Println("download: %w", err)
+		fmt.Println("download: ", err)
 		jsonhttp.InternalServerError(w, err)
+		return
 	}
 
 	w.Header().Set("ETag", fmt.Sprintf("%q", reference))
 	w.Header().Set("Content-Length", size)
 	_, err = io.Copy(w, reader)
 	if err != nil {
-		fmt.Println("download: %w", err)
+		fmt.Println("download:", err)
 		jsonhttp.InternalServerError(w, err)
 	}
 }

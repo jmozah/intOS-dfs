@@ -26,7 +26,7 @@ import (
 func (h *Handler) FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
-	podFile := r.FormValue("pod_file")
+	podFile := r.FormValue("file")
 	if user == "" {
 		jsonhttp.BadRequest(w, "delete: \"user\" argument missing")
 		return
@@ -36,7 +36,7 @@ func (h *Handler) FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if podFile == "" {
-		jsonhttp.BadRequest(w, "delete: \"path_in_pod\" argument missing")
+		jsonhttp.BadRequest(w, "delete: \"file\" argument missing")
 		return
 	}
 

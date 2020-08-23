@@ -18,14 +18,16 @@ package pod
 
 import (
 	"fmt"
-	"io"
+	"mime/multipart"
+	"time"
 
 	"github.com/dustin/go-humanize"
 	"github.com/ethersphere/bee/pkg/swarm"
+
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (p *Pod) UploadFile(podName string, fileName string, fileSize int64, reader io.ReadCloser, podDir string, blockSize string) (string, error) {
+func (p *Pod) UploadFile(podName string, fileName string, fileSize int64, fd multipart.File, podDir string, blockSize string) (string, error) {
 	if !p.isPodOpened(podName) {
 		return "", fmt.Errorf("upload: login to pod to do this operation")
 	}
@@ -45,17 +47,31 @@ func (p *Pod) UploadFile(podName string, fileName string, fileSize int64, reader
 
 	_, dirInode, err := dir.GetDirNode(path, podInfo.getFeed(), podInfo.getAccountInfo())
 	if err != nil {
-		return "", fmt.Errorf("error while fetching pod info: %w", err)
+		return "", fmt.Errorf("upload: error while fetching pod info: %w", err)
 	}
 
 	fpath := path + utils.PathSeperator + fileName
 	if podInfo.file.IsFileAlreadyPResent(fpath) {
-		return "", fmt.Errorf("file already present in the destination dir")
+		return "", fmt.Errorf("upload: file already present in the destination dir")
 	}
-	addr, err := podInfo.file.Upload(reader, fileName, fileSize, uint32(bs), fpath)
+	addr, err := podInfo.file.Upload(fd, fileName, fileSize, uint32(bs), fpath)
 	if err != nil {
-		return "", fmt.Errorf("error while copying file to pod: %w", err)
+		return "", fmt.Errorf("upload: error while copying file to pod: %w", err)
 	}
 	dirInode.Hashes = append(dirInode.Hashes, addr)
+
+	dirInode.Meta.ModificationTime = time.Now().Unix()
+	topic, err := dir.UpdateDirectory(dirInode)
+	if err != nil {
+		return "", fmt.Errorf("upload: error updating directory: %w", err)
+	}
+
+	if path != podInfo.GetCurrentPodPathAndName() {
+		err = p.UpdateTillThePod(podName, podInfo.getDirectory(), topic, path, true)
+		if err != nil {
+			return "", fmt.Errorf("upload: error updating directory: %w", err)
+		}
+	}
+
 	return swarm.NewAddress(addr).String(), nil
 }

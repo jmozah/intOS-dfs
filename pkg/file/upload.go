@@ -21,13 +21,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"path/filepath"
 	"time"
 
 	m "github.com/jmozah/intOS-dfs/pkg/meta"
 )
 
-func (f *File) Upload(reader io.ReadCloser, fileName string, fileSize int64, blockSize uint32, filePath string) ([]byte, error) {
+func (f *File) Upload(fd multipart.File, fileName string, fileSize int64, blockSize uint32, filePath string) ([]byte, error) {
 	now := time.Now().Unix()
 	meta := m.FileMetaData{
 		Version:          m.FileMetaVersion,
@@ -46,7 +47,7 @@ func (f *File) Upload(reader io.ReadCloser, fileName string, fileSize int64, blo
 	var totalLength uint64
 	i := 0
 	for {
-		r, err := reader.Read(data)
+		r, err := fd.Read(data)
 		totalLength += uint64(r)
 		if err != nil {
 			if err == io.EOF {

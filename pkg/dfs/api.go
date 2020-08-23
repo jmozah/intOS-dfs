@@ -18,6 +18,7 @@ package dfs
 
 import (
 	"io"
+	"mime/multipart"
 
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee"
@@ -412,7 +413,7 @@ func (d *DfsAPI) FileStat(userName string, podName string, fileName string) (*fi
 	return ds, nil
 }
 
-func (d *DfsAPI) UploadFile(userName string, podName string, fileName string, fileSize int64, reader io.ReadCloser, podDir string, blockSize string) (string, error) {
+func (d *DfsAPI) UploadFile(userName string, podName string, fileName string, fileSize int64, fd multipart.File, podDir string, blockSize string) (string, error) {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return "", ErrInvalidUserName
@@ -424,7 +425,7 @@ func (d *DfsAPI) UploadFile(userName string, podName string, fileName string, fi
 		return "", ErrUserNotLoggedIn
 	}
 
-	ref, err := ui.GetPod().UploadFile(podName, fileName, fileSize, reader, podDir, blockSize)
+	ref, err := ui.GetPod().UploadFile(podName, fileName, fileSize, fd, podDir, blockSize)
 	if err != nil {
 		return "", err
 	}

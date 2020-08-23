@@ -18,22 +18,30 @@ package api
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"resenje.org/jsonhttp"
 )
 
 type uploadFiletResponse struct {
-	Reference string `json:"reference"`
+	References []Reference
 }
+
+type Reference struct {
+	FileName  string `json:"file_name"`
+	Reference string `json:"reference,omitempty"`
+	Error     string `json:"error,omitempty"`
+}
+
+const (
+	defaultMaxMemory = 32 << 20 // 32 MB
+)
 
 func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
 	podDir := r.FormValue("pod_dir")
 	blockSize := r.FormValue("block_size")
-	fileName := r.FormValue("file_name")
 	if user == "" {
 		jsonhttp.BadRequest(w, "upload: \"user\" argument missing")
 		return
@@ -50,26 +58,48 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		jsonhttp.BadRequest(w, "upload: \"block_size\" argument missing")
 		return
 	}
-	if fileName == "" {
-		jsonhttp.BadRequest(w, "upload: \"file_namee\" argument missing")
+
+	//  get the files parameter from the multi part
+	err := r.ParseMultipartForm(defaultMaxMemory)
+	if err != nil {
+		fmt.Println("upload: ", err)
+		jsonhttp.BadRequest(w, err)
 		return
 	}
-	_, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		jsonhttp.BadRequest(w, "missing body")
+	files := r.MultipartForm.File["files"]
+	if len(files) == 0 {
+		fmt.Println("upload: ", err)
+		jsonhttp.BadRequest(w, "parameter \"files\" missing")
 		return
 	}
-	fileSize := r.ContentLength
 
-	// upload file to bee
-	reference, err := h.dfsAPI.UploadFile(user, pod, fileName, fileSize, r.Body, podDir, blockSize)
-	if err != nil {
-		fmt.Println("upload: %w", err)
-		jsonhttp.InternalServerError(w, err)
+	// upload files one by one
+	var references []Reference
+	for _, file := range files {
+		fd, err := file.Open()
+		defer func() {
+			err := fd.Close()
+			if err != nil {
+				fmt.Println("upload: error closing file: ", err)
+			}
+		}()
+		if err != nil {
+			fmt.Println("upload: ", err)
+			references = append(references, Reference{FileName: file.Filename, Error: err.Error()})
+			continue
+		}
+
+		//upload file to bee
+		reference, err := h.dfsAPI.UploadFile(user, pod, file.Filename, file.Size, fd, podDir, blockSize)
+		if err != nil {
+			fmt.Println("upload: ", err)
+			references = append(references, Reference{FileName: file.Filename, Error: err.Error()})
+			continue
+		}
+		references = append(references, Reference{FileName: file.Filename, Reference: reference})
 	}
 
-	w.Header().Set("ETag", fmt.Sprintf("%q", reference))
 	jsonhttp.OK(w, &uploadFiletResponse{
-		Reference: reference,
+		References: references,
 	})
 }

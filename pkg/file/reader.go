@@ -18,6 +18,7 @@ package file
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
 )
@@ -46,52 +47,67 @@ func NewReader(fileInode FileINode, client blockstore.Client, fileSize uint64, b
 }
 
 func (r *Reader) Read(b []byte) (n int, err error) {
-	sizeRemaining := uint32(len(b))
-	sizeRead := 0
+	bytesToRead := uint32(len(b))
+	bytesRead := 0
 	if r.lastBlock != nil {
-		if len(b) <= len(r.lastBlock[r.blockCursor:]) {
-			copy(b, r.lastBlock[r.blockCursor:sizeRemaining])
-			r.blockCursor += sizeRemaining
-			r.offset += int64(sizeRemaining)
-			sizeRead = int(sizeRemaining)
-			return sizeRead, nil
+		remDataSize := r.blockSize - r.blockCursor
+		if bytesToRead <= remDataSize {
+			copy(b, r.lastBlock[r.blockCursor:r.blockCursor+bytesToRead])
+			r.blockCursor += bytesToRead
+			r.offset += int64(bytesToRead)
+			bytesRead = int(bytesToRead)
+			bytesToRead = 0 // read all the bytes
+			if r.blockCursor == r.blockSize {
+				r.lastBlock = nil
+				r.blockCursor = 0
+			}
+			return bytesRead, nil
 		} else {
-			remblockSize := r.blockSize - r.blockCursor
-			copy(b[:remblockSize], r.lastBlock[r.blockCursor:r.blockSize])
+			copy(b, r.lastBlock[r.blockCursor:r.blockSize])
 			r.lastBlock = nil
 			r.blockCursor = 0
-			r.offset += int64(remblockSize)
-			sizeRemaining -= remblockSize
-			sizeRead += int(remblockSize)
+			r.offset += int64(remDataSize)
+			bytesRead += int(remDataSize)
+			bytesToRead -= remDataSize
+			// read spans across block.. so flow down and read the next block
 		}
 	}
 
 	if r.lastBlock == nil {
-		noOfBlocks := int((sizeRemaining / r.blockSize) + 1)
+		noOfBlocks := int((bytesToRead / r.blockSize) + 1)
 		for i := 0; i < noOfBlocks; i++ {
-			blockIndex := (r.offset / int64(r.blockSize)) + 1
-			if blockIndex > int64(len(r.fileInode.FileBlocks)) {
-				return sizeRead, fmt.Errorf("asking past EOF")
+			if r.lastBlock == nil {
+				blockIndex := (r.offset / int64(r.blockSize))
+				if blockIndex > int64(len(r.fileInode.FileBlocks)) {
+					return bytesRead, fmt.Errorf("asking past EOF")
+				}
+				if blockIndex >= int64(len(r.fileInode.FileBlocks)) {
+					return 0, io.EOF
+				}
+				r.lastBlock, err = r.getBlock(r.fileInode.FileBlocks[blockIndex].Address)
+				if err != nil {
+					return bytesRead, err
+				}
 			}
-			r.lastBlock, err = r.getBlock(r.fileInode.FileBlocks[blockIndex].Address)
-			if err != nil {
-				return sizeRead, err
+
+			// if length of bytes to read is greater than block size
+			if bytesToRead > r.blockSize {
+				bytesToRead = r.blockSize
 			}
-			copySize := r.blockSize
-			if uint32(len(b))-sizeRemaining < r.blockSize {
-				copySize = uint32(len(b)) - sizeRemaining
-			}
-			copy(b[sizeRead:copySize], r.lastBlock[:copySize])
-			if copySize == r.blockSize {
+
+			copy(b[bytesRead:bytesToRead], r.lastBlock[:bytesToRead])
+			if bytesToRead == r.blockSize {
 				r.lastBlock = nil
 				r.blockCursor = 0
+			} else {
+				r.blockCursor += bytesToRead
 			}
-			r.offset += int64(copySize)
-			sizeRemaining -= copySize
-			sizeRead += int(copySize)
+			r.offset += int64(bytesToRead)
+			bytesRead += int(bytesToRead)
+			bytesToRead -= bytesToRead
 
-			if sizeRemaining <= 0 {
-				return sizeRead, nil
+			if bytesToRead <= 0 {
+				return bytesRead, nil
 			}
 		}
 	}
