@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package datapod
+package dir
 
 import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"
@@ -30,4 +30,8 @@ func (d *DirInode) GetDirInodePathAndNameForRoot() string {
 
 func (d *DirInode) GetDirInodePathAndName() string {
 	return d.Meta.Path + utils.PathSeperator + d.Meta.Name
+}
+
+func (d *DirInode) GetDirInodePathOnly() string {
+	return d.Meta.Path
 }

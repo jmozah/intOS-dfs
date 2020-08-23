@@ -39,7 +39,7 @@ func TestPod_ListPods(t *testing.T) {
 	accountInfo := acc.GetAccountInfo(account.UserAccountIndex)
 	fd := feed.New(accountInfo, mockClient)
 	pod1 := NewPod(mockClient, fd, acc)
-	err = acc.CreateUserAccount("password")
+	_, err = acc.CreateUserAccount("password")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,25 +48,32 @@ func TestPod_ListPods(t *testing.T) {
 	podName2 := "test2"
 
 	t.Run("list-without-pods", func(t *testing.T) {
-		err = pod1.ListPods()
+		_, err = pod1.ListPods()
 		if err != nil {
 			t.Fatal(err)
 		}
 	})
 
 	t.Run("create-two-pods", func(t *testing.T) {
-		_, err := pod1.CreatePod(podName1, tempDir, "password")
+		_, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod: %v", err)
 		}
-		_, err = pod1.CreatePod(podName2, tempDir, "password")
+		_, err = pod1.CreatePod(podName2, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
 
-		err = pod1.ListPods()
+		pods, err := pod1.ListPods()
 		if err != nil {
 			t.Fatal(err)
+		}
+
+		if pods[0] != podName1 && pods[1] != podName1 {
+			t.Fatalf("pod not found")
+		}
+		if pods[0] != podName2 && pods[1] != podName2 {
+			t.Fatalf("pod not found")
 		}
 	})
 }

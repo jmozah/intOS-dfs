@@ -25,7 +25,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (p *Pod) isLoggedInToPod(podName string) bool {
+func (p *Pod) isPodOpened(podName string) bool {
 	p.podMu.Lock()
 	defer p.podMu.Unlock()
 	name1 := utils.PathSeperator + podName
@@ -59,14 +59,34 @@ func (p *Pod) GetAccountInfo(podName string) (*account.AccountInfo, error) {
 	return podInfo.getAccountInfo(), nil
 }
 
-func CleanName(podName string) (string, error) {
+func CleanPodName(podName string) (string, error) {
 	if podName == "" {
-		return "", fmt.Errorf("empty pod name")
+		return "", ErrInvalidPodName
 	}
 	if len(podName) > utils.MaxPodNameLength {
-		return "", fmt.Errorf("very long podname")
+		return "", ErrTooLongPodName
 	}
 	podName = strings.TrimSpace(podName)
 	podName = strings.Trim(podName, "\\/,\t ")
 	return podName, nil
+}
+
+func CleanDirName(dirName string) ([]string, error) {
+	if dirName == "" {
+		return nil, ErrInvalidDirectory
+	}
+
+	dirs := strings.Split(dirName, utils.PathSeperator)
+	var cleanedDirs []string
+	for _, dir := range dirs {
+		if len(dir) > utils.MaxDirectoryNameLength {
+			return nil, ErrTooLongDirectoryName
+		}
+		dir = strings.TrimSpace(dir)
+		dir = strings.Trim(dir, "\\/,\t ")
+		if dir != "" {
+			cleanedDirs = append(cleanedDirs, dir)
+		}
+	}
+	return cleanedDirs, nil
 }

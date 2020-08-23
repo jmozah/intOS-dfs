@@ -28,7 +28,7 @@ import (
 )
 
 func (p *Pod) CopyFromLocal(podName string, localFile string, podDir string, blockSize string) error {
-	if !p.isLoggedInToPod(podName) {
+	if !p.isPodOpened(podName) {
 		return fmt.Errorf("copyFromLocal: login to pod to do this operation")
 	}
 
@@ -125,7 +125,7 @@ func (p *Pod) CopyFromLocal(podName string, localFile string, podDir string, blo
 	}
 
 	if path != podInfo.GetCurrentPodPathAndName() {
-		err = p.UpdateTillThePod(podName, podInfo.getDirectory(), topic, true)
+		err = p.UpdateTillThePod(podName, podInfo.getDirectory(), topic, path, true)
 		if err != nil {
 			return fmt.Errorf("error updating directory: %w", err)
 		}

@@ -36,7 +36,7 @@ func TestPod_RemoveDir(t *testing.T) {
 
 	mockClient := mock.NewMockBeeClient()
 	acc := account.New("user1", tempDir)
-	err = acc.CreateUserAccount("password")
+	_, err = acc.CreateUserAccount("password")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func TestPod_RemoveDir(t *testing.T) {
 	thirdAndFourthDir := "dir3/dir4"
 	fifthDir := "/dir5"
 	t.Run("rmdir-on-root-of-pod", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, tempDir, "password")
+		info, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -79,14 +79,14 @@ func TestPod_RemoveDir(t *testing.T) {
 		}
 
 		// cleanup pod
-		err = pod1.DeletePod(podName1, tempDir)
+		err = pod1.DeletePod(podName1)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}
 	})
 
 	t.Run("rmdir-second-dir-from-first-dir", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName2, tempDir, "password")
+		info, err := pod1.CreatePod(podName2, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName2)
 		}
@@ -120,14 +120,14 @@ func TestPod_RemoveDir(t *testing.T) {
 		}
 
 		// cleanup pod
-		err = pod1.DeletePod(podName2, tempDir)
+		err = pod1.DeletePod(podName2)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}
 	})
 
 	t.Run("rmdir-second-dir-from-pod", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName3, tempDir, "password")
+		info, err := pod1.CreatePod(podName3, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName3)
 		}
@@ -162,14 +162,14 @@ func TestPod_RemoveDir(t *testing.T) {
 		}
 
 		// cleanup pod
-		err = pod1.DeletePod(podName3, tempDir)
+		err = pod1.DeletePod(podName3)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}
 	})
 
 	t.Run("rmdir-multiple-dirs-from-pod", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName4, tempDir, "password")
+		info, err := pod1.CreatePod(podName4, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName4)
 		}
@@ -208,14 +208,14 @@ func TestPod_RemoveDir(t *testing.T) {
 		}
 
 		// cleanup pod
-		err = pod1.DeletePod(podName4, tempDir)
+		err = pod1.DeletePod(podName4)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}
 	})
 
 	t.Run("rmdir-with-slash-on-pod", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName5, tempDir, "password")
+		info, err := pod1.CreatePod(podName5, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName5)
 		}
@@ -241,7 +241,7 @@ func TestPod_RemoveDir(t *testing.T) {
 		}
 
 		// cleanup pod
-		err = pod1.DeletePod(podName5, tempDir)
+		err = pod1.DeletePod(podName5)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}

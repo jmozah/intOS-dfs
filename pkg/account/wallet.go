@@ -51,7 +51,7 @@ func NewWallet(mnemonic string) *Wallet {
 
 func (w *Wallet) LoadMnemonicAndCreateRootAccount() (accounts.Account, string, error) {
 	// Generate a mnemonic for memorization or user-friendly seeds
-	entropy, err := bip39.NewEntropy(256)
+	entropy, err := bip39.NewEntropy(128)
 	if err != nil {
 		return accounts.Account{}, "", err
 	}

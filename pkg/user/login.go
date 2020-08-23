@@ -29,11 +29,11 @@ import (
 
 func (u *Users) LoginUser(userName string, passPhrase string, dataDir string, client blockstore.Client) error {
 	if u.isUserPresentInMap(userName) {
-		return fmt.Errorf("user login: user already logged in")
+		return ErrUserAlreadyLoggedIn
 	}
 
 	if !u.IsUsernameAvailable(userName, dataDir) {
-		return fmt.Errorf("user login: user name not present")
+		return ErrInvalidUserName
 	}
 
 	acc := account.New(userName, dataDir)
@@ -42,6 +42,9 @@ func (u *Users) LoginUser(userName string, passPhrase string, dataDir string, cl
 	file := f.NewFile(userName, client, fd, accountInfo)
 	err := acc.LoadUserAccount(passPhrase)
 	if err != nil {
+		if err.Error() == "mnemonic is invalid" {
+			return ErrInvalidPassword
+		}
 		return fmt.Errorf("user login: %w", err)
 	}
 	dir := d.NewDirectory(userName, client, fd, accountInfo, file)

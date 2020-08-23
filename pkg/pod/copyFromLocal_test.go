@@ -39,7 +39,7 @@ func TestPod_CopyFromLocal(t *testing.T) {
 
 	mockClient := mock.NewMockBeeClient()
 	acc := account.New("user1", tempDir)
-	err = acc.CreateUserAccount("password")
+	_, err = acc.CreateUserAccount("password")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +49,7 @@ func TestPod_CopyFromLocal(t *testing.T) {
 	podName1 := "test1"
 	firstDir := "dir1"
 	t.Run("copy-file-to-root-of-pod", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, tempDir, "password")
+		info, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -66,14 +66,14 @@ func TestPod_CopyFromLocal(t *testing.T) {
 			t.Fatalf("file not copied in pod")
 		}
 
-		err = pod1.DeletePod(podName1, tempDir)
+		err = pod1.DeletePod(podName1)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}
 	})
 
 	t.Run("copy-file-to-root-of-pod-with-dot", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, tempDir, "password")
+		info, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -90,14 +90,14 @@ func TestPod_CopyFromLocal(t *testing.T) {
 			t.Fatalf("file not copied in pod")
 		}
 
-		err = pod1.DeletePod(podName1, tempDir)
+		err = pod1.DeletePod(podName1)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}
 	})
 
 	t.Run("copy-file-to-first-dir-from-root", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, tempDir, "password")
+		info, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -125,14 +125,14 @@ func TestPod_CopyFromLocal(t *testing.T) {
 			t.Fatalf("file not copied in pod")
 		}
 
-		err = pod1.DeletePod(podName1, tempDir)
+		err = pod1.DeletePod(podName1)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}
 	})
 
 	t.Run("copy-file-to-first-dir-from-firstdir", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, tempDir, "password")
+		info, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -165,7 +165,7 @@ func TestPod_CopyFromLocal(t *testing.T) {
 			t.Fatalf("file not copied in pod")
 		}
 
-		err = pod1.DeletePod(podName1, tempDir)
+		err = pod1.DeletePod(podName1)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}

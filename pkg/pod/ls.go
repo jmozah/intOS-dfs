@@ -16,36 +16,50 @@ limitations under the License.
 
 package pod
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
 
-func (p *Pod) ListPods() error {
+	"github.com/jmozah/intOS-dfs/pkg/utils"
+)
+
+func (p *Pod) ListPods() ([]string, error) {
 	pods, err := p.loadUserPods()
 	if err != nil {
-		return fmt.Errorf("list pods: %w", err)
+		return nil, fmt.Errorf("list pods: %w", err)
 	}
+
+	var listPods []string
 	for _, pod := range pods {
-		fmt.Print("Pod: ", pod)
+		listPods = append(listPods, pod)
 	}
-	fmt.Println("")
-	return nil
+	return listPods, nil
 }
 
-func (p *Pod) ListEntiesInDir(podName string) ([]string, error) {
-	if !p.isLoggedInToPod(podName) {
-		return nil, fmt.Errorf("ls: login to pod to do this operation")
+func (p *Pod) ListEntiesInDir(podName, dirName string) ([]string, []string, error) {
+	if !p.isPodOpened(podName) {
+		return nil, nil, ErrPodNotOpened
 	}
 
 	info, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return nil, fmt.Errorf("ls: %w", err)
+		return nil, nil, fmt.Errorf("ls: %w", err)
 	}
 
 	directory := info.getDirectory()
-
-	path := info.GetCurrentDirPathAndName()
-	if info.IsCurrentDirRoot() {
-		path = info.GetCurrentPodPathAndName()
+	printNames := false
+	path := dirName // dirname is supplied in API, in REPL it is picked up from the current dir
+	if path == "" {
+		printNames = true
+		path = info.GetCurrentDirPathAndName()
+		if info.IsCurrentDirRoot() {
+			path = info.GetCurrentPodPathAndName()
+		}
+	} else {
+		path = utils.PathSeperator + podName + path
+		path = strings.TrimSuffix(path, utils.PathSeperator)
 	}
 
-	return directory.ListDir(podName, path), nil
+	fl, dl := directory.ListDir(podName, path, printNames)
+	return fl, dl, nil
 }

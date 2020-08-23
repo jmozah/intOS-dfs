@@ -38,7 +38,7 @@ func TestPod_LoginPod(t *testing.T) {
 
 	mockClient := mock.NewMockBeeClient()
 	acc := account.New("user1", tempDir)
-	err = acc.CreateUserAccount("password")
+	_, err = acc.CreateUserAccount("password")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +48,7 @@ func TestPod_LoginPod(t *testing.T) {
 	podName1 := "test1"
 	firstDir := "dir1"
 	t.Run("simple-login-to-pod", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, tempDir, "password")
+		info, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -57,7 +57,7 @@ func TestPod_LoginPod(t *testing.T) {
 			t.Fatalf("could not logout")
 		}
 
-		infoLogin, err := pod1.OpenPod(podName1, tempDir, "password")
+		infoLogin, err := pod1.OpenPod(podName1, "password")
 		if err != nil {
 			t.Fatalf("login failed")
 		}
@@ -68,14 +68,14 @@ func TestPod_LoginPod(t *testing.T) {
 			t.Fatalf("invalid podname path and name")
 		}
 
-		err = pod1.DeletePod(podName1, tempDir)
+		err = pod1.DeletePod(podName1)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}
 	})
 
 	t.Run("login-with-sync-contents", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, tempDir, "password")
+		info, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -110,7 +110,7 @@ func TestPod_LoginPod(t *testing.T) {
 		}
 
 		// Now login and check if the dir and file exists
-		infoLogin, err := pod1.OpenPod(podName1, tempDir, "password")
+		infoLogin, err := pod1.OpenPod(podName1, "password")
 		if err != nil {
 			t.Fatalf("login failed")
 		}
@@ -135,7 +135,7 @@ func TestPod_LoginPod(t *testing.T) {
 			t.Fatalf("file not synced")
 		}
 
-		err = pod1.DeletePod(podName1, tempDir)
+		err = pod1.DeletePod(podName1)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}

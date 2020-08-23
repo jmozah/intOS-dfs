@@ -27,18 +27,18 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
-func (u *Users) CreateNewUser(userName string, passPhrase string, dataDir string, client blockstore.Client) error {
+func (u *Users) CreateNewUser(userName, passPhrase, dataDir string, client blockstore.Client) (string, string, error) {
 	if u.IsUsernameAvailable(userName, dataDir) {
-		return fmt.Errorf("user create: user name already present")
+		return "", "", ErrUserAlreadyPresent
 	}
 	acc := account.New(userName, dataDir)
 	accountInfo := acc.GetAccountInfo(account.UserAccountIndex)
 	fd := feed.New(accountInfo, client)
 	file := f.NewFile(userName, client, fd, accountInfo)
 
-	err := acc.CreateUserAccount(passPhrase)
+	mnemonic, err := acc.CreateUserAccount(passPhrase)
 	if err != nil {
-		return fmt.Errorf("user create:: %w", err)
+		return "", "", fmt.Errorf("user create:: %w", err)
 	}
 
 	dir := d.NewDirectory(userName, client, fd, accountInfo, file)
@@ -52,6 +52,5 @@ func (u *Users) CreateNewUser(userName string, passPhrase string, dataDir string
 		pods:    pod.NewPod(u.client, fd, acc),
 	}
 	u.addUserToMap(ui)
-	fmt.Println("user created with address ", accountInfo.GetAddress().Hex())
-	return nil
+	return accountInfo.GetAddress().Hex(), mnemonic, nil
 }

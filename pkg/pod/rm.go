@@ -30,7 +30,7 @@ import (
 )
 
 func (p *Pod) RemoveFile(podName string, podFile string) error {
-	if !p.isLoggedInToPod(podName) {
+	if !p.isPodOpened(podName) {
 		return fmt.Errorf("rm: login to pod to do this operation")
 	}
 
@@ -88,7 +88,7 @@ func (p *Pod) RemoveFile(podName string, podFile string) error {
 	}
 
 	if path != podInfo.GetCurrentPodPathAndName() {
-		err = p.UpdateTillThePod(podName, podInfo.getDirectory(), topic, true)
+		err = p.UpdateTillThePod(podName, podInfo.getDirectory(), topic, gopath.Dir(path), true)
 		if err != nil {
 			return fmt.Errorf("rm: error updating directory: %w", err)
 		}

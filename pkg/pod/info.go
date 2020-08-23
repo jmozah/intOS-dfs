@@ -20,7 +20,7 @@ import (
 	"sync"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
-	d "github.com/jmozah/intOS-dfs/pkg/dir"
+	di "github.com/jmozah/intOS-dfs/pkg/dir"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
 	f "github.com/jmozah/intOS-dfs/pkg/file"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
@@ -28,17 +28,17 @@ import (
 
 type Info struct {
 	podName         string
-	dir             *d.Directory
+	dir             *di.Directory
 	file            *f.File
 	accountInfo     *account.AccountInfo
 	feed            *feed.API
-	currentPodInode *d.DirInode
+	currentPodInode *di.DirInode
 	curPodMu        sync.RWMutex
-	currentDirInode *d.DirInode
+	currentDirInode *di.DirInode
 	curDirMu        sync.RWMutex
 }
 
-func (i *Info) getDirectory() *d.Directory {
+func (i *Info) getDirectory() *di.Directory {
 	return i.dir
 }
 
@@ -54,17 +54,17 @@ func (i *Info) getFeed() *feed.API {
 	return i.feed
 }
 
-func (i *Info) GetCurrentPodInode() *d.DirInode {
+func (i *Info) GetCurrentPodInode() *di.DirInode {
 	return i.currentPodInode
 }
-func (i *Info) GetCurrentDirInode() *d.DirInode {
+func (i *Info) GetCurrentDirInode() *di.DirInode {
 	return i.currentDirInode
 }
 
-func (i *Info) SetCurrentPodInode(podInode *d.DirInode) {
+func (i *Info) SetCurrentPodInode(podInode *di.DirInode) {
 	i.currentPodInode = podInode
 }
-func (i *Info) SetCurrentDirInode(podInode *d.DirInode) {
+func (i *Info) SetCurrentDirInode(podInode *di.DirInode) {
 	i.currentDirInode = podInode
 }
 

@@ -34,7 +34,7 @@ func TestAccount_CreateRootAccount(t *testing.T) {
 	podName := "test_pod1"
 	password := "letmein"
 	acc := New(podName, tempDir)
-	err = acc.CreateUserAccount(password)
+	_, err = acc.CreateUserAccount(password)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,8 +49,8 @@ func TestAccount_CreateRootAccount(t *testing.T) {
 	}
 
 	words := strings.Split(plainMnemonic, " ")
-	if len(words) != 24 {
-		t.Fatal("mnemonic is not 24 words")
+	if len(words) != 12 {
+		t.Fatal("mnemonic is not 12 words")
 	}
 
 	if !acc.IsAlreadyInitialized() {
@@ -75,7 +75,7 @@ func TestLoadAndStoreMnemonic(t *testing.T) {
 	podName := "test_pod1"
 	password := "letmein"
 	acc := New(podName, tempDir)
-	err = acc.CreateUserAccount(password)
+	_, err = acc.CreateUserAccount(password)
 	if err != nil {
 		t.Fatal(err)
 	}

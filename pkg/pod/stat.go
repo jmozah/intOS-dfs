@@ -22,6 +22,8 @@ import (
 	"time"
 
 	"github.com/ethersphere/bee/pkg/swarm"
+	"github.com/jmozah/intOS-dfs/pkg/dir"
+	"github.com/jmozah/intOS-dfs/pkg/file"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
@@ -37,7 +39,7 @@ type PodStat struct {
 func (p *Pod) PodStat(podName string) (*PodStat, error) {
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return nil, fmt.Errorf("pod stat: %w", err)
+		return nil, ErrInvalidPodName
 	}
 	podInode := podInfo.GetCurrentPodInode()
 	return &PodStat{
@@ -50,14 +52,14 @@ func (p *Pod) PodStat(podName string) (*PodStat, error) {
 	}, nil
 }
 
-func (p *Pod) DirectoryOrFileStat(podName, podFileOrDir string) error {
-	if !p.isLoggedInToPod(podName) {
-		return fmt.Errorf("login to pod to do this operation")
+func (p *Pod) DirectoryStat(podName, podFileOrDir string) (*dir.DirStats, error) {
+	if !p.isPodOpened(podName) {
+		return nil, ErrPodNotOpened
 	}
 
 	info, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return fmt.Errorf("rmdir: %w", err)
+		return nil, fmt.Errorf("rmdir: %w", err)
 	}
 
 	acc := info.getAccountInfo().GetAddress()
@@ -69,14 +71,30 @@ func (p *Pod) DirectoryOrFileStat(podName, podFileOrDir string) error {
 		meta := dirInode.Meta
 		addr, dirInode, err := info.getDirectory().GetDirNode(meta.Path+utils.PathSeperator+meta.Name, info.getFeed(), info.getAccountInfo())
 		if err != nil {
-			return fmt.Errorf("could not get dirnode: %w", err)
+			return nil, fmt.Errorf("could not get dirnode: %w", err)
 		}
 		podAddress := swarm.NewAddress(addr).String()
 		return info.getDirectory().DirStat(podName, path, dirInode, account, podAddress)
 	}
+	return nil, fmt.Errorf("directory not found")
+}
 
+func (p *Pod) FileStat(podName, podFileOrDir string) (*file.FileStats, error) {
+	if !p.isPodOpened(podName) {
+		return nil, fmt.Errorf("login to pod to do this operation")
+	}
+
+	info, err := p.GetPodInfoFromPodMap(podName)
+	if err != nil {
+		return nil, fmt.Errorf("rmdir: %w", err)
+	}
+
+	acc := info.getAccountInfo().GetAddress()
+	account := swarm.NewAddress(acc[:]).String()
+
+	path := p.getDirectoryPath(podFileOrDir, info)
 	if !info.file.IsFileAlreadyPResent(path) {
-		return fmt.Errorf("file not present in pod")
+		return nil, fmt.Errorf("file not present in pod")
 	}
 	return info.file.FileStat(podName, path, account)
 }

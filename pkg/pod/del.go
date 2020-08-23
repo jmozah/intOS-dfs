@@ -21,12 +21,7 @@ import (
 	"strings"
 )
 
-func (p *Pod) DeletePod(podName, dataDir string) error {
-	podName, err := CleanName(podName)
-	if err != nil {
-		return fmt.Errorf("delete pod: %w", err)
-	}
-
+func (p *Pod) DeletePod(podName string) error {
 	pods, err := p.loadUserPods()
 	if err != nil {
 		return fmt.Errorf("delete pod: %w", err)
@@ -55,7 +50,7 @@ func (p *Pod) DeletePod(podName, dataDir string) error {
 		return fmt.Errorf("delete pod: %w", err)
 	}
 
-	if p.isLoggedInToPod(podName) {
+	if p.isPodOpened(podName) {
 		return p.ClosePod(podName)
 	} else {
 		podInfo, err := p.GetPodInfoFromPodMap(podName)

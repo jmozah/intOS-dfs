@@ -24,7 +24,7 @@ import (
 )
 
 func (p *Pod) CopyToLocal(podName string, podFile string, localDir string) error {
-	if !p.isLoggedInToPod(podName) {
+	if !p.isPodOpened(podName) {
 		return fmt.Errorf("copyToLocal: login to pod to do this operation")
 	}
 

@@ -158,5 +158,8 @@ golang.org/x/text/unicode/norm
 gopkg.in/ini.v1
 # gopkg.in/yaml.v2 v2.3.0
 gopkg.in/yaml.v2
+# resenje.org/jsonhttp v0.2.0
+## explicit
+resenje.org/jsonhttp
 # resenje.org/jsonresponse v0.1.2
 ## explicit

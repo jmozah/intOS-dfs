@@ -133,11 +133,18 @@ func executor(in string) {
 				return
 			}
 			userName := blocks[2]
-			err := dfsAPI.CreateUser(userName, "")
+			ref, mnemonic, err := dfsAPI.CreateUser(userName, "")
 			if err != nil {
 				fmt.Println("create user: ", err)
 				return
 			}
+			fmt.Println("user created with address ", ref)
+			fmt.Println("Please store the following 24 words safely")
+			fmt.Println("if you loose this, you cannot recover the data in-case of an emergency.")
+			fmt.Println("you can also use this mnemonic to access the data from another device")
+			fmt.Println("=============== Mnemonic ==========================")
+			fmt.Println(mnemonic)
+			fmt.Println("=============== Mnemonic ==========================")
 			currentUser = userName
 			currentPodInfo = nil
 			currentPrompt = getCurrentPrompt()
@@ -147,7 +154,7 @@ func executor(in string) {
 				return
 			}
 			userName := blocks[2]
-			err := dfsAPI.DeleteUser(userName)
+			err := dfsAPI.DeleteUser(userName, "")
 			if err != nil {
 				fmt.Println("delete user: ", err)
 				return
@@ -294,11 +301,15 @@ func executor(in string) {
 			fmt.Println("pod synced.")
 			currentPrompt = getCurrentPrompt()
 		case "ls":
-			err := dfsAPI.ListPods(currentUser)
+			pods, err := dfsAPI.ListPods(currentUser)
 			if err != nil {
 				fmt.Println("error while listing pods: %w", err)
 				return
 			}
+			for _, pod := range pods {
+				fmt.Println(pod)
+			}
+			fmt.Println("")
 			currentPrompt = getCurrentPrompt()
 		default:
 			fmt.Println("invalid pod command!!")
@@ -323,12 +334,15 @@ func executor(in string) {
 		if !isPodOpened() {
 			return
 		}
-		listing, err := dfsAPI.ListDir(currentUser, currentPodInfo.GetCurrentPodNameOnly())
+		fl, dl, err := dfsAPI.ListDir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), "")
 		if err != nil {
 			fmt.Println("ls failed: ", err)
 			return
 		}
-		for _, l := range listing {
+		for _, l := range fl {
+			fmt.Println(l)
+		}
+		for _, l := range dl {
 			fmt.Println(l)
 		}
 	case "copyToLocal":
@@ -404,10 +418,22 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.DirectoryOrFileStat(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		fs, err := dfsAPI.FileStat(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
 		if err != nil {
 			fmt.Println("stat failed: ", err)
 			return
+		}
+		fmt.Println("Account 	: ", fs.Account)
+		fmt.Println("PodName 	: ", fs.PodName)
+		fmt.Println("File Path	: ", fs.FilePath)
+		fmt.Println("File Name	: ", fs.FileName)
+		fmt.Println("File Size	: ", fs.FileSize)
+		fmt.Println("Cr. Time	: ", fs.CreationTime)
+		fmt.Println("Mo. Time	: ", fs.ModificationTime)
+		fmt.Println("Ac. Time	: ", fs.AccessTime)
+		for _, b := range fs.Blocks {
+			blkStr := fmt.Sprintf("%s, 0x%s, %s bytes", b.Name, b.Reference, b.Size)
+			fmt.Println(blkStr)
 		}
 	case "pwd":
 		if !isPodOpened() {
@@ -428,7 +454,7 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.RemoveFile(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		err := dfsAPI.DeleteFile(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
 		if err != nil {
 			fmt.Println("rm failed: ", err)
 			return

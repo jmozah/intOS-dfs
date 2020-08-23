@@ -30,6 +30,7 @@ import (
 	"github.com/ethersphere/bee/pkg/crypto"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
+	"github.com/tyler-smith/go-bip39"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -77,27 +78,33 @@ func (a *Account) IsAlreadyInitialized() bool {
 	return !info.IsDir()
 }
 
-func (a *Account) CreateUserAccount(passPhrase string) error {
-	if a.IsAlreadyInitialized() {
-		var s string
-		fmt.Println("user is already initialised")
-		fmt.Println("reinitialising again will make all the your data inaccessible")
-		fmt.Printf("do you still want to proceed (Y/N):")
-		_, err := fmt.Scan(&s)
-		if err != nil {
-			return err
-		}
+func (a *Account) CreateUserAccount(passPhrase string) (string, error) {
+	if passPhrase == "" {
+		if a.IsAlreadyInitialized() {
+			var s string
+			fmt.Println("user is already initialised")
+			fmt.Println("reinitialising again will make all the your data inaccessible")
+			fmt.Printf("do you still want to proceed (Y/N):")
+			_, err := fmt.Scan(&s)
+			if err != nil {
+				return "", err
+			}
 
-		s = strings.TrimSpace(s)
-		s = strings.ToLower(s)
-		s = strings.Trim(s, "\n")
+			s = strings.TrimSpace(s)
+			s = strings.ToLower(s)
+			s = strings.Trim(s, "\n")
 
-		if s == "n" || s == "no" {
-			return nil
+			if s == "n" || s == "no" {
+				return "", nil
+			}
+			err = os.Remove(a.mnemonicFileName)
+			if err != nil {
+				return "", fmt.Errorf("could not remove user key: %w", err)
+			}
 		}
-		err = os.Remove(a.mnemonicFileName)
-		if err != nil {
-			return fmt.Errorf("could not remove user key: %w", err)
+	} else {
+		if a.IsAlreadyInitialized() {
+			return "", fmt.Errorf("user already present")
 		}
 	}
 
@@ -105,11 +112,11 @@ func (a *Account) CreateUserAccount(passPhrase string) error {
 	a.wallet = wallet
 	acc, mnemonic, err := wallet.LoadMnemonicAndCreateRootAccount()
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if passPhrase == "" {
-		fmt.Println("Please store the following 24 words safely")
+		fmt.Println("Please store the following 12 words safely")
 		fmt.Println("if can use this to import the wallet in another machine")
 		fmt.Println("=============== Mnemonic ==========================")
 		fmt.Println(mnemonic)
@@ -118,31 +125,32 @@ func (a *Account) CreateUserAccount(passPhrase string) error {
 
 	hdw, err := hdwallet.NewFromMnemonic(mnemonic)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// store publicKey, private key and user
 	a.userAcount.privateKey, err = hdw.PrivateKey(acc)
 	if err != nil {
-		return err
+		return "", err
 	}
 	a.userAcount.publicKey, err = hdw.PublicKey(acc)
 	if err != nil {
-		return err
+		return "", err
 	}
 	addrBytes, err := crypto.NewEthereumAddress(a.userAcount.privateKey.PublicKey)
 	if err != nil {
-		return err
+		return "", err
 	}
 	a.userAcount.address.SetBytes(addrBytes)
 
 	// store the mnemonic
 	encryptedMnemonic, err := a.storeAsEncryptedMnemonicToDisk(mnemonic, passPhrase)
 	if err != nil {
-		return err
+		return "", err
 	}
 	a.wallet.encryptedmnemonic = encryptedMnemonic
-	return nil
+
+	return mnemonic, nil
 }
 
 func (a *Account) LoadUserAccount(passPhrase string) error {
@@ -185,6 +193,29 @@ func (a *Account) LoadUserAccount(passPhrase string) error {
 	}
 	a.userAcount.address.SetBytes(addrBytes)
 	return nil
+}
+
+func (a *Account) Authorise(password string) bool {
+	if password == "" {
+		fmt.Print("Enter user password to create a pod: ")
+		password = a.getPassword()
+	}
+	plainMnemonic, err := a.wallet.decryptMnemonic(password)
+	if err != nil {
+		return false
+	}
+	// check the validity of the mnemonic
+	if plainMnemonic == "" {
+		return false
+	}
+	words := strings.Split(plainMnemonic, " ")
+	if len(words) != 12 {
+		return false
+	}
+	if !bip39.IsMnemonicValid(plainMnemonic) {
+		return false
+	}
+	return true
 }
 
 func (a *Account) CreatePodAccount(accountId int, passPhrase string) error {

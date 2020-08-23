@@ -24,7 +24,7 @@ import (
 
 func (p *Pod) Cat(podName string, fileName string) error {
 
-	if !p.isLoggedInToPod(podName) {
+	if !p.isPodOpened(podName) {
 		return fmt.Errorf("copyFromLocal: login to pod to do this operation")
 	}
 
