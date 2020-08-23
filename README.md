@@ -32,9 +32,37 @@ his data. for ex: Personal-Pod, Applications-Pod etc.
 For now dfs is a command line program. Later there will be a UI that will be hosted in Swarm.
 - git clone https://github.com/jmozah/intOS-dfs.git
 - cd intOS-dfs
-- make build
-- cd bin
+- make binary
+- cd dist
 - ./dfs prompt  (this will start dfs in REPL mode with a "dfs >>>" prompt)
+- ./dfs start   (this will start dfs in the HTTP server mode and APIs will be exposed)
+
+### HTTP APIs
+POST -F 'user=<username>' -F 'password=<password>' http://localhost:9090/v0/user/signup
+POST -F 'user=<username>' -F 'password=<password>' http://localhost:9090/v0/user/delete
+POST -F 'user=<username>' -F 'password=<password>' http://localhost:9090/v0/user/login
+POST -F 'user=<username>' http://localhost:9090/v0/user/logout
+POST -F 'user=<username>' http://localhost:9090/v0/user/present
+   
+POST -F 'user=<username>' -F 'password=<password>' -F 'pod=<podname>'  http://localhost:9090/v0/pod/new
+POST -F 'user=<username>' -F 'pod=<podname>'  http://localhost:9090/v0/pod/delete
+POST -F 'user=<username>' -F 'password=<password>' -F 'pod=<podname>'  http://localhost:9090/v0/pod/open
+POST -F 'user=<username>' -F 'pod=<podname>'  http://localhost:9090/v0/pod/close
+POST -F 'user=<username>' -F 'pod=<podname>'  http://localhost:9090/v0/pod/ls
+POST -F 'user=<username>' -F 'pod=<podname>'  http://localhost:9090/v0/pod/stat
+POST -F 'user=<username>' -F 'pod=<podname>'  http://localhost:9090/v0/pod/sync
+   
+POST -F 'user=<username>' -F 'pod=<podname>' -F 'dir=<dir_with_path>'  http://localhost:9090/v0/dir/mkdir
+POST -F 'user=<username>' -F 'pod=<podname>' -F 'dir=<dir_with_path>'  http://localhost:9090/v0/dir/ls
+POST -F 'user=<username>' -F 'pod=<podname>' -F 'dir=<dir_with_path>'  http://localhost:9090/v0/dir/rmdir
+POST -F 'user=<username>' -F 'pod=<podname>' -F 'dir=<dir_with_path>'  http://localhost:9090/v0/dir/stat
+   
+POST -F 'user=<username>' -F 'pod=<podname>' -F 'pod_dir=<dir_with_path>' -F 'block_size=<in_Mb>' -F 'files=@<filename1>' -F 'files=@<filename2>' http://localhost:9090/v0/file/upload
+POST -F 'user=<username>' -F 'pod=<podname>' -F 'file=<file_path>'  http://localhost:9090/v0/file/stat
+POST -F 'user=<username>' -F 'pod=<podname>' -F 'file=<file_path>'  http://localhost:9090/v0/file/download
+POST -F 'user=<username>' -F 'pod=<podname>' -F 'file=<file_path>'  http://localhost:9090/v0/file/delete
+
+
 
 ### Comands in dfs
 **dfs >>>** \<command\> where, \<command\> is listed below
