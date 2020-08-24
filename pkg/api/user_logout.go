@@ -25,6 +25,12 @@ import (
 )
 
 func (h *Handler) UserLogoutHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == http.MethodOptions {
+		return
+	}
+
 	user := r.FormValue("user")
 	if user == "" {
 		jsonhttp.BadRequest(w, "logout: \"user\" argument missing")

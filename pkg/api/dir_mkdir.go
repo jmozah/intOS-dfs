@@ -27,6 +27,12 @@ import (
 )
 
 func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == http.MethodOptions {
+		return
+	}
+
 	user := r.FormValue("user")
 	pod := r.FormValue("pod")
 	dirToCreate := r.FormValue("dir")

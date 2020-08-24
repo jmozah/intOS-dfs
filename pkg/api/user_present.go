@@ -27,6 +27,12 @@ type UserPresentResponse struct {
 }
 
 func (h *Handler) UserPresentHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == http.MethodOptions {
+		return
+	}
+
 	user := r.FormValue("user")
 	if user == "" {
 		jsonhttp.BadRequest(w, "present: \"user\" argument missing")

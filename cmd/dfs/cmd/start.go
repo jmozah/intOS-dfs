@@ -48,35 +48,34 @@ func init() {
 
 func startHttpService() {
 	router := mux.NewRouter()
-	
 	// User account related handlers
-	router.HandleFunc("/v0/user/signup", handler.UserSignupHandler).Methods(http.MethodGet, http.MethodPut, http.MethodPatch, http.MethodOptions)
-	router.HandleFunc("/v0/user/delete", handler.UserDeleteHandler).Methods("POST")
-	router.HandleFunc("/v0/user/login", handler.UserLoginHandler).Methods("POST")
-	router.HandleFunc("/v0/user/logout", handler.UserLogoutHandler).Methods("POST")
-	router.HandleFunc("/v0/user/present", handler.UserPresentHandler).Methods("POST")
+	router.HandleFunc("/v0/user/signup", handler.UserSignupHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/user/delete", handler.UserDeleteHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/user/login", handler.UserLoginHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/user/logout", handler.UserLogoutHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/user/present", handler.UserPresentHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
 
 	// pod related handlers
-	router.HandleFunc("/v0/pod/new", handler.PodCreateHandler).Methods("POST")
-	router.HandleFunc("/v0/pod/delete", handler.PodDeleteHandler).Methods("POST")
-	router.HandleFunc("/v0/pod/open", handler.PodOpenHandler).Methods("POST")
-	router.HandleFunc("/v0/pod/close", handler.PodCloseHandler).Methods("POST")
-	router.HandleFunc("/v0/pod/ls", handler.PodListHandler).Methods("POST")
-	router.HandleFunc("/v0/pod/stat", handler.PodStatHandler).Methods("POST")
-	router.HandleFunc("/v0/pod/sync", handler.PodSyncHandler).Methods("POST")
+	router.HandleFunc("/v0/pod/new", handler.PodCreateHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/pod/delete", handler.PodDeleteHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/pod/open", handler.PodOpenHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/pod/close", handler.PodCloseHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/pod/ls", handler.PodListHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/pod/stat", handler.PodStatHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/pod/sync", handler.PodSyncHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
 
 	// directory related handlers
-	router.HandleFunc("/v0/dir/mkdir", handler.DirectoryMkdirHandler).Methods("POST")
-	router.HandleFunc("/v0/dir/rmdir", handler.DirectoryRmdirHandler).Methods("POST")
-	router.HandleFunc("/v0/dir/ls", handler.DirectoryLsHandler).Methods("POST")
-	router.HandleFunc("/v0/dir/stat", handler.DirectoryStatHandler).Methods("POST")
+	router.HandleFunc("/v0/dir/mkdir", handler.DirectoryMkdirHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/dir/rmdir", handler.DirectoryRmdirHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/dir/ls", handler.DirectoryLsHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/dir/stat", handler.DirectoryStatHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
 
 	// file related handlers
-	router.HandleFunc("/v0/file/download", handler.FileDownloadHandler).Methods("POST")
-	router.HandleFunc("/v0/file/upload", handler.FileUploadHandler).Methods("POST")
-	router.HandleFunc("/v0/file/stat", handler.FileStatHandler).Methods("POST")
-	router.HandleFunc("/v0/file/delete", handler.FileDeleteHandler).Methods("POST")
-	
+	router.HandleFunc("/v0/file/download", handler.FileDownloadHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/file/upload", handler.FileUploadHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/file/stat", handler.FileStatHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+	router.HandleFunc("/v0/file/delete", handler.FileDeleteHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodOptions)
+
 	router.Use(mux.CORSMethodMiddleware(router))
 
 	http.Handle("/", router)

@@ -31,6 +31,12 @@ type PodListResponse struct {
 }
 
 func (h *Handler) PodListHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method == http.MethodOptions {
+		return
+	}
+
 	user := r.FormValue("user")
 	if user == "" {
 		jsonhttp.BadRequest(w, "ls pod: \"user\" argument missing")
