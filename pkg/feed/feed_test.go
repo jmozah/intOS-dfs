@@ -37,7 +37,7 @@ func TestFeed(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	acc := account.New("feed_pod", tempDir)
-	_, err = acc.CreateUserAccount("password")
+	_, err = acc.CreateUserAccount("password", "")
 	if err != nil {
 		t.Fatal(err)
 	}
