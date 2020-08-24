@@ -30,6 +30,8 @@ type UserSignupResponse struct {
 }
 
 func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	user := r.FormValue("user")
 	password := r.FormValue("password")
 	if user == "" {
