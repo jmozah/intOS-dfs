@@ -133,7 +133,7 @@ func executor(in string) {
 				return
 			}
 			userName := blocks[2]
-			ref, mnemonic, err := dfsAPI.CreateUser(userName, "")
+			ref, mnemonic, err := dfsAPI.CreateUser(userName, "", "")
 			if err != nil {
 				fmt.Println("create user: ", err)
 				return
