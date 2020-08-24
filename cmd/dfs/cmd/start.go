@@ -48,6 +48,8 @@ func init() {
 
 func startHttpService() {
 	router := mux.NewRouter()
+	
+	router.Use(mux.CORSMethodMiddleware(router))
 
 	// User account related handlers
 	router.HandleFunc("/v0/user/signup", handler.UserSignupHandler).Methods("POST")
