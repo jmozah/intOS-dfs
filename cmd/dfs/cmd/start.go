@@ -49,10 +49,8 @@ func init() {
 func startHttpService() {
 	router := mux.NewRouter()
 	
-	router.Use(mux.CORSMethodMiddleware(router))
-
 	// User account related handlers
-	router.HandleFunc("/v0/user/signup", handler.UserSignupHandler).Methods("POST")
+	router.HandleFunc("/v0/user/signup", handler.UserSignupHandler).Methods(http.MethodGet, http.MethodPut, http.MethodPatch, http.MethodOptions)
 	router.HandleFunc("/v0/user/delete", handler.UserDeleteHandler).Methods("POST")
 	router.HandleFunc("/v0/user/login", handler.UserLoginHandler).Methods("POST")
 	router.HandleFunc("/v0/user/logout", handler.UserLogoutHandler).Methods("POST")
@@ -78,6 +76,8 @@ func startHttpService() {
 	router.HandleFunc("/v0/file/upload", handler.FileUploadHandler).Methods("POST")
 	router.HandleFunc("/v0/file/stat", handler.FileStatHandler).Methods("POST")
 	router.HandleFunc("/v0/file/delete", handler.FileDeleteHandler).Methods("POST")
+	
+	router.Use(mux.CORSMethodMiddleware(router))
 
 	http.Handle("/", router)
 
