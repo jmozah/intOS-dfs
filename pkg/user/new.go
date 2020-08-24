@@ -27,7 +27,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
-func (u *Users) CreateNewUser(userName, passPhrase, dataDir string, client blockstore.Client) (string, string, error) {
+func (u *Users) CreateNewUser(userName, passPhrase, mnemonic, dataDir string, client blockstore.Client) (string, string, error) {
 	if u.IsUsernameAvailable(userName, dataDir) {
 		return "", "", ErrUserAlreadyPresent
 	}
@@ -36,7 +36,7 @@ func (u *Users) CreateNewUser(userName, passPhrase, dataDir string, client block
 	fd := feed.New(accountInfo, client)
 	file := f.NewFile(userName, client, fd, accountInfo)
 
-	mnemonic, err := acc.CreateUserAccount(passPhrase)
+	mnemonic, err := acc.CreateUserAccount(passPhrase, mnemonic)
 	if err != nil {
 		return "", "", fmt.Errorf("user create:: %w", err)
 	}

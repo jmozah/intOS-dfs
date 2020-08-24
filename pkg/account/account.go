@@ -78,7 +78,7 @@ func (a *Account) IsAlreadyInitialized() bool {
 	return !info.IsDir()
 }
 
-func (a *Account) CreateUserAccount(passPhrase string) (string, error) {
+func (a *Account) CreateUserAccount(passPhrase, mnemonic string) (string, error) {
 	if passPhrase == "" {
 		if a.IsAlreadyInitialized() {
 			var s string
@@ -110,7 +110,7 @@ func (a *Account) CreateUserAccount(passPhrase string) (string, error) {
 
 	wallet := NewWallet("")
 	a.wallet = wallet
-	acc, mnemonic, err := wallet.LoadMnemonicAndCreateRootAccount()
+	acc, mnemonic, err := wallet.LoadMnemonicAndCreateRootAccount(mnemonic)
 	if err != nil {
 		return "", err
 	}

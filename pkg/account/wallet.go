@@ -19,6 +19,7 @@ package account
 import (
 	"crypto/sha256"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/accounts"
@@ -49,15 +50,27 @@ func NewWallet(mnemonic string) *Wallet {
 	return wallet
 }
 
-func (w *Wallet) LoadMnemonicAndCreateRootAccount() (accounts.Account, string, error) {
+func (w *Wallet) LoadMnemonicAndCreateRootAccount(mnemonic string) (accounts.Account, string, error) {
 	// Generate a mnemonic for memorization or user-friendly seeds
 	entropy, err := bip39.NewEntropy(128)
 	if err != nil {
 		return accounts.Account{}, "", err
 	}
-	mnemonic, err := bip39.NewMnemonic(entropy)
-	if err != nil {
-		return accounts.Account{}, "", err
+	if mnemonic == "" {
+		// create a new mnemonic if it is not supplied
+		mnemonic, err = bip39.NewMnemonic(entropy)
+		if err != nil {
+			return accounts.Account{}, "", err
+		}
+	} else {
+		// test the mnemonic for validity
+		words := strings.Split(mnemonic, " ")
+		if len(words) != 12 {
+			return accounts.Account{}, "", fmt.Errorf("number of word in mnemonic is not 12")
+		}
+		if !bip39.IsMnemonicValid(mnemonic) {
+			return accounts.Account{}, "", fmt.Errorf("one or more of the mnemonic words is not in bip39 word list")
+		}
 	}
 
 	wallet, err := hdwallet.NewFromMnemonic(mnemonic)

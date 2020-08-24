@@ -32,6 +32,7 @@ type UserSignupResponse struct {
 func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	password := r.FormValue("password")
+	mnemonic := r.FormValue("mnemonic") // this is optional
 	if user == "" {
 		jsonhttp.BadRequest(w, "signup: \"user\" argument missing")
 		return
@@ -42,7 +43,7 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create user
-	reference, mnemonic, err := h.dfsAPI.CreateUser(user, password)
+	reference, mnemonic, err := h.dfsAPI.CreateUser(user, password, mnemonic)
 	if err != nil {
 		if err == u.ErrUserAlreadyPresent {
 			fmt.Println("signup: ", err)
