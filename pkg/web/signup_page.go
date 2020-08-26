@@ -14,21 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package api
+package web
 
 import (
-	"github.com/jmozah/intOS-dfs/pkg/dfs"
-	"github.com/jmozah/intOS-dfs/pkg/web"
+	"fmt"
+	"net/http"
 )
 
-type Handler struct {
-	dfsAPI      *dfs.DfsAPI
-	WebHandlers *web.Web
-}
-
-func NewHandler(dataDir, beeHost, beePort string) *Handler {
-	return &Handler{
-		dfsAPI:      dfs.NewDfsAPI(dataDir, beeHost, beePort),
-		WebHandlers: web.NewWeb(),
+func (web *Web) SignupPageHandler(w http.ResponseWriter, r *http.Request) {
+	err := web.signupPageTmpl.Execute(w, nil)
+	if err != nil {
+		fmt.Println("signup handler: ", err)
+		return
 	}
 }
