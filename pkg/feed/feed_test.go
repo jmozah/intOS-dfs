@@ -92,17 +92,16 @@ func TestFeed(t *testing.T) {
 		for i := 1; i < 256; i++ {
 			buf := make([]byte, 4)
 			binary.LittleEndian.PutUint16(buf, uint16(i))
-			updtAddr, err := fd.UpdateFeed(topic, user, buf)
+			_, err := fd.UpdateFeed(topic, user, buf)
 			if err != nil {
 				t.Fatal(err)
 			}
-
 			getAddr, rcvdData, err := fd.GetFeedData(topic, user)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if !bytes.Equal(updtAddr, getAddr) {
-				t.Fatal(err)
+			if getAddr == nil {
+				t.Fatal("invalid update address")
 			}
 			if !bytes.Equal(buf, rcvdData) {
 				t.Fatal(err)
