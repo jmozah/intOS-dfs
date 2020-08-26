@@ -20,9 +20,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"resenje.org/jsonhttp"
+
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	p "github.com/jmozah/intOS-dfs/pkg/pod"
-	"resenje.org/jsonhttp"
 )
 
 type PodCreateResponse struct {
@@ -30,13 +32,8 @@ type PodCreateResponse struct {
 }
 
 func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
 	password := r.FormValue("password")
 	pod := r.FormValue("pod")
-	if user == "" {
-		jsonhttp.BadRequest(w, "create pod: \"user\" argument missing")
-		return
-	}
 	if password == "" {
 		jsonhttp.BadRequest(w, "create pod: \"password\" argument missing")
 		return
@@ -46,8 +43,24 @@ func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// get values from cookie
+	userName, sessionId, err := cookie.GetUserNameAndSessionId(r)
+	if err != nil {
+		fmt.Println("delete: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if userName == "" {
+		jsonhttp.BadRequest(w, "create pod: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "create pod: \"cookie-id\" parameter missing in cookie")
+		return
+	}
+
 	// create pod
-	_, err := h.dfsAPI.CreatePod(user, pod, password)
+	_, err = h.dfsAPI.CreatePod(userName, pod, password, sessionId, w, r)
 	if err != nil {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidPodName ||

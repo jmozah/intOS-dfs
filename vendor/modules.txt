@@ -64,6 +64,9 @@ github.com/go-stack/stack
 # github.com/gorilla/mux v1.7.4
 ## explicit
 github.com/gorilla/mux
+# github.com/gorilla/securecookie v1.1.1
+## explicit
+github.com/gorilla/securecookie
 # github.com/hashicorp/golang-lru v0.5.4
 ## explicit
 github.com/hashicorp/golang-lru

@@ -28,12 +28,13 @@ import (
 )
 
 type Info struct {
-	name    string
-	feedApi *feed.API
-	account *account.Account
-	file    *f.File
-	dir     *d.Directory
-	pods    *pod.Pod
+	name      string
+	sessionId string
+	feedApi   *feed.API
+	account   *account.Account
+	file      *f.File
+	dir       *d.Directory
+	pods      *pod.Pod
 }
 
 type Users struct {

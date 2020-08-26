@@ -21,6 +21,8 @@ import (
 	"net/http"
 
 	"resenje.org/jsonhttp"
+
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 )
 
 type uploadFiletResponse struct {
@@ -38,18 +40,8 @@ const (
 )
 
 func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
-	pod := r.FormValue("pod")
 	podDir := r.FormValue("pod_dir")
 	blockSize := r.FormValue("block_size")
-	if user == "" {
-		jsonhttp.BadRequest(w, "upload: \"user\" argument missing")
-		return
-	}
-	if pod == "" {
-		jsonhttp.BadRequest(w, "upload: \"pod\" argument missing")
-		return
-	}
 	if podDir == "" {
 		jsonhttp.BadRequest(w, "upload: \"pod_dir\" argument missing")
 		return
@@ -59,8 +51,28 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// get values from cookie
+	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	if err != nil {
+		fmt.Println("upload: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if userName == "" {
+		jsonhttp.BadRequest(w, "upload: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "upload: \"cookie-id\" parameter missing in cookie")
+		return
+	}
+	if podName == "" {
+		jsonhttp.BadRequest(w, "upload: \"pod\" parameter missing in cookie")
+		return
+	}
+
 	//  get the files parameter from the multi part
-	err := r.ParseMultipartForm(defaultMaxMemory)
+	err = r.ParseMultipartForm(defaultMaxMemory)
 	if err != nil {
 		fmt.Println("upload: ", err)
 		jsonhttp.BadRequest(w, err)
@@ -90,7 +102,7 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//upload file to bee
-		reference, err := h.dfsAPI.UploadFile(user, pod, file.Filename, file.Size, fd, podDir, blockSize)
+		reference, err := h.dfsAPI.UploadFile(userName, podName, file.Filename, sessionId, file.Size, fd, podDir, blockSize)
 		if err != nil {
 			fmt.Println("upload: ", err)
 			references = append(references, Reference{FileName: file.Filename, Error: err.Error()})

@@ -18,18 +18,19 @@ package user
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
 )
 
-func (u *Users) DeleteUser(userName, dataDir, password string) error {
+func (u *Users) DeleteUser(userName, dataDir, password, sessionId string, response http.ResponseWriter) error {
 
 	if !u.IsUsernameAvailable(userName, dataDir) {
 		return ErrInvalidUserName
 	}
 
-	if !u.isUserPresentInMap(userName) {
+	if !u.IsUserLoggedIn(userName, sessionId) {
 		return ErrUserNotLoggedIn
 	}
 
@@ -41,13 +42,14 @@ func (u *Users) DeleteUser(userName, dataDir, password string) error {
 	}
 
 	// Logout user
-	if u.IsUserLoggedIn(userName) {
-		u.removeUserFromMap(userName)
+	err := u.Logout(userName, sessionId, response)
+	if err != nil {
+		return err
 	}
 
 	// remove the user mnemonic file
 	userKeyFileName := account.ConstructUserKeyFile(userName, dataDir)
-	err := os.Remove(userKeyFileName)
+	err = os.Remove(userKeyFileName)
 	if err != nil {
 		return fmt.Errorf("user del: could not remove user key: %w", err)
 	}

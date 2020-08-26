@@ -22,27 +22,39 @@ import (
 	"net/http"
 
 	"resenje.org/jsonhttp"
+
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 )
 
 func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
-	pod := r.FormValue("pod")
 	podFile := r.FormValue("file")
-	if user == "" {
-		jsonhttp.BadRequest(w, "download: \"user\" argument missing")
-		return
-	}
-	if pod == "" {
-		jsonhttp.BadRequest(w, "download: \"pod\" argument missing")
-		return
-	}
 	if podFile == "" {
 		jsonhttp.BadRequest(w, "download: \"file\" argument missing")
 		return
 	}
 
+	// get values from cookie
+	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	if err != nil {
+		fmt.Println("download: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if userName == "" {
+		jsonhttp.BadRequest(w, "download: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "download: \"cookie-id\" parameter missing in cookie")
+		return
+	}
+	if podName == "" {
+		jsonhttp.BadRequest(w, "download: \"pod\" parameter missing in cookie")
+		return
+	}
+
 	// download file from bee
-	reader, reference, size, err := h.dfsAPI.DownloadFile(user, pod, podFile)
+	reader, reference, size, err := h.dfsAPI.DownloadFile(userName, podName, podFile, sessionId)
 	if err != nil {
 		fmt.Println("download: ", err)
 		jsonhttp.InternalServerError(w, err)

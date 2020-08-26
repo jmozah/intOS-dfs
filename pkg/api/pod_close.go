@@ -22,24 +22,34 @@ import (
 
 	"resenje.org/jsonhttp"
 
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
 func (h *Handler) PodCloseHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
-	pod := r.FormValue("pod")
-	if user == "" {
-		jsonhttp.BadRequest(w, "close pod: \"user\" argument missing")
+	// get values from cookie
+	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	if err != nil {
+		fmt.Println("close pod: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
-	if pod == "" {
-		jsonhttp.BadRequest(w, "close pod: \"pod\" argument missing")
+	if userName == "" {
+		jsonhttp.BadRequest(w, "close pod: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "close pod: \"cookie-id\" parameter missing in cookie")
+		return
+	}
+	if podName == "" {
+		jsonhttp.BadRequest(w, "close pod: \"pod\" parameter missing in cookie")
 		return
 	}
 
 	// close pod
-	err := h.dfsAPI.ClosePod(user, pod)
+	err = h.dfsAPI.ClosePod(userName, podName, sessionId, w, r)
 	if err != nil {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {

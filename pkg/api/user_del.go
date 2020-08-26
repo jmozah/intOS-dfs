@@ -20,24 +20,36 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	u "github.com/jmozah/intOS-dfs/pkg/user"
 	"resenje.org/jsonhttp"
 )
 
 func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
 	password := r.FormValue("password")
-	if user == "" {
-		jsonhttp.BadRequest(w, "delete: \"user\" argument missing")
-		return
-	}
 	if password == "" {
 		jsonhttp.BadRequest(w, "delete: \"password\" argument missing")
 		return
 	}
 
+	// get values from cookie
+	userName, sessionId, err := cookie.GetUserNameAndSessionId(r)
+	if err != nil {
+		fmt.Println("delete: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if userName == "" {
+		jsonhttp.BadRequest(w, "delete: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "delete: \"cookie-id\" parameter missing in cookie")
+		return
+	}
+
 	// delete user
-	err := h.dfsAPI.DeleteUser(user, password)
+	err = h.dfsAPI.DeleteUser(userName, password, sessionId, w)
 	if err != nil {
 		if err == u.ErrInvalidUserName ||
 			err == u.ErrInvalidPassword ||

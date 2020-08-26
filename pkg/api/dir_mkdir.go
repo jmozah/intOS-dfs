@@ -22,29 +22,40 @@ import (
 
 	"resenje.org/jsonhttp"
 
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
 func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
-	pod := r.FormValue("pod")
 	dirToCreate := r.FormValue("dir")
-	if user == "" {
-		jsonhttp.BadRequest(w, "mkdir: \"user\" argument missing")
-		return
-	}
-	if pod == "" {
-		jsonhttp.BadRequest(w, "mkdir: \"pod\" argument missing")
-		return
-	}
 	if dirToCreate == "" {
 		jsonhttp.BadRequest(w, "mkdir: \"dir\" argument missing")
 		return
 	}
 
+	// get values from cookie
+	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	if err != nil {
+		fmt.Println("mkdir: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if userName == "" {
+		jsonhttp.BadRequest(w, "mkdir: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "mkdir: \"cookie-id\" parameter missing in cookie")
+		return
+	}
+	if podName == "" {
+		jsonhttp.BadRequest(w, "mkdir: \"pod\" parameter missing in cookie")
+		return
+	}
+
 	// make directory
-	err := h.dfsAPI.Mkdir(user, pod, dirToCreate)
+	err = h.dfsAPI.Mkdir(userName, podName, dirToCreate, sessionId)
 	if err != nil {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidDirectory ||

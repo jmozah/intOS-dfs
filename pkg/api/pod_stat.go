@@ -22,6 +22,7 @@ import (
 
 	"resenje.org/jsonhttp"
 
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
@@ -36,19 +37,29 @@ type PodStatResponse struct {
 }
 
 func (h *Handler) PodStatHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
 	pod := r.FormValue("pod")
-	if user == "" {
-		jsonhttp.BadRequest(w, "stat pod: \"user\" argument missing")
+	if pod == "" {
+		jsonhttp.BadRequest(w, "stat podd: \"pod\" argument missing")
 		return
 	}
-	if pod == "" {
-		jsonhttp.BadRequest(w, "stat pod: \"pod\" argument missing")
+	// get values from cookie
+	userName, sessionId, _, err := cookie.GetUserNameSessionIdAndPodName(r)
+	if err != nil {
+		fmt.Println("stat pod: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if userName == "" {
+		jsonhttp.BadRequest(w, "stat pod: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "stat pod: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	// fetch pod stat
-	stat, err := h.dfsAPI.PodStat(user, pod)
+	stat, err := h.dfsAPI.PodStat(userName, pod, sessionId)
 	if err != nil {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidPodName {

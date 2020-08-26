@@ -20,19 +20,30 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	u "github.com/jmozah/intOS-dfs/pkg/user"
 	"resenje.org/jsonhttp"
 )
 
 func (h *Handler) UserLogoutHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
-	if user == "" {
-		jsonhttp.BadRequest(w, "logout: \"user\" argument missing")
+	// get values from cookie
+	userName, sessionId, err := cookie.GetUserNameAndSessionId(r)
+	if err != nil {
+		fmt.Println("logout: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if userName == "" {
+		jsonhttp.BadRequest(w, "logout: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "logout: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	// logout user
-	err := h.dfsAPI.LogoutUser(user)
+	err = h.dfsAPI.LogoutUser(userName, sessionId, w)
 	if err != nil {
 		if err == u.ErrUserNotLoggedIn || err == u.ErrInvalidUserName {
 			fmt.Println("logout: ", err)

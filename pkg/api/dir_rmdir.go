@@ -22,29 +22,40 @@ import (
 
 	"resenje.org/jsonhttp"
 
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
 func (h *Handler) DirectoryRmdirHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
-	pod := r.FormValue("pod")
 	dir := r.FormValue("dir")
-	if user == "" {
-		jsonhttp.BadRequest(w, "rmdir: \"user\" argument missing")
-		return
-	}
-	if pod == "" {
-		jsonhttp.BadRequest(w, "rmdir: \"pod\" argument missing")
-		return
-	}
 	if dir == "" {
 		jsonhttp.BadRequest(w, "rmdir: \"dir\" argument missing")
 		return
 	}
 
+	// get values from cookie
+	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	if err != nil {
+		fmt.Println("rmdir: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if userName == "" {
+		jsonhttp.BadRequest(w, "rmdir: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "rmdir: \"cookie-id\" parameter missing in cookie")
+		return
+	}
+	if podName == "" {
+		jsonhttp.BadRequest(w, "rmdir: \"pod\" parameter missing in cookie")
+		return
+	}
+
 	// remove directory
-	err := h.dfsAPI.RmDir(user, pod, dir)
+	err = h.dfsAPI.RmDir(userName, podName, dir, sessionId)
 	if err != nil {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {

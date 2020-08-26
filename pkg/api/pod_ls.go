@@ -22,6 +22,7 @@ import (
 
 	"resenje.org/jsonhttp"
 
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 )
@@ -31,14 +32,24 @@ type PodListResponse struct {
 }
 
 func (h *Handler) PodListHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
-	if user == "" {
-		jsonhttp.BadRequest(w, "ls pod: \"user\" argument missing")
+	// get values from cookie
+	userName, sessionId, err := cookie.GetUserNameAndSessionId(r)
+	if err != nil {
+		fmt.Println("delete: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if userName == "" {
+		jsonhttp.BadRequest(w, "ls pod: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "ls pod: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	// fetch pods and list them
-	pods, err := h.dfsAPI.ListPods(user)
+	pods, err := h.dfsAPI.ListPods(userName, sessionId)
 	if err != nil {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == pod.ErrPodNotOpened {
