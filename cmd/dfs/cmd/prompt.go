@@ -32,10 +32,11 @@ import (
 )
 
 const (
-	DefaultPrompt   = "dfs"
-	UserSeperator   = ">>>"
-	PodSeperator    = ">>"
-	PromptSeperator = "> "
+	DefaultPrompt    = "dfs"
+	UserSeperator    = ">>>"
+	PodSeperator     = ">>"
+	PromptSeperator  = "> "
+	DefaultSessionId = "12345678"
 )
 
 var (
@@ -133,7 +134,7 @@ func executor(in string) {
 				return
 			}
 			userName := blocks[2]
-			ref, mnemonic, err := dfsAPI.CreateUser(userName, "", "")
+			ref, mnemonic, err := dfsAPI.CreateUser(userName, "", "", nil, DefaultSessionId)
 			if err != nil {
 				fmt.Println("create user: ", err)
 				return
@@ -154,7 +155,7 @@ func executor(in string) {
 				return
 			}
 			userName := blocks[2]
-			err := dfsAPI.DeleteUser(userName, "")
+			err := dfsAPI.DeleteUser(userName, "", DefaultSessionId, nil)
 			if err != nil {
 				fmt.Println("delete user: ", err)
 				return
@@ -168,7 +169,7 @@ func executor(in string) {
 				return
 			}
 			userName := blocks[2]
-			err := dfsAPI.LoginUser(userName, "")
+			err := dfsAPI.LoginUser(userName, "", nil, DefaultSessionId)
 			if err != nil {
 				fmt.Println("login user: ", err)
 				return
@@ -177,7 +178,7 @@ func executor(in string) {
 			currentPodInfo = nil
 			currentPrompt = getCurrentPrompt()
 		case "logout":
-			err := dfsAPI.LogoutUser(currentUser)
+			err := dfsAPI.LogoutUser(currentUser, DefaultSessionId, nil)
 			if err != nil {
 				fmt.Println("logout user: ", err)
 				return
@@ -224,7 +225,7 @@ func executor(in string) {
 				return
 			}
 			podName := blocks[2]
-			podInfo, err := dfsAPI.CreatePod(currentUser, podName, "")
+			podInfo, err := dfsAPI.CreatePod(currentUser, podName, "", DefaultSessionId, nil, nil)
 			if err != nil {
 				fmt.Println("could not create pod: ", err)
 				return
@@ -238,7 +239,7 @@ func executor(in string) {
 				return
 			}
 			podName := blocks[2]
-			err := dfsAPI.DeletePod(currentUser, podName)
+			err := dfsAPI.DeletePod(currentUser, podName, DefaultSessionId, nil, nil)
 			if err != nil {
 				fmt.Println("could not delete pod: ", err)
 				return
@@ -255,7 +256,7 @@ func executor(in string) {
 				return
 			}
 			podName := blocks[2]
-			podInfo, err := dfsAPI.OpenPod(currentUser, podName, "")
+			podInfo, err := dfsAPI.OpenPod(currentUser, podName, "", DefaultSessionId, nil, nil)
 			if err != nil {
 				fmt.Println("Login failed: ", err)
 				return
@@ -266,7 +267,7 @@ func executor(in string) {
 			if !isPodOpened() {
 				return
 			}
-			err := dfsAPI.ClosePod(currentUser, currentPodInfo.GetCurrentPodNameOnly())
+			err := dfsAPI.ClosePod(currentUser, currentPodInfo.GetCurrentPodNameOnly(), DefaultSessionId, nil, nil)
 			if err != nil {
 				fmt.Println("error logging out: ", err)
 				return
@@ -277,7 +278,7 @@ func executor(in string) {
 			if !isPodOpened() {
 				return
 			}
-			podStat, err := dfsAPI.PodStat(currentUser, currentPodInfo.GetCurrentPodNameOnly())
+			podStat, err := dfsAPI.PodStat(currentUser, currentPodInfo.GetCurrentPodNameOnly(), DefaultSessionId)
 			if err != nil {
 				fmt.Println("error getting stat: ", err)
 				return
@@ -293,7 +294,7 @@ func executor(in string) {
 			if !isPodOpened() {
 				return
 			}
-			err := dfsAPI.SyncPod(currentUser, currentPodInfo.GetCurrentPodNameOnly())
+			err := dfsAPI.SyncPod(currentUser, currentPodInfo.GetCurrentPodNameOnly(), DefaultSessionId)
 			if err != nil {
 				fmt.Println("could not sync pod: ", err)
 				return
@@ -301,7 +302,7 @@ func executor(in string) {
 			fmt.Println("pod synced.")
 			currentPrompt = getCurrentPrompt()
 		case "ls":
-			pods, err := dfsAPI.ListPods(currentUser)
+			pods, err := dfsAPI.ListPods(currentUser, DefaultSessionId)
 			if err != nil {
 				fmt.Println("error while listing pods: %w", err)
 				return
@@ -323,7 +324,7 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		podInfo, err := dfsAPI.ChangeDirectory(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		podInfo, err := dfsAPI.ChangeDirectory(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1], DefaultSessionId)
 		if err != nil {
 			fmt.Println("cd failed: ", err)
 			return
@@ -334,7 +335,7 @@ func executor(in string) {
 		if !isPodOpened() {
 			return
 		}
-		fl, dl, err := dfsAPI.ListDir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), "")
+		fl, dl, err := dfsAPI.ListDir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), "", DefaultSessionId)
 		if err != nil {
 			fmt.Println("ls failed: ", err)
 			return
@@ -353,7 +354,7 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.CopyToLocal(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1], blocks[2])
+		err := dfsAPI.CopyToLocal(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1], blocks[2], DefaultSessionId)
 		if err != nil {
 			fmt.Println("copyToLocal failed: ", err)
 			return
@@ -366,7 +367,7 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.CopyFromLocal(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1], blocks[2], blocks[3])
+		err := dfsAPI.CopyFromLocal(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1], blocks[2], blocks[3], DefaultSessionId)
 		if err != nil {
 			fmt.Println("copyFromLocal failed: ", err)
 			return
@@ -379,7 +380,7 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.Mkdir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		err := dfsAPI.Mkdir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1], DefaultSessionId)
 		if err != nil {
 			fmt.Println("mkdir failed: ", err)
 			return
@@ -392,7 +393,7 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.RmDir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		err := dfsAPI.RmDir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1], DefaultSessionId)
 		if err != nil {
 			fmt.Println("rmdir failed: ", err)
 			return
@@ -405,7 +406,7 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.Cat(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		err := dfsAPI.Cat(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1], DefaultSessionId)
 		if err != nil {
 			fmt.Println("cat failed: ", err)
 			return
@@ -418,7 +419,7 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		fs, err := dfsAPI.FileStat(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		fs, err := dfsAPI.FileStat(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1], DefaultSessionId)
 		if err != nil {
 			fmt.Println("stat failed: ", err)
 			return
@@ -454,7 +455,7 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.DeleteFile(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1])
+		err := dfsAPI.DeleteFile(currentUser, currentPodInfo.GetCurrentPodNameOnly(), blocks[1], DefaultSessionId)
 		if err != nil {
 			fmt.Println("rm failed: ", err)
 			return

@@ -22,24 +22,41 @@ import (
 
 	"resenje.org/jsonhttp"
 
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
 func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
-	pod := r.FormValue("pod")
-	if user == "" {
-		jsonhttp.BadRequest(w, "sync pod: \"user\" argument missing")
+	// get values from cookie
+	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	if err != nil {
+		fmt.Println("sync pod: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
-	if pod == "" {
-		jsonhttp.BadRequest(w, "sync pod: \"pod\" argument missing")
+	if userName == "" {
+		jsonhttp.BadRequest(w, "sync pod: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "sync pod: \"cookie-id\" parameter missing in cookie")
+		return
+	}
+	if podName == "" {
+		jsonhttp.BadRequest(w, "sync pod: \"pod\" parameter missing in cookie")
+		return
+	}
+
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
 		return
 	}
 
 	// fetch pods and list them
-	err := h.dfsAPI.SyncPod(user, pod)
+	err = h.dfsAPI.SyncPod(userName, podName, sessionId)
 	if err != nil {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidPodName ||

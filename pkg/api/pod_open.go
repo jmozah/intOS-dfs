@@ -20,9 +20,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"resenje.org/jsonhttp"
+
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	p "github.com/jmozah/intOS-dfs/pkg/pod"
-	"resenje.org/jsonhttp"
 )
 
 type PodOpenResponse struct {
@@ -30,13 +32,8 @@ type PodOpenResponse struct {
 }
 
 func (h *Handler) PodOpenHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
 	password := r.FormValue("password")
 	pod := r.FormValue("pod")
-	if user == "" {
-		jsonhttp.BadRequest(w, "open pod: \"user\" argument missing")
-		return
-	}
 	if password == "" {
 		jsonhttp.BadRequest(w, "open pod: \"password\" argument missing")
 		return
@@ -46,8 +43,41 @@ func (h *Handler) PodOpenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// get values from cookie
+	userName, sessionId, existingPodName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	if err != nil {
+		fmt.Println("delete: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if userName == "" {
+		jsonhttp.BadRequest(w, "open pod: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "open pod: \"cookie-id\" parameter missing in cookie")
+		return
+	}
+
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
+		return
+	}
+
+	// If a pod is already open, close the pod
+	if existingPodName != "" {
+		err = h.dfsAPI.ClosePod(userName, existingPodName, sessionId, w, r)
+		if err != nil {
+			fmt.Println("open pod: could not close already open pod: ", err)
+			jsonhttp.BadRequest(w, err)
+			return
+		}
+	}
+
 	// open pod
-	_, err := h.dfsAPI.OpenPod(user, pod, password)
+	_, err = h.dfsAPI.OpenPod(userName, pod, password, sessionId, w, r)
 	if err != nil {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidPodName {

@@ -21,19 +21,20 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
-
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	d "github.com/jmozah/intOS-dfs/pkg/dir"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
 	f "github.com/jmozah/intOS-dfs/pkg/file"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (p *Pod) CreatePod(podName, passPhrase string) (*Info, error) {
+func (p *Pod) CreatePod(podName, passPhrase string, response http.ResponseWriter, request *http.Request) (*Info, error) {
 	podName, err := CleanPodName(podName)
 	if err != nil {
 		return nil, err
@@ -89,6 +90,14 @@ func (p *Pod) CreatePod(podName, passPhrase string) (*Info, error) {
 	}
 	pods[freeId] = podName
 	p.addPodToPodMap(podName, podInfo)
+
+	// set the podName in the cookie
+	if request != nil && response != nil {
+		err = cookie.SetPodNameInSession(podName, request, response)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return podInfo, nil
 }

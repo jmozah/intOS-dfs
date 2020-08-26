@@ -21,6 +21,8 @@ import (
 	"net/http"
 
 	"resenje.org/jsonhttp"
+
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 )
 
 type FileStatResponse struct {
@@ -34,24 +36,41 @@ type BlockInfo struct {
 }
 
 func (h *Handler) FileStatHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
-	pod := r.FormValue("pod")
 	podFile := r.FormValue("file")
-	if user == "" {
-		jsonhttp.BadRequest(w, "stat: \"user\" argument missing")
-		return
-	}
-	if pod == "" {
-		jsonhttp.BadRequest(w, "stat: \"pod\" argument missing")
-		return
-	}
 	if podFile == "" {
-		jsonhttp.BadRequest(w, "upload: \"file\" argument missing")
+		jsonhttp.BadRequest(w, "file stat: \"file\" argument missing")
+		return
+	}
+
+	// get values from cookie
+	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	if err != nil {
+		fmt.Println("file stat: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if userName == "" {
+		jsonhttp.BadRequest(w, "file stat: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "file stat: \"cookie-id\" parameter missing in cookie")
+		return
+	}
+	if podName == "" {
+		jsonhttp.BadRequest(w, "file stat: \"pod\" parameter missing in cookie")
+		return
+	}
+
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
 		return
 	}
 
 	// get file stat
-	stat, err := h.dfsAPI.FileStat(user, pod, podFile)
+	stat, err := h.dfsAPI.FileStat(userName, podName, podFile, sessionId)
 	if err != nil {
 		fmt.Println("file stat: %w", err)
 		jsonhttp.InternalServerError(w, err)

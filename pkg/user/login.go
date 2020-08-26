@@ -18,16 +18,18 @@ package user
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	d "github.com/jmozah/intOS-dfs/pkg/dir"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
 	f "github.com/jmozah/intOS-dfs/pkg/file"
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
-func (u *Users) LoginUser(userName string, passPhrase string, dataDir string, client blockstore.Client) error {
+func (u *Users) LoginUser(userName, passPhrase, dataDir string, client blockstore.Client, response http.ResponseWriter, sessionId string) error {
 	if u.isUserPresentInMap(userName) {
 		return ErrUserAlreadyLoggedIn
 	}
@@ -49,22 +51,66 @@ func (u *Users) LoginUser(userName string, passPhrase string, dataDir string, cl
 	}
 	dir := d.NewDirectory(userName, client, fd, accountInfo, file)
 
+	if sessionId == "" {
+		sessionId = cookie.GetUniqueSessionId()
+	}
+
 	ui := &Info{
-		name:    userName,
-		feedApi: fd,
-		account: acc,
-		file:    file,
-		dir:     dir,
-		pods:    pod.NewPod(u.client, fd, acc),
+		name:      userName,
+		sessionId: sessionId,
+		feedApi:   fd,
+		account:   acc,
+		file:      file,
+		dir:       dir,
+		pods:      pod.NewPod(u.client, fd, acc),
+	}
+
+	// set cookie and add user to map
+	return u.Login(ui, response)
+}
+
+func (u *Users) Login(ui *Info, response http.ResponseWriter) error {
+	if response != nil {
+		err := cookie.SetSession(ui.GetUserName(), ui.GetSessionId(), response)
+		if err != nil {
+			return err
+		}
 	}
 	u.addUserToMap(ui)
+
 	return nil
 }
 
-func (u *Users) IsUserLoggedIn(userName string) bool {
-	return u.isUserPresentInMap(userName)
+func (u *Users) Logout(userName, sessionId string, response http.ResponseWriter) error {
+	yes := u.isUserPresentInMap(userName)
+	if !yes {
+		return ErrUserNotLoggedIn
+	}
+	// get the user info and check if cookie id matches
+	ui := u.getUserFromMap(userName)
+	if ui.sessionId == sessionId {
+		u.removeUserFromMap(userName)
+	}
+	if response != nil {
+		cookie.ClearSession(response)
+	}
+	return nil
 }
 
-func (u *Users) GetLoggedInUserInfo(userName string) *Info {
-	return u.getUserFromMap(userName)
+func (u *Users) IsUserLoggedIn(userName, sessionId string) bool {
+	yes := u.isUserPresentInMap(userName)
+	if !yes {
+		return false
+	}
+	// get the user info and check if cookie id matches
+	ui := u.getUserFromMap(userName)
+	return ui.sessionId == sessionId
+}
+
+func (u *Users) GetLoggedInUserInfo(userName, sessionId string) *Info {
+	ui := u.getUserFromMap(userName)
+	if ui.GetSessionId() == sessionId {
+		return ui
+	}
+	return nil
 }

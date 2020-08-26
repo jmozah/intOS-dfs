@@ -18,9 +18,12 @@ package pod
 
 import (
 	"fmt"
+	"net/http"
+
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 )
 
-func (p *Pod) ClosePod(podName string) error {
+func (p *Pod) ClosePod(podName string, response http.ResponseWriter, request *http.Request) error {
 	if !p.isPodOpened(podName) {
 		return ErrPodNotOpened
 	}
@@ -28,6 +31,14 @@ func (p *Pod) ClosePod(podName string) error {
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
 		return fmt.Errorf("logout pod: %w", err)
+	}
+
+	// remove the pod name from cookie
+	if request != nil && response != nil {
+		err = cookie.RemovePodNameFromSession(request, response)
+		if err != nil {
+			return err
+		}
 	}
 
 	p.removePodFromPodMap(podName)

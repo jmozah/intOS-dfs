@@ -22,6 +22,7 @@ import (
 
 	"resenje.org/jsonhttp"
 
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
@@ -32,24 +33,41 @@ type ListFileResponse struct {
 }
 
 func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
-	pod := r.FormValue("pod")
 	dir := r.FormValue("dir")
-	if user == "" {
-		jsonhttp.BadRequest(w, "ls dir: \"user\" argument missing")
-		return
-	}
-	if pod == "" {
-		jsonhttp.BadRequest(w, "ls dir: \"pod\" argument missing")
-		return
-	}
 	if dir == "" {
 		jsonhttp.BadRequest(w, "ls dir: \"dir\" argument missing")
 		return
 	}
 
+	// get values from cookie
+	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	if err != nil {
+		fmt.Println("ls dir: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if userName == "" {
+		jsonhttp.BadRequest(w, "ls dir: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "ls dir: \"cookie-id\" parameter missing in cookie")
+		return
+	}
+	if podName == "" {
+		jsonhttp.BadRequest(w, "ls dir: \"pod\" parameter missing in cookie")
+		return
+	}
+
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
+		return
+	}
+
 	// list directory
-	fl, dl, err := h.dfsAPI.ListDir(user, pod, dir)
+	fl, dl, err := h.dfsAPI.ListDir(userName, podName, dir, sessionId)
 	if err != nil {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {

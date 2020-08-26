@@ -12,6 +12,7 @@ require (
 	github.com/ethersphere/bee v0.1.1-0.20200801200258-e9d1e561d12b
 	github.com/ethersphere/bmt v0.1.2
 	github.com/gorilla/mux v1.7.4
+	github.com/gorilla/securecookie v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/marten-seemann/chacha20 v0.2.0 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect

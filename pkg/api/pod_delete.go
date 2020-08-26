@@ -22,23 +22,40 @@ import (
 
 	"resenje.org/jsonhttp"
 
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
 )
 
 func (h *Handler) PodDeleteHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
-	pod := r.FormValue("pod")
-	if user == "" {
-		jsonhttp.BadRequest(w, "delete pod: \"user\" argument missing")
+	// get values from cookie
+	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	if err != nil {
+		fmt.Println("delete pod: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
-	if pod == "" {
-		jsonhttp.BadRequest(w, "delete pod: \"pod\" argument missing")
+	if userName == "" {
+		jsonhttp.BadRequest(w, "delete pod: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "delete pod: \"cookie-id\" parameter missing in cookie")
+		return
+	}
+	if podName == "" {
+		jsonhttp.BadRequest(w, "delete pod: \"pod\" parameter missing in cookie")
+		return
+	}
+
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
 		return
 	}
 
 	// delete pod
-	err := h.dfsAPI.DeletePod(user, pod)
+	err = h.dfsAPI.DeletePod(userName, podName, sessionId, w, r)
 	if err != nil {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn {
 			fmt.Println("delete pod:", err)

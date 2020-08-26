@@ -43,7 +43,7 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create user
-	reference, mnemonic, err := h.dfsAPI.CreateUser(user, password, mnemonic)
+	reference, mnemonic, err := h.dfsAPI.CreateUser(user, password, mnemonic, w, "")
 	if err != nil {
 		if err == u.ErrUserAlreadyPresent {
 			fmt.Println("signup: ", err)

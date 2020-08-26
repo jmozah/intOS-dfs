@@ -22,33 +22,51 @@ import (
 
 	"resenje.org/jsonhttp"
 
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
 func (h *Handler) DirectoryStatHandler(w http.ResponseWriter, r *http.Request) {
-	user := r.FormValue("user")
-	pod := r.FormValue("pod")
 	dir := r.FormValue("dir")
-	if user == "" {
-		jsonhttp.BadRequest(w, "stat: \"user\" argument missing")
-		return
-	}
-	if pod == "" {
-		jsonhttp.BadRequest(w, "stat: \"pod\" argument missing")
-		return
-	}
 	if dir == "" {
-		jsonhttp.BadRequest(w, "stat: \"dir\" argument missing")
+		jsonhttp.BadRequest(w, "stat dir: \"dir\" argument missing")
+		return
+	}
+
+	// get values from cookie
+	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	if err != nil {
+		fmt.Println("stat dir: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if userName == "" {
+		jsonhttp.BadRequest(w, "stat dir: \"user\" parameter missing in cookie")
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "stat dir: \"cookie-id\" parameter missing in cookie")
+		return
+	}
+	if podName == "" {
+		jsonhttp.BadRequest(w, "stat dir: \"pod\" parameter missing in cookie")
+		return
+	}
+
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
 		return
 	}
 
 	// stat directory
-	ds, err := h.dfsAPI.DirectoryStat(user, pod, dir)
+	ds, err := h.dfsAPI.DirectoryStat(userName, podName, dir, sessionId)
 	if err != nil {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
-			fmt.Println("rmdir: ", err)
+			fmt.Println("stat dir: ", err)
 			jsonhttp.BadRequest(w, err)
 			return
 		}

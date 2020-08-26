@@ -37,7 +37,7 @@ func (h *Handler) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// login user
-	err := h.dfsAPI.LoginUser(user, password)
+	err := h.dfsAPI.LoginUser(user, password, w, "")
 	if err != nil {
 		if err == u.ErrUserAlreadyLoggedIn ||
 			err == u.ErrInvalidUserName ||

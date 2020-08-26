@@ -47,7 +47,7 @@ func TestPod_New(t *testing.T) {
 	podName1 := "test1"
 	podName2 := "test2"
 	t.Run("create-first-pod", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, "password")
+		info, err := pod1.CreatePod(podName1, "password", nil, nil)
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -90,7 +90,7 @@ func TestPod_New(t *testing.T) {
 	})
 
 	t.Run("create-second-pod", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName2, "password")
+		info, err := pod1.CreatePod(podName2, "password", nil, nil)
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName2)
 		}

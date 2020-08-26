@@ -16,15 +16,21 @@ limitations under the License.
 
 package user
 
-func (u *Users) LogoutUser(userName string, dataDir string) error {
+import "net/http"
+
+func (u *Users) LogoutUser(userName, dataDir, sessionId string, response http.ResponseWriter) error {
 	if !u.IsUsernameAvailable(userName, dataDir) {
 		return ErrInvalidUserName
 	}
 
-	if !u.isUserPresentInMap(userName) {
+	// unset cookie and remove user from map
+	if !u.IsUserLoggedIn(userName, sessionId) {
 		return ErrUserNotLoggedIn
 	}
+	err := u.Logout(userName, sessionId, response)
+	if err != nil {
+		return err
+	}
 
-	u.removeUserFromMap(userName)
 	return nil
 }

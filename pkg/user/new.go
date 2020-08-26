@@ -18,16 +18,18 @@ package user
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	d "github.com/jmozah/intOS-dfs/pkg/dir"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
 	f "github.com/jmozah/intOS-dfs/pkg/file"
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
-func (u *Users) CreateNewUser(userName, passPhrase, mnemonic, dataDir string, client blockstore.Client) (string, string, error) {
+func (u *Users) CreateNewUser(userName, passPhrase, mnemonic, dataDir string, client blockstore.Client, response http.ResponseWriter, sessionId string) (string, string, error) {
 	if u.IsUsernameAvailable(userName, dataDir) {
 		return "", "", ErrUserAlreadyPresent
 	}
@@ -43,14 +45,25 @@ func (u *Users) CreateNewUser(userName, passPhrase, mnemonic, dataDir string, cl
 
 	dir := d.NewDirectory(userName, client, fd, accountInfo, file)
 
-	ui := &Info{
-		name:    userName,
-		feedApi: fd,
-		account: acc,
-		file:    file,
-		dir:     dir,
-		pods:    pod.NewPod(u.client, fd, acc),
+	if sessionId == "" {
+		sessionId = cookie.GetUniqueSessionId()
 	}
-	u.addUserToMap(ui)
+
+	ui := &Info{
+		name:      userName,
+		sessionId: sessionId,
+		feedApi:   fd,
+		account:   acc,
+		file:      file,
+		dir:       dir,
+		pods:      pod.NewPod(u.client, fd, acc),
+	}
+
+	// set cookie and add user to map
+	err = u.Login(ui, response)
+	if err != nil {
+		return "", "", err
+	}
+
 	return accountInfo.GetAddress().Hex(), mnemonic, nil
 }
