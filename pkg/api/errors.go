@@ -21,3 +21,7 @@ import "errors"
 var (
 	ErrInvalidCookie = errors.New("invalid cookie")
 )
+
+type ErrorMessage struct {
+	err string `json:"error"`
+}

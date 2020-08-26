@@ -56,23 +56,27 @@ func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	// restart the cookie expiry
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
-		jsonhttp.BadRequest(w, err)
+		w.Header().Set("Content-Type", " application/json")
+		jsonhttp.BadRequest(w, &ErrorMessage{err: "stat dir: " + err.Error()})
 		return
 	}
 
 	// download file from bee
 	reader, reference, size, err := h.dfsAPI.DownloadFile(userName, podName, podFile, sessionId)
 	if err != nil {
+		w.Header().Set("Content-Type", " application/json")
 		fmt.Println("download: ", err)
-		jsonhttp.InternalServerError(w, err)
+		jsonhttp.InternalServerError(w, &ErrorMessage{err: "stat dir: " + err.Error()})
 		return
 	}
 
 	w.Header().Set("ETag", fmt.Sprintf("%q", reference))
 	w.Header().Set("Content-Length", size)
+
 	_, err = io.Copy(w, reader)
 	if err != nil {
 		fmt.Println("download:", err)
-		jsonhttp.InternalServerError(w, err)
+		w.Header().Set("Content-Type", " application/json")
+		jsonhttp.InternalServerError(w, &ErrorMessage{err: "stat dir: " + err.Error()})
 	}
 }

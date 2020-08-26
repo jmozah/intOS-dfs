@@ -45,13 +45,14 @@ func (h *Handler) UserLogoutHandler(w http.ResponseWriter, r *http.Request) {
 	// logout user
 	err = h.dfsAPI.LogoutUser(userName, sessionId, w)
 	if err != nil {
+		w.Header().Set("Content-Type", " application/json")
 		if err == u.ErrUserNotLoggedIn || err == u.ErrInvalidUserName {
 			fmt.Println("logout: ", err)
-			jsonhttp.BadRequest(w, err)
+			jsonhttp.BadRequest(w, &ErrorMessage{err: "logout: " + err.Error()})
 			return
 		}
 		fmt.Println("logout: ", err)
-		jsonhttp.InternalServerError(w, err)
+		jsonhttp.InternalServerError(w, &ErrorMessage{err: "logout: " + err.Error()})
 		return
 	}
 

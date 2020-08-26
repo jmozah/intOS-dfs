@@ -51,24 +51,27 @@ func (h *Handler) PodListHandler(w http.ResponseWriter, r *http.Request) {
 	// restart the cookie expiry
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
-		jsonhttp.BadRequest(w, err)
+		w.Header().Set("Content-Type", " application/json")
+		jsonhttp.BadRequest(w, &ErrorMessage{err: "ls pod: " + err.Error()})
 		return
 	}
 
 	// fetch pods and list them
 	pods, err := h.dfsAPI.ListPods(userName, sessionId)
 	if err != nil {
+		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == pod.ErrPodNotOpened {
 			fmt.Println("ls pod: ", err)
-			jsonhttp.BadRequest(w, err)
+			jsonhttp.BadRequest(w, &ErrorMessage{err: "ls pod: " + err.Error()})
 			return
 		}
 		fmt.Println("ls pod: ", err)
-		jsonhttp.InternalServerError(w, err)
+		jsonhttp.InternalServerError(w, &ErrorMessage{err: "ls pod: " + err.Error()})
 		return
 	}
 
+	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.OK(w, &PodListResponse{
 		Pods: pods,
 	})

@@ -39,15 +39,16 @@ func (h *Handler) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 	// login user
 	err := h.dfsAPI.LoginUser(user, password, w, "")
 	if err != nil {
+		w.Header().Set("Content-Type", " application/json")
 		if err == u.ErrUserAlreadyLoggedIn ||
 			err == u.ErrInvalidUserName ||
 			err == u.ErrInvalidPassword {
 			fmt.Println("login: ", err)
-			jsonhttp.BadRequest(w, err)
+			jsonhttp.BadRequest(w, &ErrorMessage{err: "login: " + err.Error()})
 			return
 		}
 		fmt.Println("login: ", err)
-		jsonhttp.InternalServerError(w, err)
+		jsonhttp.InternalServerError(w, &ErrorMessage{err: "login: " + err.Error()})
 		return
 	}
 

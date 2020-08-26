@@ -57,23 +57,25 @@ func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) 
 	// restart the cookie expiry
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
-		jsonhttp.BadRequest(w, err)
+		w.Header().Set("Content-Type", " application/json")
+		jsonhttp.BadRequest(w, &ErrorMessage{err: "mkdir: " + err.Error()})
 		return
 	}
 
 	// make directory
 	err = h.dfsAPI.Mkdir(userName, podName, dirToCreate, sessionId)
 	if err != nil {
+		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidDirectory ||
 			err == p.ErrTooLongDirectoryName ||
 			err == p.ErrPodNotOpened {
 			fmt.Println("mkdir: ", err)
-			jsonhttp.BadRequest(w, err)
+			jsonhttp.BadRequest(w, &ErrorMessage{err: "mkdir: " + err.Error()})
 			return
 		}
 		fmt.Println("mkdir: ", err)
-		jsonhttp.InternalServerError(w, err)
+		jsonhttp.InternalServerError(w, &ErrorMessage{err: "mkdir: " + err.Error()})
 		return
 	}
 

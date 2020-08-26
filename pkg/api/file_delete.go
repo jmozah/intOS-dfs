@@ -55,7 +55,8 @@ func (h *Handler) FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// restart the cookie expiry
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
-		jsonhttp.BadRequest(w, err)
+		w.Header().Set("Content-Type", " application/json")
+		jsonhttp.BadRequest(w, &ErrorMessage{err: "file delete: " + err.Error()})
 		return
 	}
 
@@ -63,7 +64,8 @@ func (h *Handler) FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	err = h.dfsAPI.DeleteFile(userName, podName, podFile, sessionId)
 	if err != nil {
 		fmt.Println("file delete: %w", err)
-		jsonhttp.InternalServerError(w, err)
+		w.Header().Set("Content-Type", " application/json")
+		jsonhttp.InternalServerError(w, &ErrorMessage{err: "file delete: " + err.Error()})
 	}
 
 	w.WriteHeader(http.StatusNoContent)

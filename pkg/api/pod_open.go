@@ -70,8 +70,9 @@ func (h *Handler) PodOpenHandler(w http.ResponseWriter, r *http.Request) {
 	if existingPodName != "" {
 		err = h.dfsAPI.ClosePod(userName, existingPodName, sessionId, w, r)
 		if err != nil {
+			w.Header().Set("Content-Type", " application/json")
 			fmt.Println("open pod: could not close already open pod: ", err)
-			jsonhttp.BadRequest(w, err)
+			jsonhttp.BadRequest(w, &ErrorMessage{err: "open pod: " + err.Error()})
 			return
 		}
 	}
@@ -79,14 +80,15 @@ func (h *Handler) PodOpenHandler(w http.ResponseWriter, r *http.Request) {
 	// open pod
 	_, err = h.dfsAPI.OpenPod(userName, pod, password, sessionId, w, r)
 	if err != nil {
+		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidPodName {
 			fmt.Println("open pod:", err)
-			jsonhttp.BadRequest(w, err)
+			jsonhttp.BadRequest(w, &ErrorMessage{err: "open pod: " + err.Error()})
 			return
 		}
 		fmt.Println("open pod: ", err)
-		jsonhttp.InternalServerError(w, err)
+		jsonhttp.InternalServerError(w, &ErrorMessage{err: "open pod: " + err.Error()})
 		return
 	}
 

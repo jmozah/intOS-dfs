@@ -35,10 +35,12 @@ func (h *Handler) UserPresentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", " application/json")
+
 	// restart the cookie expiry
 	err := cookie.ResetSessionExpiry(r, w)
 	if err != nil {
-		jsonhttp.BadRequest(w, err)
+		jsonhttp.BadRequest(w, &ErrorMessage{err: "present: " + err.Error()})
 		return
 	}
 

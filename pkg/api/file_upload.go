@@ -71,10 +71,12 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", " application/json")
+
 	// restart the cookie expiry
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
-		jsonhttp.BadRequest(w, err)
+		jsonhttp.BadRequest(w, &ErrorMessage{err: "upload: " + err.Error()})
 		return
 	}
 
@@ -82,13 +84,13 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	err = r.ParseMultipartForm(defaultMaxMemory)
 	if err != nil {
 		fmt.Println("upload: ", err)
-		jsonhttp.BadRequest(w, err)
+		jsonhttp.BadRequest(w, &ErrorMessage{err: "upload: " + err.Error()})
 		return
 	}
 	files := r.MultipartForm.File["files"]
 	if len(files) == 0 {
 		fmt.Println("upload: ", err)
-		jsonhttp.BadRequest(w, "parameter \"files\" missing")
+		jsonhttp.BadRequest(w, &ErrorMessage{err: "upload: parameter \"files\" missing"})
 		return
 	}
 
@@ -118,6 +120,7 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		references = append(references, Reference{FileName: file.Filename, Reference: reference})
 	}
 
+	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.OK(w, &uploadFiletResponse{
 		References: references,
 	})

@@ -57,23 +57,26 @@ func (h *Handler) DirectoryStatHandler(w http.ResponseWriter, r *http.Request) {
 	// restart the cookie expiry
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
-		jsonhttp.BadRequest(w, err)
+		w.Header().Set("Content-Type", " application/json")
+		jsonhttp.BadRequest(w, &ErrorMessage{err: "stat dir: " + err.Error()})
 		return
 	}
 
 	// stat directory
 	ds, err := h.dfsAPI.DirectoryStat(userName, podName, dir, sessionId)
 	if err != nil {
+		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
 			fmt.Println("stat dir: ", err)
-			jsonhttp.BadRequest(w, err)
+			jsonhttp.BadRequest(w, &ErrorMessage{err: "stat dir: " + err.Error()})
 			return
 		}
 		fmt.Println("stat dir: ", err)
-		jsonhttp.InternalServerError(w, err)
+		jsonhttp.InternalServerError(w, &ErrorMessage{err: "stat dir: " + err.Error()})
 		return
 	}
 
+	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.OK(w, ds)
 }

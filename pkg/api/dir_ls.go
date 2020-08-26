@@ -62,24 +62,27 @@ func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 	// restart the cookie expiry
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
-		jsonhttp.BadRequest(w, err)
+		w.Header().Set("Content-Type", " application/json")
+		jsonhttp.BadRequest(w, &ErrorMessage{err: "ls dir: " + err.Error()})
 		return
 	}
 
 	// list directory
 	fl, dl, err := h.dfsAPI.ListDir(userName, podName, dir, sessionId)
 	if err != nil {
+		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
 			fmt.Println("ls dir: ", err)
-			jsonhttp.BadRequest(w, err)
+			jsonhttp.BadRequest(w, &ErrorMessage{err: "ls dir: " + err.Error()})
 			return
 		}
 		fmt.Println("ls dir: ", err)
-		jsonhttp.InternalServerError(w, err)
+		jsonhttp.InternalServerError(w, &ErrorMessage{err: "ls dir: " + err.Error()})
 		return
 	}
 
+	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.OK(w, &ListFileResponse{
 		Files:       fl,
 		Directories: dl,

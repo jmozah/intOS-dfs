@@ -61,11 +61,12 @@ func (h *Handler) FileStatHandler(w http.ResponseWriter, r *http.Request) {
 		jsonhttp.BadRequest(w, "file stat: \"pod\" parameter missing in cookie")
 		return
 	}
+	w.Header().Set("Content-Type", " application/json")
 
 	// restart the cookie expiry
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
-		jsonhttp.BadRequest(w, err)
+		jsonhttp.BadRequest(w, &ErrorMessage{err: "file stat: " + err.Error()})
 		return
 	}
 
@@ -73,8 +74,10 @@ func (h *Handler) FileStatHandler(w http.ResponseWriter, r *http.Request) {
 	stat, err := h.dfsAPI.FileStat(userName, podName, podFile, sessionId)
 	if err != nil {
 		fmt.Println("file stat: %w", err)
-		jsonhttp.InternalServerError(w, err)
+		jsonhttp.InternalServerError(w, &ErrorMessage{err: "file stat: " + err.Error()})
+		return
 	}
 
+	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.OK(w, stat)
 }

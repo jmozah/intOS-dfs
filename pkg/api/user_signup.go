@@ -42,16 +42,18 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", " application/json")
+
 	// create user
 	reference, mnemonic, err := h.dfsAPI.CreateUser(user, password, mnemonic, w, "")
 	if err != nil {
 		if err == u.ErrUserAlreadyPresent {
 			fmt.Println("signup: ", err)
-			jsonhttp.BadRequest(w, err)
+			jsonhttp.BadRequest(w, &ErrorMessage{err: "signup: " + err.Error()})
 			return
 		}
 		fmt.Println("signup: ", err)
-		jsonhttp.InternalServerError(w, err)
+		jsonhttp.InternalServerError(w, &ErrorMessage{err: "signup: " + err.Error()})
 		return
 	}
 

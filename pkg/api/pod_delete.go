@@ -57,13 +57,14 @@ func (h *Handler) PodDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// delete pod
 	err = h.dfsAPI.DeletePod(userName, podName, sessionId, w, r)
 	if err != nil {
+		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn {
 			fmt.Println("delete pod:", err)
-			jsonhttp.BadRequest(w, err)
+			jsonhttp.BadRequest(w, &ErrorMessage{err: "delete pod: " + err.Error()})
 			return
 		}
 		fmt.Println("delete pod:", err)
-		jsonhttp.InternalServerError(w, err)
+		jsonhttp.InternalServerError(w, &ErrorMessage{err: "delete pod: " + err.Error()})
 		return
 	}
 
