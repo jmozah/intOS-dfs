@@ -54,6 +54,13 @@ func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
+		return
+	}
+
 	// make directory
 	err = h.dfsAPI.Mkdir(userName, podName, dirToCreate, sessionId)
 	if err != nil {

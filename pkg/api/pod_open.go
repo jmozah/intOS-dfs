@@ -59,6 +59,13 @@ func (h *Handler) PodOpenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
+		return
+	}
+
 	// If a pod is already open, close the pod
 	if existingPodName != "" {
 		err = h.dfsAPI.ClosePod(userName, existingPodName, sessionId, w, r)

@@ -48,6 +48,13 @@ func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
+		return
+	}
+
 	// fetch pods and list them
 	err = h.dfsAPI.SyncPod(userName, podName, sessionId)
 	if err != nil {

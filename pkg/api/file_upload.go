@@ -71,6 +71,13 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
+		return
+	}
+
 	//  get the files parameter from the multi part
 	err = r.ParseMultipartForm(defaultMaxMemory)
 	if err != nil {

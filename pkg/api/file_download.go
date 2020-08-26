@@ -53,6 +53,13 @@ func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
+		return
+	}
+
 	// download file from bee
 	reader, reference, size, err := h.dfsAPI.DownloadFile(userName, podName, podFile, sessionId)
 	if err != nil {

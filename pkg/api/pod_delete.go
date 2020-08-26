@@ -47,6 +47,13 @@ func (h *Handler) PodDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
+		return
+	}
+
 	// delete pod
 	err = h.dfsAPI.DeletePod(userName, podName, sessionId, w, r)
 	if err != nil {

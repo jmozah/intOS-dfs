@@ -77,6 +77,7 @@ func (u *Users) Login(ui *Info, response http.ResponseWriter) error {
 		}
 	}
 	u.addUserToMap(ui)
+
 	return nil
 }
 

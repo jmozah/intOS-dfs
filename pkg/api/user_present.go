@@ -20,6 +20,8 @@ import (
 	"net/http"
 
 	"resenje.org/jsonhttp"
+
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
 )
 
 type UserPresentResponse struct {
@@ -30,6 +32,13 @@ func (h *Handler) UserPresentHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	if user == "" {
 		jsonhttp.BadRequest(w, "present: \"user\" argument missing")
+		return
+	}
+
+	// restart the cookie expiry
+	err := cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
 		return
 	}
 

@@ -31,7 +31,7 @@ const (
 	cookieUserName       = "user"
 	cookieSessionId      = "cookie-id"
 	cookiePodName        = "pod"
-	cookieExpirationTime = (1 * time.Hour)
+	cookieExpirationTime = 15 * time.Minute
 )
 
 var cookieHandler = securecookie.New(
@@ -59,6 +59,24 @@ func SetSession(userName, sessionId string, response http.ResponseWriter) error 
 	cookie := &http.Cookie{
 		Name:     cookieName,
 		Value:    encoded,
+		Path:     "/",
+		Expires:  expire,
+		HttpOnly: true,
+		MaxAge:   0, // to make sure that the browser does not persist it in disk
+	}
+	http.SetCookie(response, cookie)
+	return nil
+}
+
+func ResetSessionExpiry(request *http.Request, response http.ResponseWriter) error {
+	rcvdCookie, err := request.Cookie(cookieName)
+	if err != nil {
+		return err
+	}
+	expire := time.Now().Add(cookieExpirationTime)
+	cookie := &http.Cookie{
+		Name:     cookieName,
+		Value:    rcvdCookie.Value,
 		Path:     "/",
 		Expires:  expire,
 		HttpOnly: true,
@@ -101,10 +119,12 @@ func GetUserNameSessionIdAndPodName(request *http.Request) (userName, sessionId,
 
 func ClearSession(response http.ResponseWriter) {
 	cookie := &http.Cookie{
-		Name:   cookieName,
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
+		Name:     cookieName,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Expires:  time.Now().Add(-time.Duration(1) * time.Second), // set the expiry to 1 second
 	}
 	http.SetCookie(response, cookie)
 }

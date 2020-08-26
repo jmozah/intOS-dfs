@@ -54,6 +54,13 @@ func (h *Handler) DirectoryStatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
+		return
+	}
+
 	// stat directory
 	ds, err := h.dfsAPI.DirectoryStat(userName, podName, dir, sessionId)
 	if err != nil {

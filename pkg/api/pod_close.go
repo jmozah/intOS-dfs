@@ -48,6 +48,13 @@ func (h *Handler) PodCloseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
+		return
+	}
+
 	// close pod
 	err = h.dfsAPI.ClosePod(userName, podName, sessionId, w, r)
 	if err != nil {

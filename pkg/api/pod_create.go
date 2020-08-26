@@ -59,6 +59,13 @@ func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// restart the cookie expiry
+	err = cookie.ResetSessionExpiry(r, w)
+	if err != nil {
+		jsonhttp.BadRequest(w, err)
+		return
+	}
+
 	// create pod
 	_, err = h.dfsAPI.CreatePod(userName, pod, password, sessionId, w, r)
 	if err != nil {
