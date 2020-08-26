@@ -58,7 +58,7 @@ func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) 
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{err: "mkdir: " + err.Error()})
+		jsonhttp.BadRequest(w, &ErrorMessage{Err: "mkdir: " + err.Error()})
 		return
 	}
 
@@ -71,11 +71,11 @@ func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) 
 			err == p.ErrTooLongDirectoryName ||
 			err == p.ErrPodNotOpened {
 			fmt.Println("mkdir: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{err: "mkdir: " + err.Error()})
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "mkdir: " + err.Error()})
 			return
 		}
 		fmt.Println("mkdir: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "mkdir: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "mkdir: " + err.Error()})
 		return
 	}
 

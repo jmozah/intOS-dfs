@@ -52,7 +52,7 @@ func (h *Handler) PodCloseHandler(w http.ResponseWriter, r *http.Request) {
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{err: "close pod: " + err.Error()})
+		jsonhttp.BadRequest(w, &ErrorMessage{Err: "close pod: " + err.Error()})
 		return
 	}
 
@@ -63,11 +63,11 @@ func (h *Handler) PodCloseHandler(w http.ResponseWriter, r *http.Request) {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
 			fmt.Println("close pod:", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{err: "close pod: " + err.Error()})
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "close pod: " + err.Error()})
 			return
 		}
 		fmt.Println("close pod: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "close pod: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "close pod: " + err.Error()})
 		return
 	}
 

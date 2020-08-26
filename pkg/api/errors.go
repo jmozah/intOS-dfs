@@ -23,5 +23,5 @@ var (
 )
 
 type ErrorMessage struct {
-	err string `json:"error"`
+	Err string `json:"error"`
 }

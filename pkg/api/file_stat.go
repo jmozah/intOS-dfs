@@ -66,7 +66,7 @@ func (h *Handler) FileStatHandler(w http.ResponseWriter, r *http.Request) {
 	// restart the cookie expiry
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
-		jsonhttp.BadRequest(w, &ErrorMessage{err: "file stat: " + err.Error()})
+		jsonhttp.BadRequest(w, &ErrorMessage{Err: "file stat: " + err.Error()})
 		return
 	}
 
@@ -74,7 +74,7 @@ func (h *Handler) FileStatHandler(w http.ResponseWriter, r *http.Request) {
 	stat, err := h.dfsAPI.FileStat(userName, podName, podFile, sessionId)
 	if err != nil {
 		fmt.Println("file stat: %w", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "file stat: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "file stat: " + err.Error()})
 		return
 	}
 

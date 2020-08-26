@@ -52,7 +52,7 @@ func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{err: "sync pod: " + err.Error()})
+		jsonhttp.BadRequest(w, &ErrorMessage{Err: "sync pod: " + err.Error()})
 		return
 	}
 
@@ -65,11 +65,11 @@ func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
 			err == p.ErrTooLongPodName ||
 			err == p.ErrPodNotOpened {
 			fmt.Println("sync pod: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{err: "sync pod: " + err.Error()})
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "sync pod: " + err.Error()})
 			return
 		}
 		fmt.Println("sync pod: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "sync pod: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "sync pod: " + err.Error()})
 		return
 	}
 

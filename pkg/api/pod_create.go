@@ -63,7 +63,7 @@ func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{err: "create pod: " + err.Error()})
+		jsonhttp.BadRequest(w, &ErrorMessage{Err: "create pod: " + err.Error()})
 		return
 	}
 
@@ -77,11 +77,11 @@ func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 			err == p.ErrPodAlreadyExists ||
 			err == p.ErrMaxPodsReached {
 			fmt.Println("create pod: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{err: "create pod: " + err.Error()})
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "create pod: " + err.Error()})
 			return
 		}
 		fmt.Println("create pod: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "create pod: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "create pod: " + err.Error()})
 		return
 	}
 

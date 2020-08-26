@@ -52,7 +52,7 @@ func (h *Handler) PodListHandler(w http.ResponseWriter, r *http.Request) {
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{err: "ls pod: " + err.Error()})
+		jsonhttp.BadRequest(w, &ErrorMessage{Err: "ls pod: " + err.Error()})
 		return
 	}
 
@@ -63,11 +63,11 @@ func (h *Handler) PodListHandler(w http.ResponseWriter, r *http.Request) {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == pod.ErrPodNotOpened {
 			fmt.Println("ls pod: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{err: "ls pod: " + err.Error()})
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "ls pod: " + err.Error()})
 			return
 		}
 		fmt.Println("ls pod: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "ls pod: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "ls pod: " + err.Error()})
 		return
 	}
 

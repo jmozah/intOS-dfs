@@ -57,7 +57,7 @@ func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{err: "stat dir: " + err.Error()})
+		jsonhttp.BadRequest(w, &ErrorMessage{Err: "stat dir: " + err.Error()})
 		return
 	}
 
@@ -66,7 +66,7 @@ func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
 		fmt.Println("download: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "stat dir: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "stat dir: " + err.Error()})
 		return
 	}
 
@@ -77,6 +77,6 @@ func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("download:", err)
 		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "stat dir: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "stat dir: " + err.Error()})
 	}
 }

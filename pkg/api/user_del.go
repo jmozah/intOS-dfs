@@ -56,11 +56,11 @@ func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 			err == u.ErrInvalidPassword ||
 			err == u.ErrUserNotLoggedIn {
 			fmt.Println("delete: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{err: "delete: " + err.Error()})
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "delete: " + err.Error()})
 			return
 		}
 		fmt.Println("delete: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "delete: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "delete: " + err.Error()})
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)

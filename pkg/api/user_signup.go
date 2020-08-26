@@ -49,11 +49,11 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == u.ErrUserAlreadyPresent {
 			fmt.Println("signup: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{err: "signup: " + err.Error()})
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "signup: " + err.Error()})
 			return
 		}
 		fmt.Println("signup: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "signup: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "signup: " + err.Error()})
 		return
 	}
 

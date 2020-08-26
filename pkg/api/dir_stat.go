@@ -58,7 +58,7 @@ func (h *Handler) DirectoryStatHandler(w http.ResponseWriter, r *http.Request) {
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{err: "stat dir: " + err.Error()})
+		jsonhttp.BadRequest(w, &ErrorMessage{Err: "stat dir: " + err.Error()})
 		return
 	}
 
@@ -69,11 +69,11 @@ func (h *Handler) DirectoryStatHandler(w http.ResponseWriter, r *http.Request) {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
 			fmt.Println("stat dir: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{err: "stat dir: " + err.Error()})
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "stat dir: " + err.Error()})
 			return
 		}
 		fmt.Println("stat dir: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "stat dir: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "stat dir: " + err.Error()})
 		return
 	}
 

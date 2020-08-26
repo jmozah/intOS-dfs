@@ -56,7 +56,7 @@ func (h *Handler) FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{err: "file delete: " + err.Error()})
+		jsonhttp.BadRequest(w, &ErrorMessage{Err: "file delete: " + err.Error()})
 		return
 	}
 
@@ -65,7 +65,7 @@ func (h *Handler) FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("file delete: %w", err)
 		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "file delete: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "file delete: " + err.Error()})
 	}
 
 	w.WriteHeader(http.StatusNoContent)

@@ -44,11 +44,11 @@ func (h *Handler) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 			err == u.ErrInvalidUserName ||
 			err == u.ErrInvalidPassword {
 			fmt.Println("login: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{err: "login: " + err.Error()})
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "login: " + err.Error()})
 			return
 		}
 		fmt.Println("login: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "login: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "login: " + err.Error()})
 		return
 	}
 

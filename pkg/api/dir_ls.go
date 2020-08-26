@@ -63,7 +63,7 @@ func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{err: "ls dir: " + err.Error()})
+		jsonhttp.BadRequest(w, &ErrorMessage{Err: "ls dir: " + err.Error()})
 		return
 	}
 
@@ -74,11 +74,11 @@ func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
 			fmt.Println("ls dir: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{err: "ls dir: " + err.Error()})
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "ls dir: " + err.Error()})
 			return
 		}
 		fmt.Println("ls dir: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "ls dir: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "ls dir: " + err.Error()})
 		return
 	}
 

@@ -58,7 +58,7 @@ func (h *Handler) DirectoryRmdirHandler(w http.ResponseWriter, r *http.Request) 
 	err = cookie.ResetSessionExpiry(r, w)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{err: "rmdir: " + err.Error()})
+		jsonhttp.BadRequest(w, &ErrorMessage{Err: "rmdir: " + err.Error()})
 		return
 	}
 
@@ -69,11 +69,11 @@ func (h *Handler) DirectoryRmdirHandler(w http.ResponseWriter, r *http.Request) 
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
 			fmt.Println("rmdir: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{err: "rmdir: " + err.Error()})
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "rmdir: " + err.Error()})
 			return
 		}
 		fmt.Println("rmdir: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "rmdir: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "rmdir: " + err.Error()})
 		return
 	}
 

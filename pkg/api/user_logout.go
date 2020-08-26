@@ -48,11 +48,11 @@ func (h *Handler) UserLogoutHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", " application/json")
 		if err == u.ErrUserNotLoggedIn || err == u.ErrInvalidUserName {
 			fmt.Println("logout: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{err: "logout: " + err.Error()})
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "logout: " + err.Error()})
 			return
 		}
 		fmt.Println("logout: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{err: "logout: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "logout: " + err.Error()})
 		return
 	}
 
