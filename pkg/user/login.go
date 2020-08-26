@@ -29,7 +29,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
-func (u *Users) LoginUser(userName string, passPhrase string, dataDir string, client blockstore.Client, response http.ResponseWriter, sessionId string) error {
+func (u *Users) LoginUser(userName, passPhrase, dataDir string, client blockstore.Client, response http.ResponseWriter, sessionId string) error {
 	if u.isUserPresentInMap(userName) {
 		return ErrUserAlreadyLoggedIn
 	}

@@ -135,7 +135,7 @@ func (d *DfsAPI) OpenPod(userName, podName, passPhrase, sessionId string, respon
 	return po, nil
 }
 
-func (d *DfsAPI) ClosePod(userName string, podName, sessionId string, response http.ResponseWriter, request *http.Request) error {
+func (d *DfsAPI) ClosePod(userName, podName, sessionId string, response http.ResponseWriter, request *http.Request) error {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return ErrInvalidUserName
@@ -155,7 +155,7 @@ func (d *DfsAPI) ClosePod(userName string, podName, sessionId string, response h
 	return nil
 }
 
-func (d *DfsAPI) PodStat(userName string, podName, sessionId string) (*pod.PodStat, error) {
+func (d *DfsAPI) PodStat(userName, podName, sessionId string) (*pod.PodStat, error) {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return nil, ErrInvalidUserName
@@ -175,7 +175,7 @@ func (d *DfsAPI) PodStat(userName string, podName, sessionId string) (*pod.PodSt
 	return podStat, nil
 }
 
-func (d *DfsAPI) SyncPod(userName string, podName, sessionId string) error {
+func (d *DfsAPI) SyncPod(userName, podName, sessionId string) error {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
 		return ErrInvalidUserName
