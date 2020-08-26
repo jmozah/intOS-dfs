@@ -14,21 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package api
+package web
 
 import (
-	"github.com/jmozah/intOS-dfs/pkg/dfs"
-	"github.com/jmozah/intOS-dfs/pkg/web"
+	"html/template"
 )
 
-type Handler struct {
-	dfsAPI      *dfs.DfsAPI
-	WebHandlers *web.Web
+type Web struct {
+	indexTmpl      *template.Template
+	signupPageTmpl *template.Template
+	loginPageTmpl  *template.Template
 }
 
-func NewHandler(dataDir, beeHost, beePort string) *Handler {
-	return &Handler{
-		dfsAPI:      dfs.NewDfsAPI(dataDir, beeHost, beePort),
-		WebHandlers: web.NewWeb(),
+func NewWeb() *Web {
+	return &Web{
+		indexTmpl:      template.Must(template.ParseFiles("pkg/web/templates/index.html")),
+		signupPageTmpl: template.Must(template.ParseFiles("pkg/web/templates/signup.html")),
+		loginPageTmpl:  template.Must(template.ParseFiles("pkg/web/templates/login.html")),
 	}
 }
