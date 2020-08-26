@@ -96,13 +96,15 @@ func TestFeed(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-
 			getAddr, rcvdData, err := fd.GetFeedData(topic, user)
 			if err != nil {
 				t.Fatal(err)
 			}
+			if getAddr == nil {
+				t.Fatal("invalid update address")
+			}
 			if !bytes.Equal(updtAddr, getAddr) {
-				t.Fatal(err)
+				t.Fatal("addresses are not equal", updtAddr, getAddr)
 			}
 			if !bytes.Equal(buf, rcvdData) {
 				t.Fatal(err)
