@@ -55,11 +55,11 @@ func TestPod_ListPods(t *testing.T) {
 	})
 
 	t.Run("create-two-pods", func(t *testing.T) {
-		_, err := pod1.CreatePod(podName1, "password")
+		_, err := pod1.CreatePod(podName1, "password", nil, nil)
 		if err != nil {
 			t.Fatalf("error creating pod: %v", err)
 		}
-		_, err = pod1.CreatePod(podName2, "password")
+		_, err = pod1.CreatePod(podName2, "password", nil, nil)
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}

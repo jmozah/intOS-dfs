@@ -48,7 +48,7 @@ func TestDeleteNewPod(t *testing.T) {
 	podName1 := "test1"
 	podName2 := "test2"
 	t.Run("create-one-pod-and-del", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, "password")
+		info, err := pod1.CreatePod(podName1, "password", nil, nil)
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -62,7 +62,7 @@ func TestDeleteNewPod(t *testing.T) {
 			t.Fatalf("podName is not %s", podName1)
 		}
 
-		err = pod1.DeletePod(podName1)
+		err = pod1.DeletePod(podName1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -96,11 +96,11 @@ func TestDeleteNewPod(t *testing.T) {
 	})
 
 	t.Run("create-two-pod-and-del", func(t *testing.T) {
-		info1, err := pod1.CreatePod(podName1, "password")
+		info1, err := pod1.CreatePod(podName1, "password", nil, nil)
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
-		info2, err := pod1.CreatePod(podName2, "password")
+		info2, err := pod1.CreatePod(podName2, "password", nil, nil)
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -118,7 +118,7 @@ func TestDeleteNewPod(t *testing.T) {
 			t.Fatalf("podName is not %s", podName2)
 		}
 
-		err = pod1.DeletePod(podName1)
+		err = pod1.DeletePod(podName1, nil, nil)
 		if err != nil {
 			t.Fatal(err)
 		}

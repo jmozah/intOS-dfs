@@ -18,7 +18,6 @@ package user
 
 import (
 	"sync"
-	"time"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
@@ -39,12 +38,10 @@ type Info struct {
 }
 
 type Users struct {
-	dataDir      string
-	client       blockstore.Client
-	userMap      map[string]*Info
-	userMu       *sync.RWMutex
-	loginTimer   []time.Timer
-	loginTimerMu *sync.RWMutex
+	dataDir string
+	client  blockstore.Client
+	userMap map[string]*Info
+	userMu  *sync.RWMutex
 }
 
 func NewUsers(dataDir string, client blockstore.Client) *Users {
