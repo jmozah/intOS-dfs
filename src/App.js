@@ -19,11 +19,11 @@ function App() {
   const dispatch = useDispatch();
   const history = useHistory();
 
-  // useEffect(() => {
-  //   if (!system.unlocked) {
-  //     history.push("/unlock");
-  //   }
-  // }, [system.locked, account.status]);
+  useEffect(() => {
+    if (account.status === "noAccount") {
+      history.push("/account-create");
+    }
+  }, [account.status]);
 
   return (
   < div className = {

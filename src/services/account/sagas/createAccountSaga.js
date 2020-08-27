@@ -11,7 +11,8 @@ export default function* createAccountSaga(action) {
   try {
     const requestBody = {
       user: action.data.username,
-      password: action.data.password
+      password: action.data.password,
+      mnemonic: action.data.mnemonic
     };
 
     console.log("request: ", requestBody);
