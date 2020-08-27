@@ -20,6 +20,7 @@ require (
 	github.com/miguelmota/go-ethereum-hdwallet v0.0.0-20200123000308-a60dcd172b4c
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/term v0.0.0-20200520122047-c3ffed290a03 // indirect
+	github.com/rs/cors v1.7.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.0
 	github.com/tyler-smith/go-bip32 v0.0.0-20170922074101-2c9cfd177564 // indirect
