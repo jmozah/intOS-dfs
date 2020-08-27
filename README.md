@@ -9,6 +9,7 @@ dfs can be used as follows
 
 ### User
 ![The first screen invites the user to create or restore an account](https://i.imgur.com/VsxTAVW.png)
+
 The first step in dfs is to create a user. Every user is associated with a 12 
 word mnemonic based hd wallet. This wallet is passwod protected and stored in 
 the datadir. whenever a user created a pod for himself, a new key pair is created 
