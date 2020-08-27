@@ -113,6 +113,9 @@ github.com/pkg/errors
 # github.com/pkg/term v0.0.0-20200520122047-c3ffed290a03
 ## explicit
 github.com/pkg/term/termios
+# github.com/rs/cors v1.7.0
+## explicit
+github.com/rs/cors
 # github.com/spf13/afero v1.3.1
 github.com/spf13/afero
 github.com/spf13/afero/mem

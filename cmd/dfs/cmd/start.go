@@ -20,10 +20,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	//"github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 	//"github.com/jmozah/intOS-dfs/pkg/api"
 	"github.com/spf13/cobra"
+    "github.com/rs/cors"
 
 	"github.com/jmozah/intOS-dfs/pkg/api"
 )
@@ -49,8 +50,9 @@ func init() {
 func startHttpService() {
 	fs := http.FileServer(http.Dir("pkg/web/static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
-
+	//handler := cors.Default().Handler(mux)
 	router := mux.NewRouter()
+
 
 	// Web page handlers
 	router.HandleFunc("/", handler.WebHandlers.IndexPageHandler)
@@ -88,7 +90,10 @@ func startHttpService() {
 	http.Handle("/", router)
 
 	fmt.Println("listening on port:", httpPort)
-	err := http.ListenAndServe(":"+httpPort, nil)
+
+	handler := cors.Default().Handler(router)
+
+	err := http.ListenAndServe(":"+httpPort, handler)
 	if err != nil {
 		fmt.Println("listenAndServe: %w", err)
 		return
