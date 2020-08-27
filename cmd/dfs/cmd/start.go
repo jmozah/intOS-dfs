@@ -23,8 +23,8 @@ import (
 	//"github.com/gorilla/mux"
 	"github.com/gorilla/mux"
 	//"github.com/jmozah/intOS-dfs/pkg/api"
+	"github.com/rs/cors"
 	"github.com/spf13/cobra"
-    "github.com/rs/cors"
 
 	"github.com/jmozah/intOS-dfs/pkg/api"
 )
@@ -52,7 +52,6 @@ func startHttpService() {
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	//handler := cors.Default().Handler(mux)
 	router := mux.NewRouter()
-
 
 	// Web page handlers
 	router.HandleFunc("/", handler.WebHandlers.IndexPageHandler)
