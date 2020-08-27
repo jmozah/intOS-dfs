@@ -8,34 +8,30 @@ dfs can be used as follows
    large scale parallel data processing engine over the internet. 
 
 ### User
+![The first screen invites the user to create or restore an account](https://i.imgur.com/VsxTAVW.png)
 
-The first step in dfs is to create a user. Every user is associated with a 24 
+The first step in dfs is to create a user. Every user is associated with a 12 
 word mnemonic based hd wallet. This wallet is passwod protected and stored in 
 the datadir. whenever a user created a pod for himself, a new key pair is created 
-using this mnemonic. A user can use this mnemonic and import his account in any 
-device and instantly see all his pods.
+using this mnemonic. A user can use this mnemonic and import their account in any 
+device and instantly see all their pods.
 
 ### What is a pod?
+A pod is a personal drive created by a user in intOS-dfs. It is used to store files and related metadata in a decentralised fashion. A pod is always under the control of the user who created it. A user can create store any number of files or directories in a pod. 
+The user can share files in his pod with any other user just like in other centralised drives like dropbox. Not only users, a pod can be used by decentralised applications (DApp's) to store data related to that user.
 
-A pod is a personal drive created by a user in intOS-dfs. It is used to store files and 
-related metadata in a decentralised fashion. A pod is always under the control of the user
-who created it. A user can create store any number of files or directories in a pod. 
-The user can share files in his pod with any other user just like in other centralised 
-drives like dropbox. Not only users, a pod can be used by decentralised applications (DApp's) 
-to store data related to that user.
-
-The basic storage unit in dfs is a pod. A user can create multiple pods and use it to organise 
-his data. for ex: Personal-Pod, Applications-Pod etc.
+The basic storage unit in dfs is a pod. A user can create multiple pods and use it to organise their data. for ex: Personal-Pod, Applications-Pod etc.
 
 ### How to run dfs?
-
-For now dfs is a command line program. Later there will be a UI that will be hosted in Swarm.
 - git clone https://github.com/jmozah/intOS-dfs.git
 - cd intOS-dfs
+- yarn 
+- yarn start (for the front-end)
+- yarn server (in separate terminal)
+
+### How to build dfs?
+- yarn build (will build the frontend and copy it over to the go project)
 - make binary
-- cd dist
-- ./dfs prompt  (this will start dfs in REPL mode with a "dfs >>>" prompt)
-- ./dfs start   (this will start dfs in the HTTP server mode and APIs will be exposed)
 
 ### HTTP APIs
 ##### user related APIs
