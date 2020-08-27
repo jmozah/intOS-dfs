@@ -7,8 +7,8 @@
   "license": "MIT",
   "scripts": {
     "start": "react-scripts start",
-    "server": "go run cmd/dfs/main.go start", // add flag for cors
-    "build": "react-scripts build && rm -rf pkg/web && mv build pkg/web",
+    "server": "go run cmd/dfs/main.go start",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
