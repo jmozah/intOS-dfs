@@ -1,0 +1,42 @@
+{
+  "name": "intOS-dfs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/jmozah/intOS-dfs.git",
+  "author": "wendydv1989 <wendydv1989@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "react-scripts start",
+    "server": "go run cmd/dfs/main.go start", // add flag for cors
+    "build": "react-scripts build && rm -rf pkg/web && mv build pkg/web",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "@material-ui/core": "^4.11.0",
+    "@material-ui/icons": "^4.9.1",
+    "@reduxjs/toolkit": "^1.4.0",
+    "axios": "^0.19.2",
+    "fairdrive-lib": "git+https://github.com/wendydv1989/fairdrive-lib",
+    "querystring": "^0.2.0",
+    "react": "^16.13.1",
+    "react-advanced-form": "^1.7.2",
+    "react-advanced-form-addons": "^1.3.3",
+    "react-avatar-editor": "11.0.7",
+    "react-dom": "^16.13.1",
+    "react-qr-code": "^1.0.2",
+    "react-redux": "^7.2.0",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "^3.4.1",
+    "redux-pouchdb-plus": "^0.11.1",
+    "redux-saga": "^1.1.3",
+    "redux-starter-kit": "^2.0.0",
+    "web3": "^1.2.11"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%", "not dead", "not op_mini all"
+    ],
+    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+  }
+}

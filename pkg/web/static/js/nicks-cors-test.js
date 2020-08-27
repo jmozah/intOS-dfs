@@ -5,9 +5,9 @@ function main() {
   const mnemonic = "scissors system judge reveal slogan rice option body bronze insane evolve matter";
 
   $.ajax({
-    type: 'POST',
+    type: "POST",
     dataType: "json",
-    url: "v0/user/signup?user=" + username + "&password=test&mnemonic=" + mnemonic,
+    url: "http://localhost:9090/v0/user/signup?user=" + username + "&password=test&mnemonic=" + mnemonic,
     success: function (data) {
       console.log("log response on success");
       console.log(data);

@@ -1,0 +1,101 @@
+.container {
+  background-color: var(--bg-dark);
+  display: flex;
+  flex-direction: column;
+  justify-items: stretch;
+  min-height: 100vh;
+  box-sizing: border-box;
+  width: 100vw;
+}
+
+.topbar {
+  position: fixed;
+  top: 0px;
+  height: 27vh;
+  color: var(--text-title);
+  width: 100vw;
+  padding: 40px 20px 40px 40px;
+}
+
+.innercontainer {
+  margin-top: 27vh;
+  overflow: scroll;
+  height: 73vh;
+  -webkit-overflow-scrolling: touch;
+}
+
+.title {
+  composes: mainTitle1 from "../../styles.module.css";
+  color: white;
+}
+
+.subtitle {
+  composes: bodyDefault from "../../styles.module.css";
+  color: var(--fds-blue);
+  text-align: center;
+  margin: 20px 0px 20px 0px;
+  line-height: 150%;
+}
+
+.username {
+  composes: bodyBold from "../../styles.module.css";
+  color: white;
+  line-height: 150%;
+}
+
+.balance {
+  composes: bodyBold from "../../styles.module.css";
+  composes: baseGlowText from "../../styles.module.css";
+  color:var(--fds-blue);
+  line-height: 150%;
+}
+
+.status {
+  composes: bodyDefault from "../../styles.module.css";
+  line-height: 150%;
+  color: white;
+}
+
+.rowItem {
+  padding: 16px 40px 14px 40px;
+  border-bottom: 1px solid var(--fds-dark);
+  align-items: center; 
+  display: grid;
+  grid-template-columns: 30px auto;
+  grid-gap: 20px;
+  box-sizing: border-box;
+  composes: bodyBold from "../../styles.module.css";
+  line-height: 150%;
+  color: white;
+  max-width: 100vw;
+}
+
+.folderText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileIcon {
+  max-width: 24px;
+  align-self: center;
+}
+
+.closeButton {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+}
+
+.appicon {
+  border-radius: 50%;
+  height: 90px;
+  width: 90px;
+}
+
+.flexer {
+  margin: 20px;
+}
