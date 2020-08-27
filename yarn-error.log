@@ -1,5 +1,9 @@
 Arguments: 
+<<<<<<< HEAD
   /home/michellerhyder/.nvm/versions/node/v10.21.0/bin/node /home/michellerhyder/.nvm/versions/node/v10.21.0/bin/yarn server
+=======
+  /home/michellerhyder/.nvm/versions/node/v10.21.0/bin/node /home/michellerhyder/.nvm/versions/node/v10.21.0/bin/yarn build
+>>>>>>> 9343aabee4b4d5e7876ecfd268e0e99ccba71c61
 
 PATH: 
   /home/michellerhyder/.nvm/versions/node/v10.21.0/bin:/home/michellerhyder/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/go/bin:/home/michellerhyder/go/bin
