@@ -4,7 +4,7 @@ import {getAccount} from "../selectors";
 import axios from "axios";
 import qs from "querystring";
 
-const axi = axios.create({baseURL: "http://127.0.0.1:9090/v0/", timeout: 5000});
+const axi = axios.create({baseURL: "http://localhost:9090/v0/", timeout: 5000});
 
 export default function* createAccountSaga(action) {
   console.log("create account saga started");
@@ -16,16 +16,18 @@ export default function* createAccountSaga(action) {
     };
 
     console.log("request: ", requestBody);
+
     const config = {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded"
       }
     };
 
-    const response = yield axi({method: "POST", url: "user/signup", config: config, data: qs.stringify(requestBody)});
+    const response = yield axi({method: "POST", url: "user/signup", config: config, data: qs.stringify(requestBody), withCredentials: true});
     //const response = yield axi.post("http://127.0.0.1:9090/v0/user/signup", requestBody);
 
     console.log(response);
+    //console.log(response.headers["set-cookie"]);
 
     // encrypt wallet0
     const userObject = {
@@ -34,6 +36,49 @@ export default function* createAccountSaga(action) {
       avatar: action.data.avatar,
       address: response.data.reference
     };
+
+    const podName = new Date().toISOString();
+
+    const podRequest = {
+      password: action.data.password,
+      pod: podName
+    };
+
+    const createPod = yield axi({method: "POST", url: "pod/new", config: config, data: qs.stringify(podRequest), withCredentials: true});
+
+    console.log(createPod);
+
+    const createDocumentsDirectory = yield axi({
+      method: "POST",
+      url: "dir/mkdir",
+      config: config,
+      data: qs.stringify({dir: "Documents"}),
+      withCredentials: true
+    });
+
+    const createMoviesDirectory = yield axi({
+      method: "POST",
+      url: "dir/mkdir",
+      config: config,
+      data: qs.stringify({dir: "Movies"}),
+      withCredentials: true
+    });
+
+    const createMusicDirectory = yield axi({
+      method: "POST",
+      url: "dir/mkdir",
+      config: config,
+      data: qs.stringify({dir: "Music"}),
+      withCredentials: true
+    });
+
+    const createPictursDirectory = yield axi({
+      method: "POST",
+      url: "dir/mkdir",
+      config: config,
+      data: qs.stringify({dir: "Pictures"}),
+      withCredentials: true
+    });
 
     yield put({type: "SET_ACCOUNT", data: userObject});
     // yield put({ type: 'SET_SYSTEM', data: { mnemonic: decryptedMnemonic } })

@@ -90,7 +90,17 @@ func startHttpService() {
 
 	fmt.Println("listening on port:", httpPort)
 
-	handler := cors.Default().Handler(router)
+	//handler := cors.Default().Handler(router)
+
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:3000", "http://localhost:9090"},
+		AllowCredentials: true,
+		// Enable Debugging for testing, consider disabling in production
+		// Debug: true,
+	})
+	
+	// Insert the middleware
+	handler := c.Handler(router)
 
 	err := http.ListenAndServe(":"+httpPort, handler)
 	if err != nil {
