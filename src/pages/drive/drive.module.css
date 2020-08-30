@@ -12,21 +12,50 @@
   position: fixed;
   top: 0px;
   height: 27vh;
-  color: var(--text-title);
+  color: var(--text-light);
   width: 100vw;
-  padding: 40px 20px 40px 40px;
+  padding: 0px;
+}
+
+.topmenu {
+  display: grid;
+  grid-template-columns: auto auto;
+  margin-top: 40px;
+}
+
+.addButton {
+  justify-self: right;
+  margin: 0px 40px;
+  align-self: center;
+}
+
+.user {
+  margin: 0px 40px;
+}
+
+.uploadSpace {
+  display: flex;
+  margin: 20px 40px;
+  height: 80px;
+  background-color: var(--fds-dark);
+  border-radius: 10px;
+  composes: bodyBold from "../../styles.module.css";
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .innercontainer {
-  margin-top: 27vh;
+  margin-top: 30vh;
   overflow: scroll;
-  height: 73vh;
+  height: 70vh;
   -webkit-overflow-scrolling: touch;
 }
 
 .title {
   composes: mainTitle1 from "../../styles.module.css";
   color: white;
+  margin: 0px 40px;
 }
 
 .subtitle {
@@ -54,6 +83,7 @@
   composes: bodyDefault from "../../styles.module.css";
   line-height: 150%;
   color: white;
+  margin: 0px 40px;
 }
 
 .rowItem {

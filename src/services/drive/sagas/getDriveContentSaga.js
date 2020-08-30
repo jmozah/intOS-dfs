@@ -22,11 +22,40 @@ export default function* getDriveContentSaga(action) {
       }
     };
 
-    const response = yield axi({method: "POST", url: "pod/ls", config: config, withCredentials: true});
+    // const userLogin = yield axi({
+    //   method: "POST",
+    //   url: "user/login",
+    //   data: qs.stringify({user: "Michelle1", password: "1234"}),
+    //   config: config,
+    //   withCredentials: true
+    // });
+
+    const openPod = yield axi({
+      method: "POST",
+      url: "pod/open",
+      data: qs.stringify({password: "1234", pod: "Fairdrive"}),
+      config: config,
+      withCredentials: true
+    });
+
+    console.log(openPod);
+
+    const response = yield axi({
+      method: "POST",
+      url: "dir/ls",
+      data: qs.stringify({dir: "/"}),
+      config: config,
+      withCredentials: true
+    });
     //const response = yield axi.post("http://127.0.0.1:9090/v0/user/signup", requestBody);
 
     console.log(response);
-    //yield put({ type: 'SET_DRIVE', data: { fairdrive: fairdrive } })
+    yield put({
+      type: "SET_DRIVE",
+      data: {
+        fairdrive: response.data
+      }
+    });
   } catch (e) {
     console.log("error on timeout", e);
   }

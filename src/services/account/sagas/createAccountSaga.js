@@ -34,14 +34,15 @@ export default function* createAccountSaga(action) {
       status: "accountSet",
       username: action.data.username,
       avatar: action.data.avatar,
-      address: response.data.reference
+      address: response.data.reference,
+      balance: 0
     };
 
     const podName = new Date().toISOString();
 
     const podRequest = {
       password: action.data.password,
-      pod: podName
+      pod: "Fairdrive"
     };
 
     const createPod = yield axi({method: "POST", url: "pod/new", config: config, data: qs.stringify(podRequest), withCredentials: true});

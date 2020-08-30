@@ -19,9 +19,11 @@ function App() {
   const dispatch = useDispatch();
   const history = useHistory();
 
-  useEffect(() => {
+  const loginState = useEffect(() => {
     if (account.status === "noAccount") {
       history.push("/account-create");
+    } else {
+      history.push("/drive/root");
     }
   }, [account.status]);
 
