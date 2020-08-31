@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
+
 	"resenje.org/jsonhttp"
 
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
@@ -33,36 +35,25 @@ func (h *Handler) FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get values from cookie
-	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
 		fmt.Println("file delete: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
-		return
-	}
-	if userName == "" {
-		jsonhttp.BadRequest(w, "file delete: \"user\" parameter missing in cookie")
 		return
 	}
 	if sessionId == "" {
 		jsonhttp.BadRequest(w, "file delete: \"cookie-id\" parameter missing in cookie")
 		return
 	}
-	if podName == "" {
-		jsonhttp.BadRequest(w, "file delete: \"pod\" parameter missing in cookie")
-		return
-	}
-
-	// restart the cookie expiry
-	err = cookie.ResetSessionExpiry(r, w)
-	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "file delete: " + err.Error()})
-		return
-	}
 
 	// delete file
-	err = h.dfsAPI.DeleteFile(userName, podName, podFile, sessionId)
+	err = h.dfsAPI.DeleteFile(podFile, sessionId)
 	if err != nil {
+		if err == dfs.ErrPodNotOpen {
+			fmt.Println("file delete:", err)
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "file delete: " + err.Error()})
+			return
+		}
 		fmt.Println("file delete: %w", err)
 		w.Header().Set("Content-Type", " application/json")
 		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "file delete: " + err.Error()})

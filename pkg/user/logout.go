@@ -24,10 +24,10 @@ func (u *Users) LogoutUser(userName, dataDir, sessionId string, response http.Re
 	}
 
 	// unset cookie and remove user from map
-	if !u.IsUserLoggedIn(userName, sessionId) {
+	if !u.IsUserLoggedIn(sessionId) {
 		return ErrUserNotLoggedIn
 	}
-	err := u.Logout(userName, sessionId, response)
+	err := u.Logout(sessionId, response)
 	if err != nil {
 		return err
 	}

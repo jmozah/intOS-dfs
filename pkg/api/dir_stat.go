@@ -35,38 +35,22 @@ func (h *Handler) DirectoryStatHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get values from cookie
-	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
 		fmt.Println("stat dir: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
-		return
-	}
-	if userName == "" {
-		jsonhttp.BadRequest(w, "stat dir: \"user\" parameter missing in cookie")
 		return
 	}
 	if sessionId == "" {
 		jsonhttp.BadRequest(w, "stat dir: \"cookie-id\" parameter missing in cookie")
 		return
 	}
-	if podName == "" {
-		jsonhttp.BadRequest(w, "stat dir: \"pod\" parameter missing in cookie")
-		return
-	}
-
-	// restart the cookie expiry
-	err = cookie.ResetSessionExpiry(r, w)
-	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "stat dir: " + err.Error()})
-		return
-	}
 
 	// stat directory
-	ds, err := h.dfsAPI.DirectoryStat(userName, podName, dir, sessionId)
+	ds, err := h.dfsAPI.DirectoryStat(dir, sessionId)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
+		if err == dfs.ErrPodNotOpen || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
 			fmt.Println("stat dir: ", err)
 			jsonhttp.BadRequest(w, &ErrorMessage{Err: "stat dir: " + err.Error()})

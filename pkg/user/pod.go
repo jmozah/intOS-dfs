@@ -41,3 +41,15 @@ func (i *Info) GetAccount() *account.Account {
 func (i *Info) GetFeed() *feed.API {
 	return i.feedApi
 }
+
+func (i *Info) SetPodName(podName string) {
+	i.podName = podName
+}
+
+func (i *Info) RemovePodName() {
+	i.podName = ""
+}
+
+func (i *Info) GetPodName() string {
+	return i.podName
+}

@@ -30,7 +30,7 @@ import (
 )
 
 func (u *Users) LoginUser(userName, passPhrase, dataDir string, client blockstore.Client, response http.ResponseWriter, sessionId string) error {
-	if u.isUserPresentInMap(userName) {
+	if u.IsUserLoggedIn(sessionId) {
 		return ErrUserAlreadyLoggedIn
 	}
 
@@ -71,46 +71,33 @@ func (u *Users) LoginUser(userName, passPhrase, dataDir string, client blockstor
 
 func (u *Users) Login(ui *Info, response http.ResponseWriter) error {
 	if response != nil {
-		err := cookie.SetSession(ui.GetUserName(), ui.GetSessionId(), response)
+		err := cookie.SetSession(ui.GetSessionId(), response)
 		if err != nil {
 			return err
 		}
 	}
 	u.addUserToMap(ui)
-
 	return nil
 }
 
-func (u *Users) Logout(userName, sessionId string, response http.ResponseWriter) error {
-	yes := u.isUserPresentInMap(userName)
+func (u *Users) Logout(sessionId string, response http.ResponseWriter) error {
+	yes := u.isUserPresentInMap(sessionId)
 	if !yes {
 		return ErrUserNotLoggedIn
 	}
-	// get the user info and check if cookie id matches
-	ui := u.getUserFromMap(userName)
-	if ui.sessionId == sessionId {
-		u.removeUserFromMap(userName)
-	}
+
+	// remove from the user map
+	u.removeUserFromMap(sessionId)
 	if response != nil {
 		cookie.ClearSession(response)
 	}
 	return nil
 }
 
-func (u *Users) IsUserLoggedIn(userName, sessionId string) bool {
-	yes := u.isUserPresentInMap(userName)
-	if !yes {
-		return false
-	}
-	// get the user info and check if cookie id matches
-	ui := u.getUserFromMap(userName)
-	return ui.sessionId == sessionId
+func (u *Users) IsUserLoggedIn(sessionId string) bool {
+	return u.isUserPresentInMap(sessionId)
 }
 
-func (u *Users) GetLoggedInUserInfo(userName, sessionId string) *Info {
-	ui := u.getUserFromMap(userName)
-	if ui.GetSessionId() == sessionId {
-		return ui
-	}
-	return nil
+func (u *Users) GetLoggedInUserInfo(sessionId string) *Info {
+	return u.getUserFromMap(sessionId)
 }

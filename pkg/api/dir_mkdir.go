@@ -35,38 +35,22 @@ func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// get values from cookie
-	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
 		fmt.Println("mkdir: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
-		return
-	}
-	if userName == "" {
-		jsonhttp.BadRequest(w, "mkdir: \"user\" parameter missing in cookie")
 		return
 	}
 	if sessionId == "" {
 		jsonhttp.BadRequest(w, "mkdir: \"cookie-id\" parameter missing in cookie")
 		return
 	}
-	if podName == "" {
-		jsonhttp.BadRequest(w, "mkdir: \"pod\" parameter missing in cookie")
-		return
-	}
-
-	// restart the cookie expiry
-	err = cookie.ResetSessionExpiry(r, w)
-	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "mkdir: " + err.Error()})
-		return
-	}
 
 	// make directory
-	err = h.dfsAPI.Mkdir(userName, podName, dirToCreate, sessionId)
+	err = h.dfsAPI.Mkdir(dirToCreate, sessionId)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
+		if err == dfs.ErrPodNotOpen || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidDirectory ||
 			err == p.ErrTooLongDirectoryName ||
 			err == p.ErrPodNotOpened {

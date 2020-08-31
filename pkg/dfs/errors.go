@@ -20,5 +20,5 @@ import "errors"
 
 var (
 	ErrUserNotLoggedIn = errors.New("user not logged in")
-	ErrInvalidUserName = errors.New("invalid user name")
+	ErrPodNotOpen      = errors.New("pod not open")
 )

@@ -18,17 +18,15 @@ package pod
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 	"sync"
 
-	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	d "github.com/jmozah/intOS-dfs/pkg/dir"
 	f "github.com/jmozah/intOS-dfs/pkg/file"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (p *Pod) OpenPod(podName, passPhrase string, response http.ResponseWriter, request *http.Request) (*Info, error) {
+func (p *Pod) OpenPod(podName, passPhrase string) (*Info, error) {
 	// check if pods is present and get the index of the pod
 	pods, err := p.loadUserPods()
 	if err != nil {
@@ -79,14 +77,6 @@ func (p *Pod) OpenPod(podName, passPhrase string, response http.ResponseWriter, 
 	err = p.SyncPod(podName)
 	if err != nil {
 		return nil, fmt.Errorf("open pod: %s ", podName)
-	}
-
-	// set the podName in the cookie
-	if request != nil && response != nil {
-		err = cookie.SetPodNameInSession(podName, request, response)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return podInfo, nil

@@ -30,19 +30,19 @@ func (u *Users) DeleteUser(userName, dataDir, password, sessionId string, respon
 		return ErrInvalidUserName
 	}
 
-	if !u.IsUserLoggedIn(userName, sessionId) {
+	if !u.IsUserLoggedIn(sessionId) {
 		return ErrUserNotLoggedIn
 	}
 
 	// check for valid password
-	userInfo := u.getUserFromMap(userName)
+	userInfo := u.getUserFromMap(sessionId)
 	acc := userInfo.account
 	if !acc.Authorise(password) {
 		return ErrInvalidPassword
 	}
 
 	// Logout user
-	err := u.Logout(userName, sessionId, response)
+	err := u.Logout(sessionId, response)
 	if err != nil {
 		return err
 	}

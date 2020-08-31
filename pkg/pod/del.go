@@ -18,11 +18,10 @@ package pod
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 )
 
-func (p *Pod) DeletePod(podName string, response http.ResponseWriter, request *http.Request) error {
+func (p *Pod) DeletePod(podName string) error {
 	pods, err := p.loadUserPods()
 	if err != nil {
 		return fmt.Errorf("delete pod: %w", err)
@@ -52,7 +51,7 @@ func (p *Pod) DeletePod(podName string, response http.ResponseWriter, request *h
 	}
 
 	if p.isPodOpened(podName) {
-		return p.ClosePod(podName, response, request)
+		return p.ClosePod(podName)
 	} else {
 		podInfo, err := p.GetPodInfoFromPodMap(podName)
 		if err != nil {

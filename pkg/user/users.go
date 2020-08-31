@@ -29,6 +29,7 @@ import (
 
 type Info struct {
 	name      string
+	podName   string
 	sessionId string
 	feedApi   *feed.API
 	account   *account.Account
@@ -56,25 +57,25 @@ func NewUsers(dataDir string, client blockstore.Client) *Users {
 func (u *Users) addUserToMap(info *Info) {
 	u.userMu.Lock()
 	defer u.userMu.Unlock()
-	u.userMap[info.name] = info
+	u.userMap[info.sessionId] = info
 }
 
-func (u *Users) removeUserFromMap(userName string) {
+func (u *Users) removeUserFromMap(sessionId string) {
 	u.userMu.Lock()
 	defer u.userMu.Unlock()
-	delete(u.userMap, userName)
+	delete(u.userMap, sessionId)
 }
 
-func (u *Users) getUserFromMap(userName string) *Info {
+func (u *Users) getUserFromMap(sessionId string) *Info {
 	u.userMu.Lock()
 	defer u.userMu.Unlock()
-	return u.userMap[userName]
+	return u.userMap[sessionId]
 }
 
-func (u *Users) isUserPresentInMap(userName string) bool {
+func (u *Users) isUserPresentInMap(sessionId string) bool {
 	u.userMu.Lock()
 	defer u.userMu.Unlock()
-	if _, ok := u.userMap[userName]; ok {
+	if _, ok := u.userMap[sessionId]; ok {
 		return true
 	}
 	return false

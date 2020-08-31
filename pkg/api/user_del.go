@@ -33,14 +33,10 @@ func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get values from cookie
-	userName, sessionId, err := cookie.GetUserNameAndSessionId(r)
+	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
 		fmt.Println("delete: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
-		return
-	}
-	if userName == "" {
-		jsonhttp.BadRequest(w, "delete: \"user\" parameter missing in cookie")
 		return
 	}
 	if sessionId == "" {
@@ -49,7 +45,7 @@ func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// delete user
-	err = h.dfsAPI.DeleteUser(userName, password, sessionId, w)
+	err = h.dfsAPI.DeleteUser(password, sessionId, w)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
 		if err == u.ErrInvalidUserName ||

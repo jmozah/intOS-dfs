@@ -29,38 +29,22 @@ import (
 
 func (h *Handler) PodCloseHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
-	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
 		fmt.Println("close pod: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
-		return
-	}
-	if userName == "" {
-		jsonhttp.BadRequest(w, "close pod: \"user\" parameter missing in cookie")
 		return
 	}
 	if sessionId == "" {
 		jsonhttp.BadRequest(w, "close pod: \"cookie-id\" parameter missing in cookie")
 		return
 	}
-	if podName == "" {
-		jsonhttp.BadRequest(w, "close pod: \"pod\" parameter missing in cookie")
-		return
-	}
-
-	// restart the cookie expiry
-	err = cookie.ResetSessionExpiry(r, w)
-	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "close pod: " + err.Error()})
-		return
-	}
 
 	// close pod
-	err = h.dfsAPI.ClosePod(userName, podName, sessionId, w, r)
+	err = h.dfsAPI.ClosePod(sessionId)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
+		if err == dfs.ErrPodNotOpen || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
 			fmt.Println("close pod:", err)
 			jsonhttp.BadRequest(w, &ErrorMessage{Err: "close pod: " + err.Error()})
