@@ -20,21 +20,29 @@ import (
 	"fmt"
 	"net/http"
 
-	"resenje.org/jsonhttp"
-
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
+	"github.com/jmozah/intOS-dfs/pkg/dir"
 	p "github.com/jmozah/intOS-dfs/pkg/pod"
+	"resenje.org/jsonhttp"
 )
 
 type ListFileResponse struct {
-	Files       []string `json:"files,omitempty"`
-	Directories []string `json:"directories,omitempty"`
+	Entries []dir.DirOrFileEntry
+}
+
+type DirOrFileEntry struct {
+	Name             string `json:"name"`
+	Type             string `json:"type"`
+	Size             string `json:"size,omitempty"`
+	CreationTime     string `json:"creation_time"`
+	ModificationTime string `json:"modification_time"`
+	AccessTime       string `json:"access_time"`
 }
 
 func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
-	dir := r.FormValue("dir")
-	if dir == "" {
+	directory := r.FormValue("dir")
+	if directory == "" {
 		jsonhttp.BadRequest(w, "ls dir: \"dir\" argument missing")
 		return
 	}
@@ -68,7 +76,7 @@ func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// list directory
-	fl, dl, err := h.dfsAPI.ListDir(userName, podName, dir, sessionId)
+	entries, err := h.dfsAPI.ListDir(userName, podName, directory, sessionId)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
@@ -84,7 +92,6 @@ func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.OK(w, &ListFileResponse{
-		Files:       fl,
-		Directories: dl,
+		Entries: entries,
 	})
 }

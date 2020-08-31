@@ -93,12 +93,12 @@ func startHttpService() {
 	//handler := cors.Default().Handler(router)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:3000", "http://localhost:9090"},
+		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:9090"},
 		AllowCredentials: true,
 		// Enable Debugging for testing, consider disabling in production
 		// Debug: true,
 	})
-	
+
 	// Insert the middleware
 	handler := c.Handler(router)
 

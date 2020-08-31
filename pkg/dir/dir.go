@@ -67,6 +67,10 @@ func (d *Directory) getAccount() *account.AccountInfo {
 	return d.acc
 }
 
+func (d *Directory) getClient() blockstore.Client {
+	return d.client
+}
+
 func (d *Directory) AddToDirectoryMap(path string, dirInode *DirInode) {
 	d.dirMu.Lock()
 	defer d.dirMu.Unlock()

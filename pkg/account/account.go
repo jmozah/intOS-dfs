@@ -115,14 +115,6 @@ func (a *Account) CreateUserAccount(passPhrase, mnemonic string) (string, error)
 		return "", err
 	}
 
-	if passPhrase == "" {
-		fmt.Println("Please store the following 12 words safely")
-		fmt.Println("if can use this to import the wallet in another machine")
-		fmt.Println("=============== Mnemonic ==========================")
-		fmt.Println(mnemonic)
-		fmt.Println("=============== Mnemonic ==========================")
-	}
-
 	hdw, err := hdwallet.NewFromMnemonic(mnemonic)
 	if err != nil {
 		return "", err

@@ -258,23 +258,23 @@ func (d *DfsAPI) RmDir(userName, podName, directoryName, sessionId string) error
 	return nil
 }
 
-func (d *DfsAPI) ListDir(userName, podName, currentDir, sessionId string) ([]string, []string, error) {
+func (d *DfsAPI) ListDir(userName, podName, currentDir, sessionId string) ([]dir.DirOrFileEntry, error) {
 	// check if the user is valid
 	if !d.users.IsUsernameAvailable(userName, d.dataDir) {
-		return nil, nil, ErrInvalidUserName
+		return nil, ErrInvalidUserName
 	}
 
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(userName, sessionId)
 	if ui == nil {
-		return nil, nil, ErrUserNotLoggedIn
+		return nil, ErrUserNotLoggedIn
 	}
 
-	fl, dl, err := ui.GetPod().ListEntiesInDir(podName, currentDir)
+	entries, err := ui.GetPod().ListEntiesInDir(podName, currentDir)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return fl, dl, nil
+	return entries, nil
 }
 
 func (d *DfsAPI) DirectoryStat(userName, podName, directoryName, sessionId string) (*dir.DirStats, error) {
