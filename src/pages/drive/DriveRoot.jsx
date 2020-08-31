@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
+import {getDirectory} from "helpers/apiCalls";
 
 // Sub-pages
 import FolderView from "./pages/FolderView";
@@ -18,31 +19,39 @@ function getContents(state) {
 
 export function DriveRoot() {
   const params = useParams();
-  const id = params.id;
+  const path = params.path;
   const account = useSelector(state => getAccount(state));
   const driveContent = useSelector(state => getContents(state)) || {
-    directories: []
+    directories: [],
+    files: []
   };
+
   const dispatch = useDispatch();
 
+  const [contents, setContents] = useState(driveContent);
+
+  async function getDirectoryContent(path) {
+    const content = await getDirectory(path);
+    setContents(content);
+    //return content;
+  }
+
   useEffect(() => {
-    dispatch({type: "GET_DRIVE"});
+    //dispatch({type: "GET_DRIVE"});
+
+    getDirectoryContent(path).catch(e => console.log(e));
+
     //console.log("account:", account);
-  }, []);
+  }, [path]);
 
   const [stage, setStage] = useState(folderViewId);
 
   const history = useHistory();
 
-  const handleFileUpload = files => {
-    console.log(files.length);
-    dispatch({type: "UPLOAD_FILES", data: files});
-  };
-
   // Router
   switch (stage) {
     case folderViewId:
-      return (<FolderView id={id} account={account} handleFileUpload={handleFileUpload} contents={driveContent} nextStage={() => setStage()} exitStage={() => setStage()}></FolderView>);
+      return (<FolderView path={path} refresh={getDirectoryContent} account={account} contents={contents} nextStage={() => setStage()} exitStage={() => setStage()}></FolderView>);
     default:
       return <h1>Oops...</h1>;
   }

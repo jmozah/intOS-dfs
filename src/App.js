@@ -20,11 +20,19 @@ function App() {
   const history = useHistory();
 
   const loginState = useEffect(() => {
-    if (account.status === "noAccount") {
-      history.push("/account-create");
-    } else {
-      history.push("/drive/root");
+    // define function async
+    async function checkAccountStatus() {
+      if (account.status === "noAccount") {
+        history.push("/account-create");
+      } else {
+        // do the api all to see if the user is logged in
+        history.push("/drive/root");
+        // when not logged in
+        // history.push("/unlock");
+        // const res = await api.checkIsLoggedIn()
+      }
     }
+    checkAccountStatus().catch(e => console.log(e));
   }, [account.status]);
 
   return (

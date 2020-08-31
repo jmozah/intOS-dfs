@@ -35,7 +35,7 @@ export default function* createAccountSaga(action) {
       username: action.data.username,
       avatar: action.data.avatar,
       address: response.data.reference,
-      balance: 0
+      balance: 0.0
     };
 
     const podName = new Date().toISOString();

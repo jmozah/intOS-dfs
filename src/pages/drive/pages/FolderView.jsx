@@ -1,41 +1,66 @@
 import React, {useRef, useState} from "react";
 import styles from "../drive.module.css";
 import {Route, NavLink} from "react-router-dom";
+import {useDispatch, useSelector} from "react-redux";
+import {useHistory} from "react-router-dom";
+
 import {
   AddCircleOutline,
   Cloud,
   Folder,
   HighlightOff,
   LibraryMusic,
-  Subject
+  Subject,
+  FileCopySharp
 } from "@material-ui/icons/";
+
+import {LinearProgress} from "@material-ui/core";
 import defaultAvatar from "images/defaultAvatar.png";
+import {fileUpload} from "helpers/apiCalls";
 
 export function FolderView({
   nextStage,
   exitStage,
-  id,
+  path,
   contents,
   account,
-  handleFileUpload
+  refresh
 }) {
-  const directories = contents.directories;
-
-  const [uploadShown, setUploadShown] = useState(true);
+  const [uploadShown, setUploadShown] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("ready");
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const hiddenFileInput = React.useRef(null);
+  const dispatch = useDispatch();
+  const history = useHistory();
 
   const handleClick = event => {
     hiddenFileInput.current.click();
   };
 
-  const handleChange = event => {
+  function handleChange(event) {
     handleFileUpload(event.target.files);
-  };
+  }
 
-  const toggleUploadShown = () => {
+  async function handleFileUpload(files) {
+    setUploadStatus("uploading");
+    await fileUpload(files, path, function (progress, total) {
+      setUploadProgress(Math.round((progress / total) * 100));
+    });
+    toggleUploadShown();
+    setUploadStatus("ready");
+    refresh(path);
+    //dispatch({type: "GET_DRIVE"});
+  }
+
+  function toggleUploadShown() {
     setUploadShown(!uploadShown);
-  };
+  }
+
+  function handleLocation(item) {
+    console.log(item);
+    history.push("/drive" + item);
+  }
 
   const selectedIcon = icon => {
     switch (icon) {
@@ -52,6 +77,26 @@ export function FolderView({
         break;
     }
   };
+
+  const UploadStage = status => {
+    switch (status) {
+      case "ready":
+        return (<div className={styles.uploadSpace} onClick={handleClick}>
+          <Cloud fontSize="large"></Cloud>
+          <div>Upload some files</div>
+          <input multiple="multiple" type="file" ref={hiddenFileInput} onChange={handleChange} style={{
+              display: "none"
+            }}/>
+        </div>);
+        break;
+      case "uploading":
+        return (<div className={styles.uploadSpace} onClick={handleClick}>
+          <LinearProgress className={styles.progress} variant="determinate" value={uploadProgress}/>
+          <div>Uploading...</div>
+        </div>);
+        break;
+    }
+  };
   return (<div className={styles.container}>
     <div className={styles.topbar}>
       <div className={styles.topmenu}>
@@ -59,7 +104,7 @@ export function FolderView({
           <div className={styles.username}>{account.username}</div>
           <div className={styles.balance}>
             {account.balance}
-            BZZ
+            &nbsp; BZZ
           </div>
         </div>
         <div className={styles.addButton} onClick={() => toggleUploadShown()}>
@@ -73,19 +118,13 @@ export function FolderView({
       <div className={styles.flexer}></div>
       {
         uploadShown
-          ? (<div className={styles.uploadSpace} onClick={handleClick}>
-            <Cloud fontSize="large"></Cloud>
-            <div>Upload some files</div>
-            <input multiple="multiple" type="file" ref={hiddenFileInput} onChange={handleChange} style={{
-                display: "none"
-              }}/>
-          </div>)
+          ? (<div>{UploadStage(uploadStatus)}</div>)
           : (<div>
             <div className={styles.title}>
               {
-                id === "root"
+                path === "root"
                   ? "Your Fairdrive"
-                  : id
+                  : path
               }
             </div>
             <div className={styles.status}>~3211MB</div>
@@ -94,10 +133,20 @@ export function FolderView({
     </div>
     <div className={styles.innercontainer}>
       {
-        directories.map(item => (<div className={styles.rowItem}>
-          <div>{selectedIcon(item.icon)}</div>
-          <div className={styles.folderText}>{item}</div>
-        </div>))
+        contents.directories
+          ? contents.directories.map(item => (<div className={styles.rowItem} onClick={() => handleLocation(item)}>
+            <div>{selectedIcon(item.icon)}</div>
+            <div className={styles.folderText}>{item}</div>
+          </div>))
+          : ""
+      }
+      {
+        contents.files
+          ? contents.files.map(item => (<div className={styles.rowItem} onClick={() => handleLocation(item)}>
+            <div>{selectedIcon(item.icon)}</div>
+            <div className={styles.folderText}>{item}</div>
+          </div>))
+          : ""
       }
     </div>
   </div>);

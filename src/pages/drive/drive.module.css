@@ -51,6 +51,10 @@
   height: 70vh;
   -webkit-overflow-scrolling: touch;
 }
+.progress {
+  width: 80%;
+  margin: 10px 0px;
+}
 
 .title {
   composes: mainTitle1 from "../../styles.module.css";

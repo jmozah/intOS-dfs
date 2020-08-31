@@ -21,11 +21,14 @@ export default function* loginAccountSaga(action) {
     };
 
     const response = yield axi({method: "POST", url: "user/login", config: config, data: qs.stringify(requestBody), withCredentials: true});
-    //const response = yield axi.post("http://127.0.0.1:9090/v0/user/signup", requestBody);
-
+    yield put({
+      type: "SET_SYSTEM",
+      data: {
+        unlocked: true
+      }
+    });
     console.log(response);
-    //console.log(response.headers["set-cookie"]);
   } catch (e) {
-    console.log("error on timeout", e);
+    console.log("error", e.message);
   }
 }
