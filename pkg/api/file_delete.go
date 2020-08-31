@@ -66,6 +66,7 @@ func (h *Handler) FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("file delete: %w", err)
 		w.Header().Set("Content-Type", " application/json")
 		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "file delete: " + err.Error()})
+		return
 	}
 
 	w.WriteHeader(http.StatusNoContent)

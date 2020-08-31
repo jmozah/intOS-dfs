@@ -17,7 +17,6 @@ limitations under the License.
 package file
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -72,7 +71,6 @@ func (f *File) Upload(fd multipart.File, fileName string, fileSize int64, blockS
 		}
 
 		fileINode.FileBlocks = append(fileINode.FileBlocks, fileBlock)
-		fmt.Println(hex.EncodeToString(addr))
 		i++
 	}
 

@@ -135,8 +135,7 @@ func (p *Pod) CopyFromLocal(podName string, localFile string, podDir string, blo
 
 func (p *Pod) getFilePath(podDir string, podInfo *Info) string {
 	var path string
-
-	if podDir == podInfo.GetCurrentPodPathAndName() {
+	if podDir == utils.PathSeperator || podDir == podInfo.GetCurrentPodPathAndName() {
 		return podInfo.GetCurrentPodPathAndName()
 	}
 

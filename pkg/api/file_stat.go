@@ -20,9 +20,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"resenje.org/jsonhttp"
-
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
+	"resenje.org/jsonhttp"
 )
 
 type FileStatResponse struct {
@@ -73,7 +72,7 @@ func (h *Handler) FileStatHandler(w http.ResponseWriter, r *http.Request) {
 	// get file stat
 	stat, err := h.dfsAPI.FileStat(userName, podName, podFile, sessionId)
 	if err != nil {
-		fmt.Println("file stat: %w", err)
+		fmt.Println("file stat: ", err)
 		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "file stat: " + err.Error()})
 		return
 	}
