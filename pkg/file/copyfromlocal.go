@@ -17,10 +17,12 @@ limitations under the License.
 package file
 
 import (
+	"bufio"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -33,6 +35,13 @@ const (
 )
 
 func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo, blockSize uint32, filePath string) ([]byte, error) {
+	fl, err := os.Open(localFileName)
+	if err != nil {
+		return nil, fmt.Errorf("copyFromLocal: %w", err)
+	}
+	defer fl.Close()
+
+	reader := bufio.NewReader(fl)
 	now := time.Now().Unix()
 	meta := m.FileMetaData{
 		Version:          m.FileMetaVersion,
@@ -40,23 +49,18 @@ func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo,
 		Name:             fileInfo.Name(),
 		FileSize:         uint64(fileInfo.Size()),
 		BlockSize:        blockSize,
+		ContentType:      f.GetContentType(reader),
 		CreationTime:     now,
 		AccessTime:       now,
 		ModificationTime: now,
 	}
 
 	fileINode := FileINode{}
-
-	fl, err := os.Open(localFileName)
-	if err != nil {
-		return nil, fmt.Errorf("copyFromLocal: %w", err)
-	}
-
 	data := make([]byte, blockSize)
 	var totalLength uint64
 	i := 0
 	for {
-		r, err := fl.Read(data)
+		r, err := reader.Read(data)
 		totalLength += uint64(r)
 		if err != nil {
 			if err == io.EOF {
@@ -108,4 +112,12 @@ func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo,
 
 	f.AddToFileMap(filePath, &meta)
 	return metaAddr, nil
+}
+
+func (f *File) GetContentType(bufferReader *bufio.Reader) string {
+	buffer, err := bufferReader.Peek(512)
+	if err != nil && err != io.EOF {
+		return ""
+	}
+	return http.DetectContentType(buffer)
 }

@@ -17,6 +17,7 @@ limitations under the License.
 package file
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,6 +29,7 @@ import (
 )
 
 func (f *File) Upload(fd multipart.File, fileName string, fileSize int64, blockSize uint32, filePath string) ([]byte, error) {
+	reader := bufio.NewReader(fd)
 	now := time.Now().Unix()
 	meta := m.FileMetaData{
 		Version:          m.FileMetaVersion,
@@ -35,6 +37,7 @@ func (f *File) Upload(fd multipart.File, fileName string, fileSize int64, blockS
 		Name:             fileName,
 		FileSize:         uint64(fileSize),
 		BlockSize:        blockSize,
+		ContentType:      f.GetContentType(reader),
 		CreationTime:     now,
 		AccessTime:       now,
 		ModificationTime: now,
@@ -46,7 +49,7 @@ func (f *File) Upload(fd multipart.File, fileName string, fileSize int64, blockS
 	var totalLength uint64
 	i := 0
 	for {
-		r, err := fd.Read(data)
+		r, err := reader.Read(data)
 		totalLength += uint64(r)
 		if err != nil {
 			if err == io.EOF {
