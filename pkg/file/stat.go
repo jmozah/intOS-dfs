@@ -80,19 +80,4 @@ func (f *File) FileStat(podName, fileName, account string) (*FileStats, error) {
 		AccessTime:       time.Unix(meta.AccessTime, 0).String(),
 		Blocks:           fileBlocks,
 	}, nil
-
-	//fmt.Println("Account 	: ", account)
-	//fmt.Println("PodName 	: ", podName)
-	//fmt.Println("File Path	: ", meta.Path)
-	//fmt.Println("File Name	: ", meta.Name)
-	//fmt.Println("File Size	: ", meta.FileSize, " Bytes")
-	//fmt.Println("Block Size	: ", meta.BlockSize, " Bytes")
-	//fmt.Println("Cr. Time	: ", time.Unix(meta.CreationTime, 0).String())
-	//fmt.Println("Mo. Time	: ", time.Unix(meta.ModificationTime, 0).String())
-	//fmt.Println("Ac. Time	: ", time.Unix(meta.AccessTime, 0).String())
-	//fmt.Println("----- Blocks -------")
-	//for _, fb := range fileInode.FileBlocks {
-	//	blkStr := fmt.Sprintf("%s, 0x%s, %d bytes", fb.Name, hex.EncodeToString(fb.Address), fb.Size)
-	//	fmt.Println(blkStr)
-	//}
 }

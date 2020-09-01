@@ -308,9 +308,8 @@ func executor(in string) {
 				return
 			}
 			for _, pod := range pods {
-				fmt.Println(pod)
+				fmt.Println("<Pod>: ", pod)
 			}
-			fmt.Println("")
 			currentPrompt = getCurrentPrompt()
 		default:
 			fmt.Println("invalid pod command!!")
@@ -335,16 +334,13 @@ func executor(in string) {
 		if !isPodOpened() {
 			return
 		}
-		fl, dl, err := dfsAPI.ListDir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), "", DefaultSessionId)
+		entries, err := dfsAPI.ListDir(currentUser, currentPodInfo.GetCurrentPodNameOnly(), "", DefaultSessionId)
 		if err != nil {
 			fmt.Println("ls failed: ", err)
 			return
 		}
-		for _, l := range fl {
-			fmt.Println(l)
-		}
-		for _, l := range dl {
-			fmt.Println(l)
+		for _, entry := range entries {
+			fmt.Println(entry.Type, entry.Name)
 		}
 	case "copyToLocal":
 		if !isPodOpened() {
