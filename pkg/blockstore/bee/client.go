@@ -161,9 +161,6 @@ func (s *BeeClient) UploadBlob(data []byte) (address []byte, err error) {
 		return nil, fmt.Errorf("error unmarshalling response")
 	}
 
-	if s.inCache(resp.Reference.String()) {
-		s.addToCache(resp.Reference.String(), data)
-	}
 	return resp.Reference.Bytes(), nil
 }
 
@@ -193,7 +190,6 @@ func (s *BeeClient) DownloadBlob(address []byte) ([]byte, int, error) {
 		return nil, response.StatusCode, errors.New("error downloading blob")
 	}
 
-	s.addToCache(addrString, respData)
 	return respData, response.StatusCode, nil
 }
 

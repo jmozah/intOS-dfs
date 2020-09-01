@@ -27,11 +27,11 @@ import (
 )
 
 const (
-	cookieName           = "intOS-dfs"
-	cookieUserName       = "user"
-	cookieSessionId      = "cookie-id"
-	cookiePodName        = "pod"
-	cookieExpirationTime = 15 * time.Minute
+	CookieName           = "intOS-dfs"
+	cookieSessionId      = "session-id"
+	cookieLoginTime      = "login-time"
+	cookieExpirationTime = 24 * time.Hour
+	cookieLogoutTime     = 1 * time.Hour
 )
 
 var cookieHandler = securecookie.New(
@@ -46,80 +46,64 @@ func GetUniqueSessionId() string {
 	return base64.URLEncoding.EncodeToString(b)
 }
 
-func SetSession(userName, sessionId string, response http.ResponseWriter) error {
+func SetSession(sessionId string, response http.ResponseWriter) error {
+	logoutTime := time.Now().Add(cookieLogoutTime)
+	logoutTimeStr := logoutTime.Format(time.RFC3339)
 	value := map[string]string{
-		cookieUserName:  userName,
 		cookieSessionId: sessionId,
+		cookieLoginTime: logoutTimeStr,
 	}
-	encoded, err := cookieHandler.Encode(cookieName, value)
+	encoded, err := cookieHandler.Encode(CookieName, value)
 	if err != nil {
 		return err
 	}
+
 	expire := time.Now().Add(cookieExpirationTime)
 	cookie := &http.Cookie{
-		Name:     cookieName,
+		Name:     CookieName,
 		Value:    encoded,
 		Path:     "/",
 		Expires:  expire,
 		HttpOnly: true,
-		MaxAge:   0, // to make sure that the browser does not persist it in disk
+		//Secure: true,
+		MaxAge: 0, // to make sure that the browser does not persist it in disk
 	}
 	http.SetCookie(response, cookie)
 	return nil
 }
 
-func ResetSessionExpiry(request *http.Request, response http.ResponseWriter) error {
-	rcvdCookie, err := request.Cookie(cookieName)
+func GetSessionIdFromCookie(request *http.Request) (sessionId string, err error) {
+	cookie, err := request.Cookie(CookieName)
 	if err != nil {
-		return err
+		return "", err
 	}
-	expire := time.Now().Add(cookieExpirationTime)
-	cookie := &http.Cookie{
-		Name:     cookieName,
-		Value:    rcvdCookie.Value,
-		Path:     "/",
-		Expires:  expire,
-		HttpOnly: true,
-		MaxAge:   0, // to make sure that the browser does not persist it in disk
+	cookieValue := make(map[string]string)
+	err = cookieHandler.Decode(CookieName, cookie.Value, &cookieValue)
+	if err != nil {
+		return "", err
 	}
-	http.SetCookie(response, cookie)
-	return nil
+	sessionId = cookieValue[cookieSessionId]
+	return sessionId, nil
 }
 
-func GetUserNameAndSessionId(request *http.Request) (userName, sessionId string, err error) {
-	cookie, err := request.Cookie(cookieName)
+func GetSessionIdAndLoginTimeFromCookie(request *http.Request) (sessionId, loginTime string, err error) {
+	cookie, err := request.Cookie(CookieName)
 	if err != nil {
 		return "", "", err
 	}
 	cookieValue := make(map[string]string)
-	err = cookieHandler.Decode(cookieName, cookie.Value, &cookieValue)
+	err = cookieHandler.Decode(CookieName, cookie.Value, &cookieValue)
 	if err != nil {
 		return "", "", err
 	}
-	userName = cookieValue[cookieUserName]
 	sessionId = cookieValue[cookieSessionId]
-	return userName, sessionId, nil
-}
-
-func GetUserNameSessionIdAndPodName(request *http.Request) (userName, sessionId, podName string, err error) {
-	cookie, err := request.Cookie(cookieName)
-	if err != nil {
-		return "", "", "", err
-	}
-	cookieValue := make(map[string]string)
-	err = cookieHandler.Decode(cookieName, cookie.Value, &cookieValue)
-	if err != nil {
-		return "", "", "", err
-	}
-	userName = cookieValue[cookieUserName]
-	sessionId = cookieValue[cookieSessionId]
-	podName = cookieValue[cookiePodName]
-	return userName, sessionId, podName, nil
+	loginTime = cookieValue[cookieLoginTime]
+	return sessionId, loginTime, nil
 }
 
 func ClearSession(response http.ResponseWriter) {
 	cookie := &http.Cookie{
-		Name:     cookieName,
+		Name:     CookieName,
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
@@ -127,56 +111,4 @@ func ClearSession(response http.ResponseWriter) {
 		Expires:  time.Now().Add(-time.Duration(1) * time.Second), // set the expiry to 1 second
 	}
 	http.SetCookie(response, cookie)
-}
-
-func SetPodNameInSession(podName string, request *http.Request, response http.ResponseWriter) error {
-	rcvdCookie, err := request.Cookie(cookieName)
-	if err != nil {
-		return err
-	}
-	cookieValue := make(map[string]string)
-	err = cookieHandler.Decode(cookieName, rcvdCookie.Value, &cookieValue)
-	if err != nil {
-		return err
-	}
-	cookieValue[cookiePodName] = podName
-	encoded, err := cookieHandler.Encode(cookieName, cookieValue)
-	if err != nil {
-		return err
-	}
-	cookie := &http.Cookie{
-		Name:     cookieName,
-		Value:    encoded,
-		Path:     "/",
-		HttpOnly: true,
-		MaxAge:   0, // to make sure that the browser does not persist it in disk
-	}
-	http.SetCookie(response, cookie)
-	return nil
-}
-
-func RemovePodNameFromSession(request *http.Request, response http.ResponseWriter) error {
-	rcvdCookie, err := request.Cookie(cookieName)
-	if err != nil {
-		return err
-	}
-	cookieValue := make(map[string]string)
-	err = cookieHandler.Decode(cookieName, rcvdCookie.Value, &cookieValue)
-	if err != nil {
-		return err
-	}
-	delete(cookieValue, cookiePodName)
-	encoded, err := cookieHandler.Encode(cookieName, cookieValue)
-	if err != nil {
-		return err
-	}
-	cookie := &http.Cookie{
-		Name:     cookieName,
-		Value:    encoded,
-		Path:     "/",
-		HttpOnly: true,
-		MaxAge:   0, // to make sure that the browser does not persist it in disk
-	}
-	http.SetCookie(response, cookie)
-	return nil
 }

@@ -43,14 +43,10 @@ func (h *Handler) PodStatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// get values from cookie
-	userName, sessionId, _, err := cookie.GetUserNameSessionIdAndPodName(r)
+	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
 		fmt.Println("stat pod: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
-		return
-	}
-	if userName == "" {
-		jsonhttp.BadRequest(w, "stat pod: \"user\" parameter missing in cookie")
 		return
 	}
 	if sessionId == "" {
@@ -58,19 +54,11 @@ func (h *Handler) PodStatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// restart the cookie expiry
-	err = cookie.ResetSessionExpiry(r, w)
-	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "stat pod: " + err.Error()})
-		return
-	}
-
 	// fetch pod stat
-	stat, err := h.dfsAPI.PodStat(userName, pod, sessionId)
+	stat, err := h.dfsAPI.PodStat(pod, sessionId)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
+		if err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidPodName {
 			fmt.Println("stat pod: ", err)
 			jsonhttp.BadRequest(w, &ErrorMessage{Err: "stat pod: " + err.Error()})

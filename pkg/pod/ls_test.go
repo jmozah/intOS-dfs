@@ -22,9 +22,8 @@ import (
 	"testing"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
-	"github.com/jmozah/intOS-dfs/pkg/feed"
-
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
+	"github.com/jmozah/intOS-dfs/pkg/feed"
 )
 
 func TestPod_ListPods(t *testing.T) {
@@ -55,11 +54,11 @@ func TestPod_ListPods(t *testing.T) {
 	})
 
 	t.Run("create-two-pods", func(t *testing.T) {
-		_, err := pod1.CreatePod(podName1, "password", nil, nil)
+		_, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod: %v", err)
 		}
-		_, err = pod1.CreatePod(podName2, "password", nil, nil)
+		_, err = pod1.CreatePod(podName2, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}

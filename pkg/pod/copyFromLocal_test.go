@@ -24,9 +24,8 @@ import (
 	"testing"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
-	"github.com/jmozah/intOS-dfs/pkg/feed"
-
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
+	"github.com/jmozah/intOS-dfs/pkg/feed"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
@@ -49,7 +48,7 @@ func TestPod_CopyFromLocal(t *testing.T) {
 	podName1 := "test1"
 	firstDir := "dir1"
 	t.Run("copy-file-to-root-of-pod", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, "password", nil, nil)
+		info, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -66,14 +65,14 @@ func TestPod_CopyFromLocal(t *testing.T) {
 			t.Fatalf("file not copied in pod")
 		}
 
-		err = pod1.DeletePod(podName1, nil, nil)
+		err = pod1.DeletePod(podName1)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}
 	})
 
 	t.Run("copy-file-to-root-of-pod-with-dot", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, "password", nil, nil)
+		info, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -90,14 +89,14 @@ func TestPod_CopyFromLocal(t *testing.T) {
 			t.Fatalf("file not copied in pod")
 		}
 
-		err = pod1.DeletePod(podName1, nil, nil)
+		err = pod1.DeletePod(podName1)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}
 	})
 
 	t.Run("copy-file-to-first-dir-from-root", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, "password", nil, nil)
+		info, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -125,14 +124,14 @@ func TestPod_CopyFromLocal(t *testing.T) {
 			t.Fatalf("file not copied in pod")
 		}
 
-		err = pod1.DeletePod(podName1, nil, nil)
+		err = pod1.DeletePod(podName1)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}
 	})
 
 	t.Run("copy-file-to-first-dir-from-firstdir", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, "password", nil, nil)
+		info, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -165,7 +164,7 @@ func TestPod_CopyFromLocal(t *testing.T) {
 			t.Fatalf("file not copied in pod")
 		}
 
-		err = pod1.DeletePod(podName1, nil, nil)
+		err = pod1.DeletePod(podName1)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}

@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"resenje.org/jsonhttp"
 )
@@ -32,37 +33,27 @@ func (h *Handler) FileStatHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get values from cookie
-	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
 		fmt.Println("file stat: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
-		return
-	}
-	if userName == "" {
-		jsonhttp.BadRequest(w, "file stat: \"user\" parameter missing in cookie")
 		return
 	}
 	if sessionId == "" {
 		jsonhttp.BadRequest(w, "file stat: \"cookie-id\" parameter missing in cookie")
 		return
 	}
-	if podName == "" {
-		jsonhttp.BadRequest(w, "file stat: \"pod\" parameter missing in cookie")
-		return
-	}
 	w.Header().Set("Content-Type", " application/json")
 
-	// restart the cookie expiry
-	err = cookie.ResetSessionExpiry(r, w)
-	if err != nil {
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "file stat: " + err.Error()})
-		return
-	}
-
 	// get file stat
-	stat, err := h.dfsAPI.FileStat(userName, podName, podFile, sessionId)
+	stat, err := h.dfsAPI.FileStat(podFile, sessionId)
 	if err != nil {
-		fmt.Println("file stat: %w", err)
+		if err == dfs.ErrPodNotOpen {
+			fmt.Println("file stat:", err)
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "file stat: " + err.Error()})
+			return
+		}
+		fmt.Println("file stat: ", err)
 		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "file stat: " + err.Error()})
 		return
 	}

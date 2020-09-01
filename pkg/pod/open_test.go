@@ -23,9 +23,8 @@ import (
 	"testing"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
-	"github.com/jmozah/intOS-dfs/pkg/feed"
-
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
+	"github.com/jmozah/intOS-dfs/pkg/feed"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
@@ -48,16 +47,16 @@ func TestPod_LoginPod(t *testing.T) {
 	podName1 := "test1"
 	firstDir := "dir1"
 	t.Run("simple-login-to-pod", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, "password", nil, nil)
+		info, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
-		err = pod1.ClosePod(podName1, nil, nil)
+		err = pod1.ClosePod(podName1)
 		if err != nil {
 			t.Fatalf("could not logout")
 		}
 
-		infoLogin, err := pod1.OpenPod(podName1, "password", nil, nil)
+		infoLogin, err := pod1.OpenPod(podName1, "password")
 		if err != nil {
 			t.Fatalf("login failed")
 		}
@@ -68,14 +67,14 @@ func TestPod_LoginPod(t *testing.T) {
 			t.Fatalf("invalid podname path and name")
 		}
 
-		err = pod1.DeletePod(podName1, nil, nil)
+		err = pod1.DeletePod(podName1)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}
 	})
 
 	t.Run("login-with-sync-contents", func(t *testing.T) {
-		info, err := pod1.CreatePod(podName1, "password", nil, nil)
+		info, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
 			t.Fatalf("error creating pod %s", podName1)
 		}
@@ -104,13 +103,13 @@ func TestPod_LoginPod(t *testing.T) {
 			t.Fatalf("file not copied in pod")
 		}
 
-		err = pod1.ClosePod(podName1, nil, nil)
+		err = pod1.ClosePod(podName1)
 		if err != nil {
 			t.Fatalf("could not logout")
 		}
 
 		// Now login and check if the dir and file exists
-		infoLogin, err := pod1.OpenPod(podName1, "password", nil, nil)
+		infoLogin, err := pod1.OpenPod(podName1, "password")
 		if err != nil {
 			t.Fatalf("login failed")
 		}
@@ -135,7 +134,7 @@ func TestPod_LoginPod(t *testing.T) {
 			t.Fatalf("file not synced")
 		}
 
-		err = pod1.DeletePod(podName1, nil, nil)
+		err = pod1.DeletePod(podName1)
 		if err != nil {
 			t.Fatalf("could not delete pod")
 		}

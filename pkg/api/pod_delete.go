@@ -27,38 +27,29 @@ import (
 )
 
 func (h *Handler) PodDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	podName := r.FormValue("pod")
+	if podName == "" {
+		jsonhttp.BadRequest(w, "delete pod: \"pod\" parameter missing in cookie")
+		return
+	}
+
 	// get values from cookie
-	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
 		fmt.Println("delete pod: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
-		return
-	}
-	if userName == "" {
-		jsonhttp.BadRequest(w, "delete pod: \"user\" parameter missing in cookie")
 		return
 	}
 	if sessionId == "" {
 		jsonhttp.BadRequest(w, "delete pod: \"cookie-id\" parameter missing in cookie")
 		return
 	}
-	if podName == "" {
-		jsonhttp.BadRequest(w, "delete pod: \"pod\" parameter missing in cookie")
-		return
-	}
-
-	// restart the cookie expiry
-	err = cookie.ResetSessionExpiry(r, w)
-	if err != nil {
-		jsonhttp.BadRequest(w, err)
-		return
-	}
 
 	// delete pod
-	err = h.dfsAPI.DeletePod(userName, podName, sessionId, w, r)
+	err = h.dfsAPI.DeletePod(podName, sessionId)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn {
+		if err == dfs.ErrUserNotLoggedIn {
 			fmt.Println("delete pod:", err)
 			jsonhttp.BadRequest(w, &ErrorMessage{Err: "delete pod: " + err.Error()})
 			return

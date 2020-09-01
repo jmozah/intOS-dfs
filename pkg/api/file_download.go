@@ -21,6 +21,8 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
+
 	"resenje.org/jsonhttp"
 
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
@@ -34,39 +36,28 @@ func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get values from cookie
-	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
 		fmt.Println("download: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
-		return
-	}
-	if userName == "" {
-		jsonhttp.BadRequest(w, "download: \"user\" parameter missing in cookie")
 		return
 	}
 	if sessionId == "" {
 		jsonhttp.BadRequest(w, "download: \"cookie-id\" parameter missing in cookie")
 		return
 	}
-	if podName == "" {
-		jsonhttp.BadRequest(w, "download: \"pod\" parameter missing in cookie")
-		return
-	}
-
-	// restart the cookie expiry
-	err = cookie.ResetSessionExpiry(r, w)
-	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "stat dir: " + err.Error()})
-		return
-	}
 
 	// download file from bee
-	reader, reference, size, err := h.dfsAPI.DownloadFile(userName, podName, podFile, sessionId)
+	reader, reference, size, err := h.dfsAPI.DownloadFile(podFile, sessionId)
 	if err != nil {
+		if err == dfs.ErrPodNotOpen {
+			fmt.Println("download:", err)
+			jsonhttp.BadRequest(w, &ErrorMessage{Err: "download: " + err.Error()})
+			return
+		}
 		w.Header().Set("Content-Type", " application/json")
 		fmt.Println("download: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "stat dir: " + err.Error()})
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "download: " + err.Error()})
 		return
 	}
 

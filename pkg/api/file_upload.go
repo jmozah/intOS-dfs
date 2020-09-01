@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"resenje.org/jsonhttp"
-
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
+	"resenje.org/jsonhttp"
 )
 
 type uploadFiletResponse struct {
@@ -52,33 +52,18 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get values from cookie
-	userName, sessionId, podName, err := cookie.GetUserNameSessionIdAndPodName(r)
+	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
 		fmt.Println("upload: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
-		return
-	}
-	if userName == "" {
-		jsonhttp.BadRequest(w, "upload: \"user\" parameter missing in cookie")
 		return
 	}
 	if sessionId == "" {
 		jsonhttp.BadRequest(w, "upload: \"cookie-id\" parameter missing in cookie")
 		return
 	}
-	if podName == "" {
-		jsonhttp.BadRequest(w, "upload: \"pod\" parameter missing in cookie")
-		return
-	}
 
 	w.Header().Set("Content-Type", " application/json")
-
-	// restart the cookie expiry
-	err = cookie.ResetSessionExpiry(r, w)
-	if err != nil {
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "upload: " + err.Error()})
-		return
-	}
 
 	//  get the files parameter from the multi part
 	err = r.ParseMultipartForm(defaultMaxMemory)
@@ -111,8 +96,13 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//upload file to bee
-		reference, err := h.dfsAPI.UploadFile(userName, podName, file.Filename, sessionId, file.Size, fd, podDir, blockSize)
+		reference, err := h.dfsAPI.UploadFile(file.Filename, sessionId, file.Size, fd, podDir, blockSize)
 		if err != nil {
+			if err == dfs.ErrPodNotOpen {
+				fmt.Println("upload:", err)
+				jsonhttp.BadRequest(w, &ErrorMessage{Err: "upload: " + err.Error()})
+				return
+			}
 			fmt.Println("upload: ", err)
 			references = append(references, Reference{FileName: file.Filename, Error: err.Error()})
 			continue
