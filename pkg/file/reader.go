@@ -32,6 +32,7 @@ type Reader struct {
 	fileSize    uint64
 	blockSize   uint32
 	blockCursor uint32
+	totalSize   uint64
 }
 
 func NewReader(fileInode FileINode, client blockstore.Client, fileSize uint64, blockSize uint32) *Reader {
@@ -46,6 +47,9 @@ func NewReader(fileInode FileINode, client blockstore.Client, fileSize uint64, b
 }
 
 func (r *Reader) Read(b []byte) (n int, err error) {
+	if r.totalSize >= r.fileSize {
+		return 0, io.EOF
+	}
 	bytesToRead := uint32(len(b))
 	bytesRead := 0
 	if r.lastBlock != nil {
@@ -60,6 +64,7 @@ func (r *Reader) Read(b []byte) (n int, err error) {
 				r.lastBlock = nil
 				r.blockCursor = 0
 			}
+			r.totalSize += uint64(bytesToRead)
 			return bytesRead, nil
 		} else {
 			copy(b, r.lastBlock[r.blockCursor:r.blockSize])
@@ -68,6 +73,7 @@ func (r *Reader) Read(b []byte) (n int, err error) {
 			r.offset += int64(remDataSize)
 			bytesRead += int(remDataSize)
 			bytesToRead -= remDataSize
+			r.totalSize += uint64(remDataSize)
 			// read spans across block.. so flow down and read the next block
 		}
 	}
@@ -94,7 +100,9 @@ func (r *Reader) Read(b []byte) (n int, err error) {
 				bytesToRead = r.blockSize
 			}
 
-			copy(b[bytesRead:bytesToRead], r.lastBlock[:bytesToRead])
+			cursor := uint32(bytesRead)
+			copy(b[cursor:cursor+bytesToRead], r.lastBlock[:bytesToRead])
+			r.totalSize += uint64(bytesToRead)
 			if bytesToRead == r.blockSize {
 				r.lastBlock = nil
 				r.blockCursor = 0
