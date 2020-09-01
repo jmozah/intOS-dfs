@@ -86,7 +86,7 @@ func GetSessionIdFromCookie(request *http.Request) (sessionId string, err error)
 	return sessionId, nil
 }
 
-func GetSessionIdAndLoginTimeFromCookie(request *http.Request) (sessionId string, loginTime string, err error) {
+func GetSessionIdAndLoginTimeFromCookie(request *http.Request) (sessionId, loginTime string, err error) {
 	cookie, err := request.Cookie(CookieName)
 	if err != nil {
 		return "", "", err
