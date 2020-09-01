@@ -20,8 +20,6 @@ import (
 	"net/http"
 
 	"resenje.org/jsonhttp"
-
-	"github.com/jmozah/intOS-dfs/pkg/cookie"
 )
 
 type UserPresentResponse struct {
@@ -36,13 +34,6 @@ func (h *Handler) UserPresentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", " application/json")
-
-	// restart the cookie expiry
-	err := cookie.ResetSessionExpiry(r, w)
-	if err != nil {
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "present: " + err.Error()})
-		return
-	}
 
 	// check if user is present
 	if h.dfsAPI.IsUserNameAvailable(user) {

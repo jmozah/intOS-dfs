@@ -27,14 +27,10 @@ import (
 
 func (h *Handler) UserLogoutHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
-	userName, sessionId, err := cookie.GetUserNameAndSessionId(r)
+	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
 		fmt.Println("logout: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
-		return
-	}
-	if userName == "" {
-		jsonhttp.BadRequest(w, "logout: \"user\" parameter missing in cookie")
 		return
 	}
 	if sessionId == "" {
@@ -43,7 +39,7 @@ func (h *Handler) UserLogoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// logout user
-	err = h.dfsAPI.LogoutUser(userName, sessionId, w)
+	err = h.dfsAPI.LogoutUser(sessionId, w)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
 		if err == u.ErrUserNotLoggedIn || err == u.ErrInvalidUserName {

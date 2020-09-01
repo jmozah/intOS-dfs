@@ -44,14 +44,10 @@ func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get values from cookie
-	userName, sessionId, err := cookie.GetUserNameAndSessionId(r)
+	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
 		fmt.Println("delete: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
-		return
-	}
-	if userName == "" {
-		jsonhttp.BadRequest(w, "create pod: \"user\" parameter missing in cookie")
 		return
 	}
 	if sessionId == "" {
@@ -59,19 +55,11 @@ func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// restart the cookie expiry
-	err = cookie.ResetSessionExpiry(r, w)
-	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "create pod: " + err.Error()})
-		return
-	}
-
 	// create pod
-	_, err = h.dfsAPI.CreatePod(userName, pod, password, sessionId, w, r)
+	_, err = h.dfsAPI.CreatePod(pod, password, sessionId)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
-		if err == dfs.ErrInvalidUserName || err == dfs.ErrUserNotLoggedIn ||
+		if err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidPodName ||
 			err == p.ErrTooLongPodName ||
 			err == p.ErrPodAlreadyExists ||
