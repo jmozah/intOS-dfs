@@ -28,9 +28,7 @@ import (
 
 const (
 	cookieName           = "intOS-dfs"
-	cookieUserName       = "user"
 	cookieSessionId      = "cookie-id"
-	cookiePodName        = "pod"
 	cookieExpirationTime = 15 * time.Minute
 )
 
