@@ -20,13 +20,10 @@ import (
 	"fmt"
 	"net/http"
 
-	//"github.com/gorilla/mux"
 	"github.com/gorilla/mux"
-	//"github.com/jmozah/intOS-dfs/pkg/api"
+	"github.com/jmozah/intOS-dfs/pkg/api"
 	"github.com/rs/cors"
 	"github.com/spf13/cobra"
-
-	"github.com/jmozah/intOS-dfs/pkg/api"
 )
 
 var handler *api.Handler
@@ -66,9 +63,7 @@ func startHttpService() {
 	userRouter := router.PathPrefix("/v0/user/").Subrouter()
 	userRouter.Use(handler.LoginMiddleware)
 	userRouter.HandleFunc("/delete", handler.UserDeleteHandler).Methods("POST")
-
 	userRouter.HandleFunc("/logout", handler.UserLogoutHandler).Methods("POST")
-
 
 	// pod related handlers
 	podRouter := router.PathPrefix("/v0/pod/").Subrouter()

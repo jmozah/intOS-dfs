@@ -66,7 +66,7 @@ func SetSession(sessionId string, response http.ResponseWriter) error {
 		Expires:  expire,
 		HttpOnly: true,
 		//Secure: true,
-		MaxAge:   0, // to make sure that the browser does not persist it in disk
+		MaxAge: 0, // to make sure that the browser does not persist it in disk
 	}
 	http.SetCookie(response, cookie)
 	return nil
