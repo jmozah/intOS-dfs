@@ -60,7 +60,7 @@ func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// list directory
-	entries, err := h.dfsAPI.ListDir(dir, sessionId)
+	entries, err := h.dfsAPI.ListDir(directory, sessionId)
 	if err != nil {
 		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrPodNotOpen || err == dfs.ErrUserNotLoggedIn ||

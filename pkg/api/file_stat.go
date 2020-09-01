@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	"resenje.org/jsonhttp"
 )
 
