@@ -17,10 +17,11 @@ limitations under the License.
 package api
 
 import (
-	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"net/http"
-	"resenje.org/jsonhttp"
 	"time"
+
+	"github.com/jmozah/intOS-dfs/pkg/cookie"
+	"resenje.org/jsonhttp"
 )
 
 func (h *Handler) LoginMiddleware(next http.Handler) http.Handler {
