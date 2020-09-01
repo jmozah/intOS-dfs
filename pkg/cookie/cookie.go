@@ -27,9 +27,11 @@ import (
 )
 
 const (
-	cookieName           = "intOS-dfs"
-	cookieSessionId      = "cookie-id"
-	cookieExpirationTime = 15 * time.Minute
+	CookieName           = "intOS-dfs"
+	cookieSessionId      = "session-id"
+	cookieLoginTime      = "login-time"
+	cookieExpirationTime = 24 * time.Hour
+	cookieLogoutTime     = 1 * time.Hour
 )
 
 var cookieHandler = securecookie.New(
@@ -45,38 +47,25 @@ func GetUniqueSessionId() string {
 }
 
 func SetSession(sessionId string, response http.ResponseWriter) error {
+	logoutTime := time.Now().Add(cookieLogoutTime)
+	logoutTimeStr := logoutTime.Format(time.RFC3339)
 	value := map[string]string{
 		cookieSessionId: sessionId,
+		cookieLoginTime: logoutTimeStr,
 	}
-	encoded, err := cookieHandler.Encode(cookieName, value)
+	encoded, err := cookieHandler.Encode(CookieName, value)
 	if err != nil {
 		return err
 	}
+
 	expire := time.Now().Add(cookieExpirationTime)
 	cookie := &http.Cookie{
-		Name:     cookieName,
+		Name:     CookieName,
 		Value:    encoded,
 		Path:     "/",
 		Expires:  expire,
 		HttpOnly: true,
-		MaxAge:   0, // to make sure that the browser does not persist it in disk
-	}
-	http.SetCookie(response, cookie)
-	return nil
-}
-
-func ResetSessionExpiry(request *http.Request, response http.ResponseWriter) error {
-	rcvdCookie, err := request.Cookie(cookieName)
-	if err != nil {
-		return err
-	}
-	expire := time.Now().Add(cookieExpirationTime)
-	cookie := &http.Cookie{
-		Name:     cookieName,
-		Value:    rcvdCookie.Value,
-		Path:     "/",
-		Expires:  expire,
-		HttpOnly: true,
+		//Secure: true,
 		MaxAge:   0, // to make sure that the browser does not persist it in disk
 	}
 	http.SetCookie(response, cookie)
@@ -84,12 +73,12 @@ func ResetSessionExpiry(request *http.Request, response http.ResponseWriter) err
 }
 
 func GetSessionIdFromCookie(request *http.Request) (sessionId string, err error) {
-	cookie, err := request.Cookie(cookieName)
+	cookie, err := request.Cookie(CookieName)
 	if err != nil {
 		return "", err
 	}
 	cookieValue := make(map[string]string)
-	err = cookieHandler.Decode(cookieName, cookie.Value, &cookieValue)
+	err = cookieHandler.Decode(CookieName, cookie.Value, &cookieValue)
 	if err != nil {
 		return "", err
 	}
@@ -97,9 +86,24 @@ func GetSessionIdFromCookie(request *http.Request) (sessionId string, err error)
 	return sessionId, nil
 }
 
+func GetSessionIdAndLoginTimeFromCookie(request *http.Request) (sessionId string, loginTime string, err error) {
+	cookie, err := request.Cookie(CookieName)
+	if err != nil {
+		return "", "", err
+	}
+	cookieValue := make(map[string]string)
+	err = cookieHandler.Decode(CookieName, cookie.Value, &cookieValue)
+	if err != nil {
+		return "", "", err
+	}
+	sessionId = cookieValue[cookieSessionId]
+	loginTime = cookieValue[cookieLoginTime]
+	return sessionId, loginTime, nil
+}
+
 func ClearSession(response http.ResponseWriter) {
 	cookie := &http.Cookie{
-		Name:     cookieName,
+		Name:     CookieName,
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
