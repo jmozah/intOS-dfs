@@ -27,6 +27,10 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
+const (
+	MineTypeDirectory = "inode/directory"
+)
+
 type DirOrFileEntry struct {
 	Name             string `json:"name"`
 	ContentType      string `json:"content_type"`
@@ -77,7 +81,7 @@ func (d *Directory) ListDir(podName, path string, printNames bool) []DirOrFileEn
 		}
 		entry := DirOrFileEntry{
 			Name:             dirInode.Meta.Name,
-			ContentType:      "text/directory",  // per RFC2425
+			ContentType:      MineTypeDirectory,  // per RFC2425
 			CreationTime:     time.Unix(dirInode.Meta.CreationTime, 0).String(),
 			AccessTime:       time.Unix(dirInode.Meta.AccessTime, 0).String(),
 			ModificationTime: time.Unix(dirInode.Meta.ModificationTime, 0).String(),
