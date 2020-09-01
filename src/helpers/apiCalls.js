@@ -17,10 +17,18 @@ export async function logIn(username, password) {
     };
 
     const response = await axi({method: "POST", url: "user/login", config: config, data: qs.stringify(requestBody), withCredentials: true});
+
+    const openPod = await axi({
+      method: "POST",
+      url: "pod/open",
+      data: qs.stringify({password: "1234", pod: "Fairdrive"}),
+      config: config,
+      withCredentials: true
+    });
+
     return response;
   } catch (error) {
     throw error;
-    //console.log(error.message);
   }
 }
 
@@ -29,9 +37,6 @@ export async function isLoggedIn(username) {
 }
 
 export async function fileUpload(files, directory, onUploadProgress) {
-  //console.log(files.length);
-  //const result = await uploadFiles(files)
-  //dispatch({type: "UPLOAD_FILES", data: files});
   const config = {
     headers: {
       "Content-Type": "multipart/form-data"
@@ -61,23 +66,26 @@ export async function fileUpload(files, directory, onUploadProgress) {
 }
 
 export async function getDirectory(directory) {
-  const config = {
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
+  try {
+    const config = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    };
+    let data = "/";
+
+    if (directory == "root") {
+      data = qs.stringify({dir: "/"});
+    } else {
+      data = qs.stringify({
+        dir: "/" + directory
+      });
     }
-  };
-  let data = "/";
 
-  if (directory == "root") {
-    data = qs.stringify({dir: "/"});
-  } else {
-    data = qs.stringify({
-      dir: "/" + directory
-    });
+    const response = await axi({method: "POST", url: "dir/ls", data: data, config: config, withCredentials: true});
+
+    return response.data;
+  } catch (error) {
+    throw error;
   }
-
-  const response = await axi({method: "POST", url: "dir/ls", data: data, config: config, withCredentials: true});
-
-  console.log(response);
-  return response.data;
 }
