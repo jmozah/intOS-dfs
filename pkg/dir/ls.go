@@ -29,7 +29,7 @@ import (
 
 type DirOrFileEntry struct {
 	Name             string `json:"name"`
-	Type             string `json:"type"`
+	ContentType      string `json:"content_type"`
 	Size             string `json:"size,omitempty"`
 	CreationTime     string `json:"creation_time"`
 	ModificationTime string `json:"modification_time"`
@@ -60,7 +60,7 @@ func (d *Directory) ListDir(podName, path string, printNames bool) []DirOrFileEn
 
 			entry := DirOrFileEntry{
 				Name:             meta.Name,
-				Type:             "File",
+				ContentType:      meta.ContentType,
 				Size:             strconv.FormatUint(meta.FileSize, 10),
 				CreationTime:     time.Unix(meta.CreationTime, 0).String(),
 				AccessTime:       time.Unix(meta.AccessTime, 0).String(),
@@ -77,7 +77,7 @@ func (d *Directory) ListDir(podName, path string, printNames bool) []DirOrFileEn
 		}
 		entry := DirOrFileEntry{
 			Name:             dirInode.Meta.Name,
-			Type:             "Dir",
+			ContentType:      "text/directory",  // per RFC2425
 			CreationTime:     time.Unix(dirInode.Meta.CreationTime, 0).String(),
 			AccessTime:       time.Unix(dirInode.Meta.AccessTime, 0).String(),
 			ModificationTime: time.Unix(dirInode.Meta.ModificationTime, 0).String(),
