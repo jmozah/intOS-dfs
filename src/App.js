@@ -3,6 +3,21 @@ import {Route, useHistory} from "react-router-dom";
 import pages from "pages";
 import styles from "styles.module.css";
 import {useDispatch, useSelector} from "react-redux";
+import {createMuiTheme, ThemeProvider} from "@material-ui/core/styles";
+import {green, orange} from "@material-ui/core/colors";
+
+const outerTheme = createMuiTheme({
+  palette: {
+    primary: {
+      main: "#92e7fa",
+      light: "#cecece",
+      background: "#333333"
+    },
+    secondary: {
+      main: green[500]
+    }
+  }
+});
 
 function getSystem(state) {
   return state.system;
@@ -36,7 +51,11 @@ function App() {
   }, [account.status]);
 
   return (
-  < div className = {
+  < ThemeProvider theme = {
+    outerTheme
+  } > {
+    " "
+  } < div className = {
     styles.swarmcity
   } > {
     " "
@@ -53,8 +72,8 @@ function App() {
     } />))
   } {
     " "
-  } < /div>
-    );
+  } < /div>{" "} <
+        /ThemeProvider >);
 }
 
 export default App;
