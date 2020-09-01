@@ -81,7 +81,7 @@ func (d *Directory) ListDir(podName, path string, printNames bool) []DirOrFileEn
 		}
 		entry := DirOrFileEntry{
 			Name:             dirInode.Meta.Name,
-			ContentType:      MineTypeDirectory,  // per RFC2425
+			ContentType:      MineTypeDirectory, // per RFC2425
 			CreationTime:     time.Unix(dirInode.Meta.CreationTime, 0).String(),
 			AccessTime:       time.Unix(dirInode.Meta.AccessTime, 0).String(),
 			ModificationTime: time.Unix(dirInode.Meta.ModificationTime, 0).String(),

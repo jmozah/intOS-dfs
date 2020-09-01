@@ -333,7 +333,7 @@ func executor(in string) {
 			return
 		}
 		for _, entry := range entries {
-			fmt.Println(entry.Type, entry.Name)
+			fmt.Println(entry.ContentType, entry.Name)
 		}
 	case "copyToLocal":
 		if !isPodOpened() {

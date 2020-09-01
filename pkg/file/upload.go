@@ -18,14 +18,21 @@ package file
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"path/filepath"
+	"runtime"
+	"sync"
 	"time"
 
 	m "github.com/jmozah/intOS-dfs/pkg/meta"
+)
+
+var (
+	NoOfParallelWorkers = runtime.NumCPU() * 4
 )
 
 func (f *File) Upload(fd multipart.File, fileName string, fileSize int64, blockSize uint32, filePath string) ([]byte, error) {
@@ -37,7 +44,6 @@ func (f *File) Upload(fd multipart.File, fileName string, fileSize int64, blockS
 		Name:             fileName,
 		FileSize:         uint64(fileSize),
 		BlockSize:        blockSize,
-		ContentType:      f.GetContentType(reader),
 		CreationTime:     now,
 		AccessTime:       now,
 		ModificationTime: now,
@@ -45,10 +51,16 @@ func (f *File) Upload(fd multipart.File, fileName string, fileSize int64, blockS
 
 	fileINode := FileINode{}
 
-	data := make([]byte, blockSize)
 	var totalLength uint64
 	i := 0
+	errC := make(chan error)
+	doneC := make(chan bool)
+	worker := make(chan bool, NoOfParallelWorkers)
+	var wg sync.WaitGroup
+	refMap := make(map[int]*FileBlock)
+	refMapMu := sync.RWMutex{}
 	for {
+		data := make([]byte, blockSize)
 		r, err := reader.Read(data)
 		totalLength += uint64(r)
 		if err != nil {
@@ -62,19 +74,57 @@ func (f *File) Upload(fd multipart.File, fileName string, fileSize int64, blockS
 			}
 		}
 
-		addr, err := f.client.UploadBlob(data[:r])
-		if err != nil {
-			return nil, fmt.Errorf("uplaod: %w", err)
+		// determine the content type from the first 512 bytes of the file
+		if i == 0 {
+			cBytes := bytes.NewReader(data[:512])
+			cReader := bufio.NewReader(cBytes)
+			meta.ContentType = f.GetContentType(cReader)
 		}
 
-		fileBlock := &FileBlock{
-			Name:    fmt.Sprintf("block-%05d", i),
-			Size:    uint32(r),
-			Address: addr,
-		}
+		wg.Add(1)
+		worker <- true
+		go func(counter, size int) {
+			defer func() {
+				<-worker
+				wg.Done()
+				fmt.Println("uploaded chunk: ", counter, size)
+			}()
+			addr, err := f.client.UploadBlob(data[:size])
+			if err != nil {
+				errC <- err
+				return
+			}
 
-		fileINode.FileBlocks = append(fileINode.FileBlocks, fileBlock)
+			fileBlock := &FileBlock{
+				Name:    fmt.Sprintf("block-%05d", counter),
+				Size:    uint32(size),
+				Address: addr,
+			}
+
+			refMapMu.Lock()
+			defer refMapMu.Unlock()
+			refMap[counter] = fileBlock
+		}(i, r)
+
 		i++
+	}
+
+	go func() {
+		wg.Wait()
+		close(doneC)
+	}()
+
+	select {
+	case <-doneC:
+		break
+	case err := <-errC:
+		close(errC)
+		return nil, fmt.Errorf("uplaod: %w", err)
+	}
+
+	// copy the block references to the fileInode
+	for i := 0; i < len(refMap); i++ {
+		fileINode.FileBlocks = append(fileINode.FileBlocks, refMap[i])
 	}
 
 	fileInodeData, err := json.Marshal(fileINode)
