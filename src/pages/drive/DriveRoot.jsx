@@ -1,45 +1,60 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useHistory, useParams } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {useDispatch, useSelector} from "react-redux";
+import {useHistory, useParams} from "react-router-dom";
+import {getDirectory} from "helpers/apiCalls";
 
 // Sub-pages
-import FolderView from './pages/FolderView';
+import FolderView from "./pages/FolderView";
 
 // Ids
-const folderViewId = 'folderViewId';
+const folderViewId = "folderViewId";
 
 function getAccount(state) {
-    return state.account
+  return state.account;
+}
+
+function getContents(state) {
+  return state.drive.fairdrive;
 }
 
 export function DriveRoot() {
+  const params = useParams();
+  const path = params.path;
+  const account = useSelector(state => getAccount(state));
+  const driveContent = useSelector(state => getContents(state)) || {
+    directories: [],
+    files: []
+  };
 
-    const params = useParams()
-    const id = params.id
-    const account = useSelector(state => getAccount(state))
+  const dispatch = useDispatch();
 
-    useEffect(() => {
-        console.log('account:', account)
-    }, [account.privateKey])
+  const [contents, setContents] = useState(driveContent);
 
-    const [stage, setStage] = useState(folderViewId)
+  async function getDirectoryContent(path) {
+    const content = await getDirectory(path);
+    setContents(content);
+    //return content;
+  }
 
-    const dispatch = useDispatch()
-    const history = useHistory()
+  useEffect(() => {
+    //dispatch({type: "GET_DRIVE"});
 
-    // Router
-    switch (stage) {
-        case folderViewId:
-            return (
-                <FolderView
-                    id={id}
-                    nextStage={() => setStage()}
-                    exitStage={() => setStage()}>
-                </FolderView>
-            );
-        default:
-            return <h1>Oops...</h1>;
-    }
+    getDirectoryContent(path).catch(e => console.log(e));
+
+    //console.log("account:", account);
+  }, [path]);
+
+  const [stage, setStage] = useState(folderViewId);
+
+  const history = useHistory();
+
+  // Router
+  switch (stage) {
+    case folderViewId:
+      return (<FolderView path={path} refresh={getDirectoryContent} account={account} contents={contents} nextStage={() => setStage()} exitStage={() => setStage()}></FolderView>);
+    default:
+      return <h1>Oops...</h1>;
+  }
 }
 
 export default DriveRoot;

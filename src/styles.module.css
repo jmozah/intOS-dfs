@@ -147,6 +147,8 @@ cursor: pointer;
   background-color: var(--bg-dark);
 }
 
+
+
 .brand {
   composes: mainTitle2;
   margin-top: 120px;

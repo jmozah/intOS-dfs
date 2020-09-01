@@ -20,21 +20,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/jmozah/intOS-dfs/pkg/dfs"
-
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
+	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	"resenje.org/jsonhttp"
 )
-
-type FileStatResponse struct {
-	Blocks []BlockInfo
-}
-
-type BlockInfo struct {
-	Name      string `json:"name"`
-	Reference string `json:"reference"`
-	Size      string `json:"size"`
-}
 
 func (h *Handler) FileStatHandler(w http.ResponseWriter, r *http.Request) {
 	podFile := r.FormValue("file")

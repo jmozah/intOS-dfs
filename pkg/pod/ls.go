@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jmozah/intOS-dfs/pkg/dir"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
@@ -36,14 +37,14 @@ func (p *Pod) ListPods() ([]string, error) {
 	return listPods, nil
 }
 
-func (p *Pod) ListEntiesInDir(podName, dirName string) ([]string, []string, error) {
+func (p *Pod) ListEntiesInDir(podName, dirName string) ([]dir.DirOrFileEntry, error) {
 	if !p.isPodOpened(podName) {
-		return nil, nil, ErrPodNotOpened
+		return nil, ErrPodNotOpened
 	}
 
 	info, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return nil, nil, fmt.Errorf("ls: %w", err)
+		return nil, fmt.Errorf("ls: %w", err)
 	}
 
 	directory := info.getDirectory()
@@ -60,6 +61,5 @@ func (p *Pod) ListEntiesInDir(podName, dirName string) ([]string, []string, erro
 		path = strings.TrimSuffix(path, utils.PathSeperator)
 	}
 
-	fl, dl := directory.ListDir(podName, path, printNames)
-	return fl, dl, nil
+	return directory.ListDir(podName, path, printNames), nil
 }

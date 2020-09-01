@@ -17,20 +17,85 @@ limitations under the License.
 package dir
 
 import (
+	"encoding/json"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 
+	m "github.com/jmozah/intOS-dfs/pkg/meta"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (d *Directory) ListDir(podName, path string, printNames bool) ([]string, []string) {
+type DirOrFileEntry struct {
+	Name             string `json:"name"`
+	Type             string `json:"type"`
+	Size             string `json:"size,omitempty"`
+	CreationTime     string `json:"creation_time"`
+	ModificationTime string `json:"modification_time"`
+	AccessTime       string `json:"access_time"`
+}
+
+func (d *Directory) ListDir(podName, path string, printNames bool) []DirOrFileEntry {
+	_, dirInode, err := d.GetDirNode(path, d.getFeed(), d.getAccount())
+	if err != nil {
+		return nil
+	}
+
+	var listEntries []DirOrFileEntry
+	for _, ref := range dirInode.Hashes {
+		// check if this is a directory
+		_, data, err := d.getFeed().GetFeedData(ref, d.getAccount().GetAddress())
+		if err != nil {
+			// if it is not a dir, then treat this reference as a file
+			data, _, err := d.getClient().DownloadBlob(ref)
+			if err != nil {
+				continue
+			}
+			var meta *m.FileMetaData
+			err = json.Unmarshal(data, &meta)
+			if err != nil {
+				continue
+			}
+
+			entry := DirOrFileEntry{
+				Name:             meta.Name,
+				Type:             "File",
+				Size:             strconv.FormatUint(meta.FileSize, 10),
+				CreationTime:     time.Unix(meta.CreationTime, 0).String(),
+				AccessTime:       time.Unix(meta.AccessTime, 0).String(),
+				ModificationTime: time.Unix(meta.ModificationTime, 0).String(),
+			}
+			listEntries = append(listEntries, entry)
+			continue
+		}
+
+		var dirInode *DirInode
+		err = json.Unmarshal(data, &dirInode)
+		if err != nil {
+			continue
+		}
+		entry := DirOrFileEntry{
+			Name:             dirInode.Meta.Name,
+			Type:             "Dir",
+			CreationTime:     time.Unix(dirInode.Meta.CreationTime, 0).String(),
+			AccessTime:       time.Unix(dirInode.Meta.AccessTime, 0).String(),
+			ModificationTime: time.Unix(dirInode.Meta.ModificationTime, 0).String(),
+		}
+		listEntries = append(listEntries, entry)
+	}
+	return listEntries
+
+}
+
+func (d *Directory) ListDirOnlyNames(podName, path string, printNames bool) ([]string, []string) {
 	d.dirMu.Lock()
 	defer d.dirMu.Unlock()
 	var fileListing []string
 	var dirListing []string
 
 	directory := ("<Dir>  : ")
-	f := ("<File> : ")
+	fl := ("<File> : ")
 	for k := range d.dirMap {
 		if strings.HasPrefix(k, path) {
 			name := strings.TrimPrefix(k, path)
@@ -39,6 +104,7 @@ func (d *Directory) ListDir(podName, path string, printNames bool) ([]string, []
 					dirListing = append(dirListing, directory+name)
 				} else {
 					dirListing = append(dirListing, name)
+
 				}
 			}
 
@@ -57,7 +123,7 @@ func (d *Directory) ListDir(podName, path string, printNames bool) ([]string, []
 						fileName = utils.PathSeperator + fileName
 					}
 					if printNames {
-						fileListing = append(fileListing, f+fileName)
+						fileListing = append(fileListing, fl+fileName)
 					} else {
 						fileListing = append(fileListing, fileName)
 					}

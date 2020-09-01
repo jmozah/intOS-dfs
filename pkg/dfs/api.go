@@ -268,23 +268,23 @@ func (d *DfsAPI) RmDir(directoryName, sessionId string) error {
 	return nil
 }
 
-func (d *DfsAPI) ListDir(currentDir, sessionId string) ([]string, []string, error) {
+func (d *DfsAPI) ListDir(currentDir, sessionId string) ([]dir.DirOrFileEntry, error) {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(sessionId)
 	if ui == nil {
-		return nil, nil, ErrUserNotLoggedIn
+		return nil, ErrUserNotLoggedIn
 	}
 
 	// check if pod open
 	if ui.GetPodName() == "" {
-		return nil, nil, ErrPodNotOpen
+		return nil, ErrPodNotOpen
 	}
 
-	fl, dl, err := ui.GetPod().ListEntiesInDir(ui.GetPodName(), currentDir)
+	entries, err := ui.GetPod().ListEntiesInDir(ui.GetPodName(), currentDir)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return fl, dl, nil
+	return entries, nil
 }
 
 func (d *DfsAPI) DirectoryStat(directoryName, sessionId string) (*dir.DirStats, error) {
