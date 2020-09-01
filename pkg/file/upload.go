@@ -51,12 +51,11 @@ func (f *File) Upload(fd multipart.File, fileName string, fileSize int64, blockS
 
 	fileINode := FileINode{}
 
-
 	var totalLength uint64
 	i := 0
 	errC := make(chan error)
 	doneC := make(chan bool)
-	worker  := make(chan bool, NoOfParallelWorkers)
+	worker := make(chan bool, NoOfParallelWorkers)
 	var wg sync.WaitGroup
 	refMap := make(map[int]*FileBlock)
 	refMapMu := sync.RWMutex{}
@@ -82,12 +81,11 @@ func (f *File) Upload(fd multipart.File, fileName string, fileSize int64, blockS
 			meta.ContentType = f.GetContentType(cReader)
 		}
 
-
 		wg.Add(1)
 		worker <- true
 		go func(counter, size int) {
 			defer func() {
-				<- worker
+				<-worker
 				wg.Done()
 				fmt.Println("uploaded chunk: ", counter, size)
 			}()
@@ -125,10 +123,9 @@ func (f *File) Upload(fd multipart.File, fileName string, fileSize int64, blockS
 	}
 
 	// copy the block references to the fileInode
-	for i := 0; i< len(refMap); i++ {
+	for i := 0; i < len(refMap); i++ {
 		fileINode.FileBlocks = append(fileINode.FileBlocks, refMap[i])
 	}
-
 
 	fileInodeData, err := json.Marshal(fileINode)
 	if err != nil {
