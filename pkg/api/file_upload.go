@@ -110,7 +110,6 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		references = append(references, Reference{FileName: file.Filename, Reference: reference})
 	}
 
-	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.OK(w, &uploadFiletResponse{
 		References: references,
 	})
