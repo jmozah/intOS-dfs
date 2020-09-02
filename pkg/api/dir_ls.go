@@ -28,7 +28,7 @@ import (
 )
 
 type ListFileResponse struct {
-	Entries []dir.DirOrFileEntry
+	Entries []dir.DirOrFileEntry `json:"entries"`
 }
 
 type DirOrFileEntry struct {
@@ -72,6 +72,10 @@ func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("ls dir: ", err)
 		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "ls dir: " + err.Error()})
 		return
+	}
+
+	if entries == nil {
+		entries = make([]dir.DirOrFileEntry,0)
 	}
 
 	w.Header().Set("Content-Type", " application/json")
