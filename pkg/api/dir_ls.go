@@ -75,7 +75,7 @@ func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if entries == nil {
-		entries = make([]dir.DirOrFileEntry,0)
+		entries = make([]dir.DirOrFileEntry, 0)
 	}
 
 	w.Header().Set("Content-Type", " application/json")
