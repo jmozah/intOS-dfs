@@ -89,3 +89,60 @@ export async function getDirectory(directory) {
     throw error;
   }
 }
+
+export async function createAccount(username, password, mnemonic) {
+  console.log("create account saga started");
+  try {
+    const requestBody = {
+      user: username,
+      password: password,
+      mnemonic: mnemonic
+    };
+
+    const config = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    };
+
+    const response = await axi({method: "POST", url: "user/signup", config: config, data: qs.stringify(requestBody), withCredentials: true});
+    return response.data;
+  } catch (e) {
+    console.log("error on timeout", e);
+  }
+}
+
+export async function createPod(passWord, podName) {
+  try {
+    const config = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    };
+    const podRequest = {
+      password: passWord,
+      pod: podName
+    };
+
+    const createPod = await axi({method: "POST", url: "pod/new", config: config, data: qs.stringify(podRequest), withCredentials: true});
+  } catch (error) {}
+}
+
+export async function createDirectory(passWord, directoryName) {
+  try {
+    const config = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    };
+
+    const createPictursDirectory = await axi({
+      method: "POST",
+      url: "dir/mkdir",
+      config: config,
+      data: qs.stringify({dir: directoryName}),
+      withCredentials: true
+    });
+    return true;
+  } catch (error) {}
+}
