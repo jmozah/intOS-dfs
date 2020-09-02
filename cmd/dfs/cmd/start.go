@@ -64,6 +64,8 @@ func startHttpService() {
 	userRouter.Use(handler.LoginMiddleware)
 	userRouter.HandleFunc("/delete", handler.UserDeleteHandler).Methods("POST")
 	userRouter.HandleFunc("/logout", handler.UserLogoutHandler).Methods("POST")
+	userRouter.HandleFunc("/avatar", handler.SaveUserAvatarHandler).Methods("POST")
+	userRouter.HandleFunc("/avatar", handler.GetUserAvatarHandler).Methods("GET")
 
 	// pod related handlers
 	podRouter := router.PathPrefix("/v0/pod/").Subrouter()

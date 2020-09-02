@@ -21,6 +21,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee"
 	"github.com/jmozah/intOS-dfs/pkg/dir"
@@ -82,6 +83,28 @@ func (d *DfsAPI) IsUserNameAvailable(userName string) bool {
 
 func (d *DfsAPI) ListAllUsers() []string {
 	return d.users.ListAllUsers(d.dataDir)
+}
+
+func (d *DfsAPI) SaveAvatar(sessionId string, data []byte) error {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return ErrUserNotLoggedIn
+	}
+
+	rootReference := ui.GetAccount().GetAddress(account.UserAccountIndex)
+	return d.users.StoreSettingsFile(rootReference, user.AvatarFileSuffix, ui.GetFeed(), data)
+}
+
+func (d *DfsAPI) GetAvatar(sessionId string) ([]byte, error) {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return nil, ErrUserNotLoggedIn
+	}
+
+	rootReference := ui.GetAccount().GetAddress(account.UserAccountIndex)
+	return d.users.LoadSettingsFile(rootReference, user.AvatarFileSuffix, ui.GetFeed())
 }
 
 //

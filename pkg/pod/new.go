@@ -32,6 +32,10 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
+const (
+	PodFileSuffix = ".pods"
+)
+
 func (p *Pod) CreatePod(podName, passPhrase string) (*Info, error) {
 	podName, err := CleanPodName(podName)
 	if err != nil {
@@ -95,7 +99,8 @@ func (p *Pod) CreatePod(podName, passPhrase string) (*Info, error) {
 
 func (p *Pod) loadUserPods() (map[int]string, error) {
 	// The user pod file topic should be in the name of the user account
-	topic := utils.HashString(p.acc.GetAddress(account.UserAccountIndex).Hex())
+	podsFileName := p.acc.GetAddress(account.UserAccountIndex).Hex() + PodFileSuffix
+	topic := utils.HashString(podsFileName)
 	_, data, err := p.fd.GetFeedData(topic, p.acc.GetAddress(account.UserAccountIndex))
 	if err != nil {
 		if err.Error() != "no feed updates found" {
@@ -137,7 +142,8 @@ func (p *Pod) storeUserPods(pods map[int]string) error {
 		buf.WriteString(line + "\n")
 	}
 
-	topic := utils.HashString(p.acc.GetAddress(account.UserAccountIndex).Hex())
+	podsFileName := p.acc.GetAddress(account.UserAccountIndex).Hex() + PodFileSuffix
+	topic := utils.HashString(podsFileName)
 	_, err := p.fd.UpdateFeed(topic, p.acc.GetAddress(account.UserAccountIndex), buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("store pods: %w", err)
