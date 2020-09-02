@@ -80,3 +80,14 @@ func (u *Users) isUserPresentInMap(sessionId string) bool {
 	}
 	return false
 }
+
+func (u *Users) isUserNameInMap(userName string) bool {
+	u.userMu.Lock()
+	defer u.userMu.Unlock()
+	for _, ui := range u.userMap {
+		if ui.name == userName {
+			return true
+		}
+	}
+	return false
+}

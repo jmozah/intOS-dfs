@@ -101,3 +101,7 @@ func (u *Users) IsUserLoggedIn(sessionId string) bool {
 func (u *Users) GetLoggedInUserInfo(sessionId string) *Info {
 	return u.getUserFromMap(sessionId)
 }
+
+func (u *Users) IsUserNameLoggedIn(userName string) bool {
+	return u.isUserNameInMap(userName)
+}

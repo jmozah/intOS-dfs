@@ -81,6 +81,11 @@ func (d *DfsAPI) IsUserNameAvailable(userName string) bool {
 	return d.users.IsUsernameAvailable(userName, d.dataDir)
 }
 
+func (d *DfsAPI) IsUserLoggedIn(userName string) bool {
+	// check if a given user is logged in
+	return d.users.IsUserNameLoggedIn(userName)
+}
+
 func (d *DfsAPI) ListAllUsers() []string {
 	return d.users.ListAllUsers(d.dataDir)
 }
