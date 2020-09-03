@@ -132,7 +132,7 @@ func executor(in string) {
 				return
 			}
 			userName := blocks[2]
-			ref, mnemonic, err := dfsAPI.CreateUser(userName, "", "", nil, DefaultSessionId)
+			ref, mnemonic, pi, err := dfsAPI.CreateUser(userName, "", "", nil, DefaultSessionId)
 			if err != nil {
 				fmt.Println("create user: ", err)
 				return
@@ -145,7 +145,7 @@ func executor(in string) {
 			fmt.Println(mnemonic)
 			fmt.Println("=============== Mnemonic ==========================")
 			currentUser = userName
-			currentPodInfo = nil
+			currentPodInfo = pi
 			currentPrompt = getCurrentPrompt()
 		case "del":
 			err := dfsAPI.DeleteUser("", DefaultSessionId, nil)
@@ -333,7 +333,12 @@ func executor(in string) {
 			return
 		}
 		for _, entry := range entries {
-			fmt.Println(entry.ContentType, entry.Name)
+			if entry.ContentType == "inode/directory" {
+				fmt.Println("<Dir>: ", entry.Name)
+			} else {
+				fmt.Println("<File>: ", entry.Name)
+			}
+
 		}
 	case "copyToLocal":
 		if !isPodOpened() {

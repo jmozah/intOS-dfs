@@ -18,7 +18,7 @@ package pod
 
 import (
 	"fmt"
-	"mime/multipart"
+	"io"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -27,7 +27,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (p *Pod) UploadFile(podName, fileName string, fileSize int64, fd multipart.File, podDir, blockSize string) (string, error) {
+func (p *Pod) UploadFile(podName, fileName string, fileSize int64, fd io.Reader, podDir, blockSize string) (string, error) {
 	if !p.isPodOpened(podName) {
 		return "", fmt.Errorf("upload: login to pod to do this operation")
 	}

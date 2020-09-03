@@ -78,7 +78,7 @@ func (a *Account) IsAlreadyInitialized() bool {
 	return !info.IsDir()
 }
 
-func (a *Account) CreateUserAccount(passPhrase, mnemonic string) (string, error) {
+func (a *Account) CreateUserAccount(passPhrase, mnemonic string) (string, string, error) {
 	if passPhrase == "" {
 		if a.IsAlreadyInitialized() {
 			var s string
@@ -87,7 +87,7 @@ func (a *Account) CreateUserAccount(passPhrase, mnemonic string) (string, error)
 			fmt.Printf("do you still want to proceed (Y/N):")
 			_, err := fmt.Scan(&s)
 			if err != nil {
-				return "", err
+				return "", "", err
 			}
 
 			s = strings.TrimSpace(s)
@@ -95,16 +95,16 @@ func (a *Account) CreateUserAccount(passPhrase, mnemonic string) (string, error)
 			s = strings.Trim(s, "\n")
 
 			if s == "n" || s == "no" {
-				return "", nil
+				return "", "", nil
 			}
 			err = os.Remove(a.mnemonicFileName)
 			if err != nil {
-				return "", fmt.Errorf("could not remove user key: %w", err)
+				return "", "", fmt.Errorf("could not remove user key: %w", err)
 			}
 		}
 	} else {
 		if a.IsAlreadyInitialized() {
-			return "", fmt.Errorf("user already present")
+			return "", "", fmt.Errorf("user already present")
 		}
 	}
 
@@ -112,37 +112,37 @@ func (a *Account) CreateUserAccount(passPhrase, mnemonic string) (string, error)
 	a.wallet = wallet
 	acc, mnemonic, err := wallet.LoadMnemonicAndCreateRootAccount(mnemonic)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	hdw, err := hdwallet.NewFromMnemonic(mnemonic)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	// store publicKey, private key and user
 	a.userAcount.privateKey, err = hdw.PrivateKey(acc)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	a.userAcount.publicKey, err = hdw.PublicKey(acc)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	addrBytes, err := crypto.NewEthereumAddress(a.userAcount.privateKey.PublicKey)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	a.userAcount.address.SetBytes(addrBytes)
 
 	// store the mnemonic
-	encryptedMnemonic, err := a.storeAsEncryptedMnemonicToDisk(mnemonic, passPhrase)
+	encryptedMnemonic, password, err := a.storeAsEncryptedMnemonicToDisk(mnemonic, passPhrase)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	a.wallet.encryptedmnemonic = encryptedMnemonic
 
-	return mnemonic, nil
+	return mnemonic, password, nil
 }
 
 func (a *Account) LoadUserAccount(passPhrase string) error {
@@ -277,11 +277,11 @@ func (a *Account) LoadEncryptedMnemonicFromDisk(passPhrase string) error {
 	return nil
 }
 
-func (a *Account) storeAsEncryptedMnemonicToDisk(mnemonic string, passPhrase string) (string, error) {
+func (a *Account) storeAsEncryptedMnemonicToDisk(mnemonic, passPhrase string) (string, string, error) {
 	if a.IsAlreadyInitialized() {
 		err := os.Remove(a.mnemonicFileName)
 		if err != nil {
-			return "", fmt.Errorf("could not remove old key file: %w", err)
+			return "", "", fmt.Errorf("could not remove old key file: %w", err)
 		}
 	}
 
@@ -297,35 +297,35 @@ func (a *Account) storeAsEncryptedMnemonicToDisk(mnemonic string, passPhrase str
 	// encrypt the mnemonic
 	encryptedMessage, err := encrypt(aesKey[:], mnemonic)
 	if err != nil {
-		return "", fmt.Errorf("create root account: %w", err)
+		return "", "", fmt.Errorf("create root account: %w", err)
 	}
 
 	err = os.MkdirAll(filepath.Dir(a.mnemonicFileName), 0777)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	// store the mnemonic in a file
 	f, err := os.Create(a.mnemonicFileName)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	n, err := f.WriteString(encryptedMessage)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	if n != len(encryptedMessage) {
-		return "", fmt.Errorf("file write error during encryption")
+		return "", "", fmt.Errorf("file write error during encryption")
 	}
 	err = f.Sync()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	err = f.Close()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return encryptedMessage, nil
+	return encryptedMessage, password, nil
 }
 
 func (a *Account) GetUserPrivateKey(index int) *ecdsa.PrivateKey {

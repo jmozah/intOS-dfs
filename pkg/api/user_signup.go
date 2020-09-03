@@ -20,8 +20,9 @@ import (
 	"fmt"
 	"net/http"
 
-	u "github.com/jmozah/intOS-dfs/pkg/user"
 	"resenje.org/jsonhttp"
+
+	u "github.com/jmozah/intOS-dfs/pkg/user"
 )
 
 type UserSignupResponse struct {
@@ -45,7 +46,7 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", " application/json")
 
 	// create user
-	reference, mnemonic, err := h.dfsAPI.CreateUser(user, password, mnemonic, w, "")
+	reference, mnemonic, _, err := h.dfsAPI.CreateUser(user, password, mnemonic, w, "")
 	if err != nil {
 		if err == u.ErrUserAlreadyPresent {
 			fmt.Println("signup: ", err)
