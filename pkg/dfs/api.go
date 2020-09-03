@@ -65,7 +65,7 @@ func (d *DfsAPI) CreateUser(userName, passPhrase, mnemonic string, response http
 	}
 
 	// get the logged in user information
-	ui := d.users.GetLoggedInUserInfo(sessionId)
+	ui := d.users.GetLoggedInUserInfo(rcvdSessionId)
 	if ui == nil {
 		return reference, rcvdMnemonic, nil, ErrUserNotLoggedIn
 	}
