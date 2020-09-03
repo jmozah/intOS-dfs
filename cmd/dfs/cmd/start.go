@@ -58,6 +58,7 @@ func startHttpService() {
 	router.HandleFunc("/v0/user/signup", handler.UserSignupHandler).Methods("POST")
 	router.HandleFunc("/v0/user/present", handler.UserPresentHandler).Methods("POST")
 	router.HandleFunc("/v0/user/login", handler.UserLoginHandler).Methods("POST")
+	router.HandleFunc("/v0/user/isloggedin", handler.IsUserLoggedInHandler).Methods("POST")
 
 	// user account related handlers which require login middleware
 	userRouter := router.PathPrefix("/v0/user/").Subrouter()
