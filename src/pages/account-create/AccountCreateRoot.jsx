@@ -2,7 +2,6 @@ import React, {useState} from "react";
 import {useHistory} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import defaultAvatar from "images/defaultAvatar.png";
-import EthCrypto from "eth-crypto";
 import {createAccount, createDirectory, createPod} from "helpers/apiCalls";
 
 // Sub-pages

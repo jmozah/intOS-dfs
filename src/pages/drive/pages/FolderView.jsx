@@ -46,6 +46,9 @@ export function FolderView({
     setUploadStatus("uploading");
     await fileUpload(files, path, function (progress, total) {
       setUploadProgress(Math.round((progress / total) * 100));
+      if (progress == total) {
+        setUploadStatus("swarmupload");
+      }
     }).then(() => {
       toggleUploadShown();
       setUploadStatus("ready");
@@ -97,6 +100,12 @@ export function FolderView({
         return (<div className={styles.uploadSpace} onClick={handleClick}>
           <div>Uploading...</div>
           <LinearProgress className={styles.progress} variant="determinate" value={uploadProgress}/>
+        </div>);
+        break;
+      case "swarmupload":
+        return (<div className={styles.uploadSpace} onClick={handleClick}>
+          <div>Storing on Swarm...</div>
+          <LinearProgress className={styles.progress}/>
         </div>);
         break;
       case "error":

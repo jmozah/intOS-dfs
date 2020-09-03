@@ -33,7 +33,23 @@ export async function logIn(username, password) {
 }
 
 export async function isLoggedIn(username) {
-  return true;
+  try {
+    const requestBody = {
+      user: username
+    };
+
+    const config = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    };
+
+    const response = await axi({method: "GET", url: "user/loggedin", config: config, data: qs.stringify(requestBody), withCredentials: true});
+
+    return response;
+  } catch (error) {
+    throw error;
+  }
 }
 
 export async function fileUpload(files, directory, onUploadProgress) {
