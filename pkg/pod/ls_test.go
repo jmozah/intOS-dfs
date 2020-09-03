@@ -38,7 +38,7 @@ func TestPod_ListPods(t *testing.T) {
 	accountInfo := acc.GetAccountInfo(account.UserAccountIndex)
 	fd := feed.New(accountInfo, mockClient)
 	pod1 := NewPod(mockClient, fd, acc)
-	_, err = acc.CreateUserAccount("password", "")
+	_, _, err = acc.CreateUserAccount("password", "")
 	if err != nil {
 		t.Fatal(err)
 	}
