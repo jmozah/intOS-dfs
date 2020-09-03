@@ -2,7 +2,7 @@ import React, {useState} from "react";
 import {useHistory} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import defaultAvatar from "images/defaultAvatar.png";
-import EthCrypto from "eth-crypto";
+import {createAccount, createDirectory, createPod} from "helpers/apiCalls";
 
 // Sub-pages
 import AccountCreateIntro from "./pages/AccountCreateIntro";
@@ -57,26 +57,40 @@ export function AccountCreateRoot() {
   const [item3, setItem3] = useState(false);
 
   // Create account function
-  const createAccount = async () => {
+  const createAccountProcess = async () => {
     setStage(creatingAccountId);
     const mnemonicJoined = mnemonic.join(" ");
+    const newUser = await createAccount(username, password, mnemonicJoined);
 
     setItem0(true);
-    const result = {};
+    await createPod(password, "Fairdrive");
 
     setItem1(true);
+    await createDirectory(password, "Documents");
+    await createDirectory(password, "Movies");
+    await createDirectory(password, "Music");
+    await createDirectory(password, "Pictures");
+
+    setItem2(true);
+    // store account in Redux
+    const userObject = {
+      status: "accountSet",
+      username: username,
+      avatar: avatar,
+      address: newUser.reference,
+      balance: 0.0
+    };
+
+    dispatch({type: "SET_ACCOUNT", data: userObject});
     dispatch({
-      type: "CREATE_ACCOUNT",
+      type: "SET_SYSTEM",
       data: {
-        username: username,
-        password: password,
-        mnemonic: mnemonicJoined,
-        avatar: avatar
+        hasAcount: true
       }
     });
-    setItem2(true);
 
     setItem3(true);
+    history.push("/drive/root");
   };
 
   // Router
@@ -93,7 +107,7 @@ export function AccountCreateRoot() {
     case chooseAvatarId:
       return (<ChooseAvatar avatar={defaultAvatar} exitStage={() => setStage(chooseUsernameId)} setAvatar={setAvatar}></ChooseAvatar>);
     case choosePasswordId:
-      return (<ChoosePassword createAccount={createAccount} exitStage={() => setStage(accountCreateIntroId)} setPassword={setPassword} password={password}/>);
+      return (<ChoosePassword createAccount={createAccountProcess} exitStage={() => setStage(accountCreateIntroId)} setPassword={setPassword} password={password}/>);
     case creatingAccountId:
       return (<CreatingAccount accountCreateDone={accountCreateDone} item0={item0} item1={item1} item2={item2} item3={item3}/>);
     default:

@@ -38,6 +38,7 @@ export function DriveRoot() {
 
   useEffect(() => {
     //dispatch({type: "GET_DRIVE"});
+    setContents({Loading: true});
 
     getDirectoryContent(path).catch(e => console.log(e));
 

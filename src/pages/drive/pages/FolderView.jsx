@@ -14,7 +14,7 @@ import {
   FileCopySharp
 } from "@material-ui/icons/";
 
-import {LinearProgress} from "@material-ui/core";
+import {CircularProgress, LinearProgress} from "@material-ui/core";
 import defaultAvatar from "images/defaultAvatar.png";
 import {fileUpload} from "helpers/apiCalls";
 
@@ -46,10 +46,17 @@ export function FolderView({
     setUploadStatus("uploading");
     await fileUpload(files, path, function (progress, total) {
       setUploadProgress(Math.round((progress / total) * 100));
+      if (progress == total) {
+        setUploadStatus("swarmupload");
+      }
+    }).then(() => {
+      toggleUploadShown();
+      setUploadStatus("ready");
+      refresh(path);
+    }).catch(() => {
+      setUploadStatus("error");
     });
-    toggleUploadShown();
-    setUploadStatus("ready");
-    refresh(path);
+
     //dispatch({type: "GET_DRIVE"});
   }
 
@@ -59,12 +66,12 @@ export function FolderView({
 
   function handleLocation(item) {
     console.log(item);
-    history.push("/drive" + item);
+    history.push("/drive/" + item);
   }
 
   const selectedIcon = icon => {
     switch (icon) {
-      case "folder":
+      case "Dir":
         return <Folder></Folder>;
         break;
       case "txt":
@@ -91,8 +98,19 @@ export function FolderView({
         break;
       case "uploading":
         return (<div className={styles.uploadSpace} onClick={handleClick}>
-          <LinearProgress className={styles.progress} variant="determinate" value={uploadProgress}/>
           <div>Uploading...</div>
+          <LinearProgress className={styles.progress} variant="determinate" value={uploadProgress}/>
+        </div>);
+        break;
+      case "swarmupload":
+        return (<div className={styles.uploadSpace} onClick={handleClick}>
+          <div>Storing on Swarm...</div>
+          <LinearProgress className={styles.progress}/>
+        </div>);
+        break;
+      case "error":
+        return (<div className={styles.uploadSpace} onClick={handleClick}>
+          <div>Error</div>
         </div>);
         break;
     }
@@ -123,7 +141,7 @@ export function FolderView({
             <div className={styles.title}>
               {
                 path === "root"
-                  ? "Your Fairdrive"
+                  ? "My Fairdrive"
                   : path
               }
             </div>
@@ -133,20 +151,14 @@ export function FolderView({
     </div>
     <div className={styles.innercontainer}>
       {
-        contents.directories
-          ? contents.directories.map(item => (<div className={styles.rowItem} onClick={() => handleLocation(item)}>
-            <div>{selectedIcon(item.icon)}</div>
-            <div className={styles.folderText}>{item}</div>
-          </div>))
-          : ""
-      }
-      {
-        contents.files
-          ? contents.files.map(item => (<div className={styles.rowItem} onClick={() => handleLocation(item)}>
-            <div>{selectedIcon(item.icon)}</div>
-            <div className={styles.folderText}>{item}</div>
-          </div>))
-          : ""
+        contents.Entries
+          ? (contents.Entries.map(item => (<div className={styles.rowItem} onClick={() => handleLocation(item.name)}>
+            <div>{selectedIcon(item.type)}</div>
+            <div className={styles.folderText}>{item.name}</div>
+          </div>)))
+          : (<div className={styles.folderLoading}>
+            <CircularProgress></CircularProgress>
+          </div>)
       }
     </div>
   </div>);
