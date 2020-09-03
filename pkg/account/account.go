@@ -277,7 +277,7 @@ func (a *Account) LoadEncryptedMnemonicFromDisk(passPhrase string) error {
 	return nil
 }
 
-func (a *Account) storeAsEncryptedMnemonicToDisk(mnemonic string, passPhrase string) (string, string, error) {
+func (a *Account) storeAsEncryptedMnemonicToDisk(mnemonic, passPhrase string) (string, string, error) {
 	if a.IsAlreadyInitialized() {
 		err := os.Remove(a.mnemonicFileName)
 		if err != nil {
