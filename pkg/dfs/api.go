@@ -549,3 +549,38 @@ func (d *DfsAPI) DownloadFile(podFile, sessionId string) (io.ReadCloser, string,
 	}
 	return reader, ref, size, nil
 }
+
+func (d *DfsAPI) SaveNameFile(podFile, sessionId string, data []byte) error {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return ErrUserNotLoggedIn
+	}
+
+	// check if pod open
+	if ui.GetPodName() == "" {
+		return ErrPodNotOpen
+	}
+
+	err := ui.GetPod().SaveNameFile(podFile, sessionId, data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *DfsAPI) GetNameFile(podFile, sessionId string) (*pod.Name, error) {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return nil, ErrUserNotLoggedIn
+	}
+
+	// check if pod open
+	if ui.GetPodName() == "" {
+		return nil, ErrPodNotOpen
+	}
+
+	return ui.GetPod().GetNameFile(podFile, sessionId)
+}
+

@@ -25,10 +25,6 @@ import (
 
 const (
 	AvatarFileSuffix      = ".avatar"
-	NameFileSuffix        = ".name"
-	EmailFileSuffix       = ".email"
-	PhoneNumberFileSuffix = ".phone"
-	AddressFileSuffix     = ".address"
 )
 
 func (u *Users) StoreSettingsFile(rootReference utils.Address, fileType string, fd *feed.API, data []byte) error {

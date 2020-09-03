@@ -20,11 +20,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 )
 
 const (
-	nameFile     = "Name"
-	contactsFile = "Contacts"
+	NameFile     = "Name"
+	ContactsFile = "Contacts"
 )
 
 type Name struct {
@@ -55,7 +56,7 @@ func (p *Pod) CreateSettingsFiles(podName, podDir string) error {
 		return fmt.Errorf("setting: %w", err)
 	}
 	reader := bytes.NewReader(data)
-	_, err = p.UploadFile(podName, nameFile, int64(len(data)), reader, podDir, "1M")
+	_, err = p.UploadFile(podName, NameFile, int64(len(data)), reader, podDir, "1M")
 	if err != nil {
 		return fmt.Errorf("setting: %w", err)
 	}
@@ -67,10 +68,39 @@ func (p *Pod) CreateSettingsFiles(podName, podDir string) error {
 		return fmt.Errorf("setting: %w", err)
 	}
 	reader = bytes.NewReader(data)
-	_, err = p.UploadFile(podName, contactsFile, int64(len(data)), reader, podDir, "1M")
+	_, err = p.UploadFile(podName, ContactsFile, int64(len(data)), reader, podDir, "1M")
 	if err != nil {
 		return fmt.Errorf("setting: %w", err)
 	}
 
 	return nil
+}
+
+func (p *Pod) SaveNameFile(podName, podDir string, data []byte) error {
+	reader := bytes.NewReader(data)
+	_, err := p.UploadFile(podName, NameFile, int64(len(data)), reader, podDir, "1M")
+	if err != nil {
+		return fmt.Errorf("name: %w", err)
+	}
+	return nil
+}
+
+func (p *Pod) GetNameFile(podName, podFile string) (*Name, error) {
+	reader, _, _, err := p.DownloadFile(podName, podFile)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	name := &Name{}
+	err = json.Unmarshal(data, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return name, nil
 }
