@@ -79,7 +79,7 @@ type Outbox struct {
 
 type OutboxEntry struct {
 	FileName     string `json:"name"`
-	SourcePod    string `json:"pod_name"`
+	PodName      string `json:"pod_name"`
 	FileMetaHash string `json:"meta_hash"`
 	Sender       string `json:"source_ref"`
 	Receiver     string `json:"dest_ref"`
@@ -165,7 +165,7 @@ func (u *Users) ShareFileWithUser(podName, podFilePath, destinationRef string, u
 	now := time.Now().String()
 	outEntry := OutboxEntry{
 		FileName:     fileName,
-		SourcePod:    userInfo.podName,
+		PodName:      userInfo.podName,
 		FileMetaHash: utils.BytesToAddress(metaRef).Hex(),
 		Sender:       rootReference.Hex(),
 		Receiver:     destinationRef,
@@ -197,6 +197,7 @@ func (u *Users) ShareFileWithUser(podName, podFilePath, destinationRef string, u
 func (u *Users) ReceiveFileFromUser(podName string, outboxEntry OutboxEntry, userInfo *Info, pod *pod.Pod) error {
 	// construct the inbox entry
 	inboxEntry := InboxEntry{
+		FileName:     outboxEntry.FileName,
 		FileMetaHash: outboxEntry.FileMetaHash,
 		Sender:       outboxEntry.Sender,
 		Receiver:     outboxEntry.Receiver,
@@ -204,7 +205,7 @@ func (u *Users) ReceiveFileFromUser(podName string, outboxEntry OutboxEntry, use
 	}
 
 	// add the file to the pod directory specified
-	err := pod.ReceiveFileAndStore(podName, utils.PathSeperator, outboxEntry.FileName, outboxEntry.FileMetaHash)
+	err := pod.ReceiveFileAndStore(podName, outboxEntry.PodName, outboxEntry.FileName, outboxEntry.FileMetaHash)
 	if err != nil {
 		return fmt.Errorf("share: %w", err)
 	}
