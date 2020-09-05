@@ -94,6 +94,8 @@ func startHttpService() {
 	fileRouter.HandleFunc("/upload", handler.FileUploadHandler).Methods("POST")
 	fileRouter.HandleFunc("/stat", handler.FileStatHandler).Methods("POST")
 	fileRouter.HandleFunc("/delete", handler.FileDeleteHandler).Methods("POST")
+	fileRouter.HandleFunc("/share", handler.FileShareHandler).Methods("POST")
+	fileRouter.HandleFunc("/receive", handler.FileReceiveHandler).Methods("POST")
 
 	http.Handle("/", router)
 

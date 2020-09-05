@@ -59,6 +59,10 @@ func (h *Handler) PodListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if pods == nil {
+		pods = make([]string, 0)
+	}
+
 	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.OK(w, &PodListResponse{
 		Pods: pods,

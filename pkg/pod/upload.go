@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/ethersphere/bee/pkg/swarm"
 
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
@@ -54,11 +53,11 @@ func (p *Pod) UploadFile(podName, fileName string, fileSize int64, fd io.Reader,
 	if podInfo.file.IsFileAlreadyPResent(fpath) {
 		return "", fmt.Errorf("upload: file already present in the destination dir")
 	}
-	addr, err := podInfo.file.Upload(fd, fileName, fileSize, uint32(bs), fpath)
+	ref, err := podInfo.file.Upload(fd, fileName, fileSize, uint32(bs), fpath)
 	if err != nil {
 		return "", fmt.Errorf("upload: error while copying file to pod: %w", err)
 	}
-	dirInode.Hashes = append(dirInode.Hashes, addr)
+	dirInode.Hashes = append(dirInode.Hashes, ref)
 
 	dirInode.Meta.ModificationTime = time.Now().Unix()
 	topic, err := dir.UpdateDirectory(dirInode)
@@ -73,5 +72,5 @@ func (p *Pod) UploadFile(podName, fileName string, fileSize int64, fd io.Reader,
 		}
 	}
 
-	return swarm.NewAddress(addr).String(), nil
+	return utils.NewReference(ref).String(), nil
 }

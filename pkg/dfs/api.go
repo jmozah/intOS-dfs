@@ -36,12 +36,6 @@ type DfsAPI struct {
 	users   *user.Users
 }
 
-const (
-	DefaultPodName    = "home"
-	settingsDirectory = ".settings"
-	sharingDirectory  = "sharing"
-)
-
 func NewDfsAPI(dataDir, host, port string) *DfsAPI {
 	c := bee.NewBeeClient(host, port)
 	users := user.NewUsers(dataDir, c)
@@ -55,49 +49,18 @@ func NewDfsAPI(dataDir, host, port string) *DfsAPI {
 //
 //  User related APIs
 //
-func (d *DfsAPI) CreateUser(userName, passPhrase, mnemonic string, response http.ResponseWriter, sessionId string) (string, string, *pod.Info, error) {
-	reference, rcvdMnemonic, rcvdSessionId, password, err := d.users.CreateNewUser(userName, passPhrase, mnemonic, d.dataDir, d.client, response, sessionId)
+func (d *DfsAPI) CreateUser(userName, passPhrase, mnemonic string, response http.ResponseWriter, sessionId string) (string, string, error) {
+	reference, rcvdMnemonic, userInfo, err := d.users.CreateNewUser(userName, passPhrase, mnemonic, d.dataDir, d.client, response, sessionId)
 	if err != nil {
-		return reference, rcvdMnemonic, nil, err
-	}
-	if passPhrase == "" {
-		passPhrase = password
+		return reference, rcvdMnemonic, err
 	}
 
-	// get the logged in user information
-	ui := d.users.GetLoggedInUserInfo(sessionId)
-	if ui == nil {
-		return reference, rcvdMnemonic, nil, ErrUserNotLoggedIn
-	}
-
-	// create a default pod
-	pi, err := d.CreatePod(DefaultPodName, passPhrase, rcvdSessionId)
+	// TODO: check if the connection is there before creating user
+	err = d.users.CreateRootFeeds(userInfo)
 	if err != nil {
-		return reference, mnemonic, nil, ErrCreatingDefaultPod
+		return reference, rcvdMnemonic, err
 	}
-
-	// create few default directories
-	err = d.Mkdir(settingsDirectory, rcvdSessionId)
-	if err != nil {
-		return reference, mnemonic, pi, ErrCreatingSettings
-	}
-	err = d.Mkdir(sharingDirectory, rcvdSessionId)
-	if err != nil {
-		return reference, mnemonic, pi, ErrCreatingSharing
-	}
-
-	// create setting files placeholders (name, contact, avatar)
-	err = ui.GetPod().CreateSettingsFiles(DefaultPodName, settingsDirectory)
-	if err != nil {
-		return reference, mnemonic, pi, ErrCreatingSharingOutbox
-	}
-
-	// create sharing files (inbox, outbox)
-	err = ui.GetPod().CreateSharingFiles(DefaultPodName, sharingDirectory)
-	if err != nil {
-		return reference, mnemonic, pi, ErrCreatingSharingOutbox
-	}
-	return reference, rcvdMnemonic, pi, nil
+	return reference, rcvdMnemonic, nil
 }
 
 func (d *DfsAPI) LoginUser(userName, passPhrase string, response http.ResponseWriter, sessionId string) error {
@@ -548,4 +511,38 @@ func (d *DfsAPI) DownloadFile(podFile, sessionId string) (io.ReadCloser, string,
 		return nil, "", "", err
 	}
 	return reader, ref, size, nil
+}
+
+func (d *DfsAPI) ShareFile(podFile, destinationUser, sessionId string) (*user.OutboxEntry, error) {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return nil, ErrUserNotLoggedIn
+	}
+
+	// check if pod open
+	if ui.GetPodName() == "" {
+		return nil, ErrPodNotOpen
+	}
+
+	outEntry, err := d.users.ShareFileWithUser(ui.GetPodName(), podFile, destinationUser, ui, ui.GetPod())
+	if err != nil {
+		return nil, err
+	}
+	return outEntry, nil
+}
+
+func (d *DfsAPI) ReceiveFile(sessionId string, outboxEntry user.OutboxEntry) error {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return ErrUserNotLoggedIn
+	}
+
+	// check if pod open
+	if ui.GetPodName() == "" {
+		return ErrPodNotOpen
+	}
+
+	return d.users.ReceiveFileFromUser(ui.GetPodName(), outboxEntry, ui, ui.GetPod())
 }

@@ -25,7 +25,7 @@ import (
 	"resenje.org/jsonhttp"
 )
 
-type uploadFiletResponse struct {
+type uploadFileResponse struct {
 	References []Reference
 }
 
@@ -110,7 +110,7 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		references = append(references, Reference{FileName: file.Filename, Reference: reference})
 	}
 
-	jsonhttp.OK(w, &uploadFiletResponse{
+	jsonhttp.OK(w, &uploadFileResponse{
 		References: references,
 	})
 }

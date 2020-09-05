@@ -34,7 +34,7 @@ func TestAccount_CreateRootAccount(t *testing.T) {
 	podName := "test_pod1"
 	password := "letmein"
 	acc := New(podName, tempDir)
-	_, _, err = acc.CreateUserAccount(password, "")
+	_, err = acc.CreateUserAccount(password, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +75,7 @@ func TestLoadAndStoreMnemonic(t *testing.T) {
 	podName := "test_pod1"
 	password := "letmein"
 	acc := New(podName, tempDir)
-	_, _, err = acc.CreateUserAccount(password, "")
+	_, err = acc.CreateUserAccount(password, "")
 	if err != nil {
 		t.Fatal(err)
 	}

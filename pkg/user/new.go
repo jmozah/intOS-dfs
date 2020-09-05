@@ -29,18 +29,18 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
-func (u *Users) CreateNewUser(userName, passPhrase, mnemonic, dataDir string, client blockstore.Client, response http.ResponseWriter, sessionId string) (string, string, string, string, error) {
+func (u *Users) CreateNewUser(userName, passPhrase, mnemonic, dataDir string, client blockstore.Client, response http.ResponseWriter, sessionId string) (string, string, *Info, error) {
 	if u.IsUsernameAvailable(userName, dataDir) {
-		return "", "", "", "", ErrUserAlreadyPresent
+		return "", "", nil, ErrUserAlreadyPresent
 	}
 	acc := account.New(userName, dataDir)
 	accountInfo := acc.GetAccountInfo(account.UserAccountIndex)
 	fd := feed.New(accountInfo, client)
 	file := f.NewFile(userName, client, fd, accountInfo)
 
-	mnemonic, password, err := acc.CreateUserAccount(passPhrase, mnemonic)
+	mnemonic, err := acc.CreateUserAccount(passPhrase, mnemonic)
 	if err != nil {
-		return "", "", "", "", fmt.Errorf("user create:: %w", err)
+		return "", "", nil, fmt.Errorf("user create:: %w", err)
 	}
 
 	dir := d.NewDirectory(userName, client, fd, accountInfo, file)
@@ -62,8 +62,8 @@ func (u *Users) CreateNewUser(userName, passPhrase, mnemonic, dataDir string, cl
 	// set cookie and add user to map
 	err = u.Login(ui, response)
 	if err != nil {
-		return "", "", "", "", err
+		return "", "", nil, err
 	}
 
-	return accountInfo.GetAddress().Hex(), mnemonic, sessionId, password, nil
+	return accountInfo.GetAddress().Hex(), mnemonic, ui, nil
 }

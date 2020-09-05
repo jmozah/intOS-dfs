@@ -35,6 +35,7 @@ type DirOrFileEntry struct {
 	Name             string `json:"name"`
 	ContentType      string `json:"content_type"`
 	Size             string `json:"size,omitempty"`
+	BlockSize        string `json:"block_size,omitempty"`
 	CreationTime     string `json:"creation_time"`
 	ModificationTime string `json:"modification_time"`
 	AccessTime       string `json:"access_time"`
@@ -66,6 +67,7 @@ func (d *Directory) ListDir(podName, path string, printNames bool) []DirOrFileEn
 				Name:             meta.Name,
 				ContentType:      meta.ContentType,
 				Size:             strconv.FormatUint(meta.FileSize, 10),
+				BlockSize:        strconv.FormatInt(int64(uint64(meta.BlockSize)), 10),
 				CreationTime:     time.Unix(meta.CreationTime, 0).String(),
 				AccessTime:       time.Unix(meta.AccessTime, 0).String(),
 				ModificationTime: time.Unix(meta.ModificationTime, 0).String(),

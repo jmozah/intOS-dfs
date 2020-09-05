@@ -30,5 +30,6 @@ type FileMetaData struct {
 	CreationTime     int64
 	AccessTime       int64
 	ModificationTime int64
+	MetaReference    []byte
 	InodeAddress     []byte
 }

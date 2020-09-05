@@ -46,7 +46,7 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", " application/json")
 
 	// create user
-	reference, mnemonic, _, err := h.dfsAPI.CreateUser(user, password, mnemonic, w, "")
+	reference, mnemonic, err := h.dfsAPI.CreateUser(user, password, mnemonic, w, "")
 	if err != nil {
 		if err == u.ErrUserAlreadyPresent {
 			fmt.Println("signup: ", err)

@@ -30,25 +30,57 @@ import (
 )
 
 const (
-	HashLength             = 32
+	ReferenceLength        = 32
 	AddressLength          = 20
-	SignatureLength        = 65
 	MaxChunkLength         = 4096
 	FileNameLength         = 50
 	MaxDirectoryNameLength = 50
-	PodNameLength          = 50
-	SHA3Hash               = "SHA3"
-	DefaultRoot            = "dfs_root"
-	PodsInfoFile           = "dfs_pods_info"
 	PathSeperator          = string(os.PathSeparator)
 	MaxPodNameLength       = 25
 	SpanLength             = 8
 )
 
-type Hash [HashLength]byte
+type Reference struct {
+	r []byte
+}
+
+func NewReference(b []byte) Reference {
+	return Reference{r: b}
+}
+func ParseHexReference(s string) (a Reference, err error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return a, err
+	}
+	return NewReference(b), nil
+}
+func (ref Reference) String() string {
+	return hex.EncodeToString(ref.r)
+}
+func (ref Reference) Bytes() []byte {
+	return ref.r
+}
+
 type Address [AddressLength]byte
 
-func (h Hash) Bytes() []byte        { return h[:] }
+func NewAddress(b []byte) Address {
+	var a Address
+	a.SetBytes(b)
+	return a
+}
+func (a *Address) String() string {
+	return hex.EncodeToString(a[:])
+}
+func (a *Address) ParseAddress(s string) (Address, error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return ZeroAddress, err
+	}
+	return NewAddress(b), nil
+}
+
+var ZeroAddress = NewAddress(nil)
+
 func HexToAddress(s string) Address { return BytesToAddress(FromHex(s)) }
 func FromHex(s string) []byte {
 	if len(s) > 1 {
@@ -100,6 +132,15 @@ func (a Address) Hex() string {
 		}
 	}
 	return "0x" + string(result)
+}
+
+func (a Address) StringToAddress(addr string) error {
+	addrByte, err := hex.DecodeString(addr)
+	if err != nil {
+		return err
+	}
+	copy(a[:], addrByte)
+	return nil
 }
 
 const wordSize = int(unsafe.Sizeof(uintptr(0)))
@@ -192,18 +233,12 @@ func BytesToAddress(b []byte) Address {
 	a.SetBytes(b)
 	return a
 }
+
 func (a *Address) SetBytes(b []byte) {
 	if len(b) > len(a) {
 		b = b[len(b)-AddressLength:]
 	}
 	copy(a[AddressLength-len(b):], b)
-}
-
-func (h *Hash) SetBytes(b []byte) {
-	if len(b) > len(h) {
-		b = b[len(b)-HashLength:]
-	}
-	copy(h[HashLength-len(b):], b)
 }
 
 func hashFunc() hash.Hash {

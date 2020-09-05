@@ -144,7 +144,7 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 	if err != nil {
 		return nil, fmt.Errorf("uplaod: %w", err)
 	}
-
+	meta.MetaReference = metaAddr // the self address is stored to share this file easily
 	f.AddToFileMap(filePath, &meta)
 	return metaAddr, nil
 }
