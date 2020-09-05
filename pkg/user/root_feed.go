@@ -212,7 +212,7 @@ func (u *Users) ReceiveFileFromUser(podName string, outboxEntry OutboxEntry, use
 
 	// add the inbox entry to inbox
 	rootReference := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
-	data, err := getFeedData(outboxFileName, rootReference, userInfo.GetFeed())
+	data, err := getFeedData(inboxFileName, rootReference, userInfo.GetFeed())
 	if err != nil {
 		return fmt.Errorf("share: %w", err)
 	}
@@ -227,6 +227,96 @@ func (u *Users) ReceiveFileFromUser(podName string, outboxEntry OutboxEntry, use
 		return fmt.Errorf("receive: %w", err)
 	}
 	return putFeedData(inboxFileName, rootReference, inData, userInfo.GetFeed())
+}
+
+func (u *Users) SaveName(firstName, lastName, middleName, surName string, userInfo *Info) error {
+	rootReference := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
+	data, err := getFeedData(nameFile, rootReference, userInfo.GetFeed())
+	if err != nil {
+		return fmt.Errorf("save name: %w", err)
+	}
+	name := &Name{}
+	err = json.Unmarshal(data, name)
+	if err != nil {
+		return fmt.Errorf("save name: %w", err)
+	}
+	if firstName != "" {
+		name.FirstName = firstName
+	}
+	if lastName != "" {
+		name.LastName = lastName
+	}
+	if middleName != "" {
+		name.MiddleName = middleName
+	}
+	if surName != "" {
+		name.SurName = surName
+	}
+
+	nameData, err := json.Marshal(name)
+	if err != nil {
+		return fmt.Errorf("save name: %w", err)
+	}
+	return putFeedData(nameFile, rootReference, nameData, userInfo.GetFeed())
+}
+
+func (u *Users) GetName(userInfo *Info) (*Name, error) {
+	rootReference := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
+	data, err := getFeedData(nameFile, rootReference, userInfo.GetFeed())
+	if err != nil {
+		return nil, fmt.Errorf("get name: %w", err)
+	}
+	name := &Name{}
+	err = json.Unmarshal(data, name)
+	if err != nil {
+		return nil, fmt.Errorf("get name: %w", err)
+	}
+	return name, nil
+}
+
+func (u *Users) SaveContacts(phone, mobile string, address *Address, userInfo *Info) error {
+	rootReference := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
+	data, err := getFeedData(contactsFile, rootReference, userInfo.GetFeed())
+	if err != nil {
+		return fmt.Errorf("save contacts: %w", err)
+	}
+	contacts := &Contacts{}
+	err = json.Unmarshal(data, contacts)
+	if err != nil {
+		return fmt.Errorf("save contacts: %w", err)
+	}
+
+	if phone != "" {
+		contacts.Phone = phone
+	}
+	if mobile != "" {
+		contacts.Mobile = mobile
+	}
+	if address != nil {
+		contacts.Addr.AddressLine1 = address.AddressLine1
+		contacts.Addr.AddressLine2 = address.AddressLine2
+		contacts.Addr.State = address.State
+		contacts.Addr.ZipCode = address.ZipCode
+	}
+	contactData, err := json.Marshal(contacts)
+	if err != nil {
+		return fmt.Errorf("save name: %w", err)
+	}
+	return putFeedData(contactsFile, rootReference, contactData, userInfo.GetFeed())
+}
+
+func (U *Users) GetContacts(userInfo *Info) (*Contacts, error) {
+	rootReference := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
+	data, err := getFeedData(contactsFile, rootReference, userInfo.GetFeed())
+	if err != nil {
+		return nil, fmt.Errorf("get contacts: %w", err)
+	}
+	contacts := &Contacts{}
+	err = json.Unmarshal(data, contacts)
+	if err != nil {
+		return nil, fmt.Errorf("get contacts: %w", err)
+	}
+	return contacts, nil
 }
 
 func getFeedData(fileName string, rootReference utils.Address, fd *feed.API) ([]byte, error) {

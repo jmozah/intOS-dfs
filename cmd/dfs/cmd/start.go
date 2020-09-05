@@ -66,7 +66,12 @@ func startHttpService() {
 	userRouter.HandleFunc("/delete", handler.UserDeleteHandler).Methods("POST")
 	userRouter.HandleFunc("/logout", handler.UserLogoutHandler).Methods("POST")
 	userRouter.HandleFunc("/avatar", handler.SaveUserAvatarHandler).Methods("POST")
+	userRouter.HandleFunc("/name", handler.SaveUserNameHandler).Methods("POST")
+	userRouter.HandleFunc("/contact", handler.SaveUserContactHandler).Methods("POST")
+
 	userRouter.HandleFunc("/avatar", handler.GetUserAvatarHandler).Methods("GET")
+	userRouter.HandleFunc("/name", handler.GetUserNameHandler).Methods("GET")
+	userRouter.HandleFunc("/contact", handler.GetUserContactHandler).Methods("GET")
 
 	// pod related handlers
 	podRouter := router.PathPrefix("/v0/pod/").Subrouter()

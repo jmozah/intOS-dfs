@@ -122,6 +122,42 @@ func (d *DfsAPI) GetAvatar(sessionId string) ([]byte, error) {
 	return d.users.LoadSettingsFile(rootReference, user.AvatarFileSuffix, ui.GetFeed())
 }
 
+func (d *DfsAPI) SaveName(firstName, lastName, middleName, surname, sessionId string) error {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return ErrUserNotLoggedIn
+	}
+	return d.users.SaveName(firstName, lastName, middleName, surname, ui)
+}
+
+func (d *DfsAPI) GetName(sessionId string) (*user.Name, error) {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return nil, ErrUserNotLoggedIn
+	}
+	return d.users.GetName(ui)
+}
+
+func (d *DfsAPI) SaveContact(phone, mobile string, address *user.Address, sessionId string) error {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return ErrUserNotLoggedIn
+	}
+	return d.users.SaveContacts(phone, mobile, address, ui)
+}
+
+func (d *DfsAPI) GetContact(sessionId string) (*user.Contacts, error) {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return nil, ErrUserNotLoggedIn
+	}
+	return d.users.GetContacts(ui)
+}
+
 //
 //  Pods related APIs
 //

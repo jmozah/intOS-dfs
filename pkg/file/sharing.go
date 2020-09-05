@@ -31,7 +31,6 @@ func (f *File) GetFileReference(podFile string) ([]byte, string, error) {
 	if meta == nil {
 		return nil, "", fmt.Errorf("share: file not found in dfs")
 	}
-
 	return meta.MetaReference, meta.Name, nil
 }
 
