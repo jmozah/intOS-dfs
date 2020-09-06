@@ -30,41 +30,13 @@ import (
 )
 
 const (
-	HashLength             = 32
-	AddressLength          = 20
-	SignatureLength        = 65
 	MaxChunkLength         = 4096
 	FileNameLength         = 50
 	MaxDirectoryNameLength = 50
-	PodNameLength          = 50
-	SHA3Hash               = "SHA3"
-	DefaultRoot            = "dfs_root"
-	PodsInfoFile           = "dfs_pods_info"
 	PathSeperator          = string(os.PathSeparator)
 	MaxPodNameLength       = 25
 	SpanLength             = 8
 )
-
-type Hash [HashLength]byte
-type Address [AddressLength]byte
-
-func (h Hash) Bytes() []byte        { return h[:] }
-func HexToAddress(s string) Address { return BytesToAddress(FromHex(s)) }
-func FromHex(s string) []byte {
-	if len(s) > 1 {
-		if s[0:2] == "0x" || s[0:2] == "0X" {
-			s = s[2:]
-		}
-	}
-	if len(s)%2 == 1 {
-		s = "0" + s
-	}
-	return Hex2Bytes(s)
-}
-func Hex2Bytes(str string) []byte {
-	h, _ := hex.DecodeString(str)
-	return h
-}
 
 type decError struct{ msg string }
 
@@ -77,30 +49,6 @@ var (
 	ErrOddLength     = &decError{"hex string of odd length"}
 	ErrUint64Range   = &decError{"hex number > 64 bits"}
 )
-
-func (a Address) Hex() string {
-	unchecksummed := hex.EncodeToString(a[:])
-	sha := sha3.NewLegacyKeccak256()
-	_, err := sha.Write([]byte(unchecksummed))
-	if err != nil {
-		return ""
-	}
-	sumHash := sha.Sum(nil)
-
-	result := []byte(unchecksummed)
-	for i := 0; i < len(result); i++ {
-		hashByte := sumHash[i/2]
-		if i%2 == 0 {
-			hashByte = hashByte >> 4
-		} else {
-			hashByte &= 0xf
-		}
-		if result[i] > '9' && hashByte > 7 {
-			result[i] -= 32
-		}
-	}
-	return "0x" + string(result)
-}
 
 const wordSize = int(unsafe.Sizeof(uintptr(0)))
 const supportsUnaligned = runtime.GOARCH == "386" || runtime.GOARCH == "amd64" || runtime.GOARCH == "ppc64" || runtime.GOARCH == "ppc64le" || runtime.GOARCH == "s390x"
@@ -185,25 +133,6 @@ func mapError(err error) error {
 		return ErrOddLength
 	}
 	return err
-}
-
-func BytesToAddress(b []byte) Address {
-	var a Address
-	a.SetBytes(b)
-	return a
-}
-func (a *Address) SetBytes(b []byte) {
-	if len(b) > len(a) {
-		b = b[len(b)-AddressLength:]
-	}
-	copy(a[AddressLength-len(b):], b)
-}
-
-func (h *Hash) SetBytes(b []byte) {
-	if len(b) > len(h) {
-		b = b[len(b)-HashLength:]
-	}
-	copy(h[HashLength-len(b):], b)
 }
 
 func hashFunc() hash.Hash {

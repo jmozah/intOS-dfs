@@ -14,22 +14,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package datapod
+package utils
 
-var (
-	FileMetaVersion uint8 = 1
+import "encoding/hex"
+
+const (
+	ReferenceLength = 32
 )
 
-type FileMetaData struct {
-	Version          uint8
-	Path             string
-	Name             string
-	FileSize         uint64
-	BlockSize        uint32
-	ContentType      string
-	CreationTime     int64
-	AccessTime       int64
-	ModificationTime int64
-	MetaReference    []byte
-	InodeAddress     []byte
+type Reference struct {
+	r []byte
+}
+
+func NewReference(b []byte) Reference {
+	return Reference{r: b}
+}
+func ParseHexReference(s string) (a Reference, err error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return a, err
+	}
+	return NewReference(b), nil
+}
+func (ref Reference) String() string {
+	return hex.EncodeToString(ref.r)
+}
+func (ref Reference) Bytes() []byte {
+	return ref.r
 }

@@ -63,7 +63,6 @@ func (p *Pod) DirectoryStat(podName, podFileOrDir string) (*dir.DirStats, error)
 	}
 
 	acc := info.getAccountInfo().GetAddress()
-	account := swarm.NewAddress(acc[:]).String()
 
 	path := p.getDirectoryPath(podFileOrDir, info)
 	dirInode := info.getDirectory().GetDirFromDirectoryMap(path)
@@ -74,7 +73,7 @@ func (p *Pod) DirectoryStat(podName, podFileOrDir string) (*dir.DirStats, error)
 			return nil, fmt.Errorf("could not get dirnode: %w", err)
 		}
 		podAddress := swarm.NewAddress(addr).String()
-		return info.getDirectory().DirStat(podName, path, dirInode, account, podAddress)
+		return info.getDirectory().DirStat(podName, path, dirInode, acc.String(), podAddress)
 	}
 	return nil, fmt.Errorf("directory not found")
 }
@@ -90,11 +89,10 @@ func (p *Pod) FileStat(podName, podFileOrDir string) (*file.FileStats, error) {
 	}
 
 	acc := info.getAccountInfo().GetAddress()
-	account := swarm.NewAddress(acc[:]).String()
 
 	path := p.getDirectoryPath(podFileOrDir, info)
 	if !info.file.IsFileAlreadyPResent(path) {
 		return nil, fmt.Errorf("file not present in pod")
 	}
-	return info.file.FileStat(podName, path, account)
+	return info.file.FileStat(podName, path, acc.String())
 }

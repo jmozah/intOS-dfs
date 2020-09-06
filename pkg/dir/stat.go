@@ -25,7 +25,7 @@ import (
 
 type DirStats struct {
 	Account          string `json:"account"`
-	PodReference     string `json:"pod_reference"`
+	PodAddress       string `json:"pod_address"`
 	PodName          string `json:"pod_name"`
 	DirPath          string `json:"dir_path"`
 	DirName          string `json:"dir_name"`
@@ -56,14 +56,14 @@ func (d *Directory) DirStat(podName, dirName string, dirInode *DirInode, account
 
 	return &DirStats{
 		Account:          account,
-		PodReference:     podAddr,
+		PodAddress:       podAddr,
 		PodName:          podName,
 		DirPath:          path,
 		DirName:          meta.Name,
 		CreationTime:     time.Unix(meta.CreationTime, 0).String(),
 		ModificationTime: time.Unix(meta.ModificationTime, 0).String(),
 		NoOfDirectories:  string(rune(len(dl))),
-		NoOfFiles:        string(len(fl)),
+		NoOfFiles:        string(rune(len(fl))),
 	}, nil
 
 }

@@ -45,13 +45,6 @@ func (h *Handler) PodDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// dont allow deletion of default pod name
-	if podName == dfs.DefaultPodName {
-		fmt.Println("delete pod: cannot delete default pod ", dfs.DefaultPodName)
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "delete pod: cannot delete default pod " + dfs.DefaultPodName})
-		return
-	}
-
 	// delete pod
 	err = h.dfsAPI.DeletePod(podName, sessionId)
 	if err != nil {

@@ -66,7 +66,15 @@ func startHttpService() {
 	userRouter.HandleFunc("/delete", handler.UserDeleteHandler).Methods("POST")
 	userRouter.HandleFunc("/logout", handler.UserLogoutHandler).Methods("POST")
 	userRouter.HandleFunc("/avatar", handler.SaveUserAvatarHandler).Methods("POST")
+	userRouter.HandleFunc("/name", handler.SaveUserNameHandler).Methods("POST")
+	userRouter.HandleFunc("/contact", handler.SaveUserContactHandler).Methods("POST")
+
+	userRouter.HandleFunc("/stat", handler.GetUserStatHandler).Methods("GET")
 	userRouter.HandleFunc("/avatar", handler.GetUserAvatarHandler).Methods("GET")
+	userRouter.HandleFunc("/name", handler.GetUserNameHandler).Methods("GET")
+	userRouter.HandleFunc("/contact", handler.GetUserContactHandler).Methods("GET")
+	userRouter.HandleFunc("/share/inbox", handler.GetUserSharingInboxHandler).Methods("GET")
+	userRouter.HandleFunc("/share/outbox", handler.GetUserSharingOutboxHandler).Methods("GET")
 
 	// pod related handlers
 	podRouter := router.PathPrefix("/v0/pod/").Subrouter()
@@ -94,6 +102,8 @@ func startHttpService() {
 	fileRouter.HandleFunc("/upload", handler.FileUploadHandler).Methods("POST")
 	fileRouter.HandleFunc("/stat", handler.FileStatHandler).Methods("POST")
 	fileRouter.HandleFunc("/delete", handler.FileDeleteHandler).Methods("POST")
+	fileRouter.HandleFunc("/share", handler.FileShareHandler).Methods("POST")
+	fileRouter.HandleFunc("/receive", handler.FileReceiveHandler).Methods("POST")
 
 	http.Handle("/", router)
 

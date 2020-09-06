@@ -14,22 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package datapod
+package user
 
-var (
-	FileMetaVersion uint8 = 1
-)
+import "github.com/jmozah/intOS-dfs/pkg/account"
 
-type FileMetaData struct {
-	Version          uint8
-	Path             string
-	Name             string
-	FileSize         uint64
-	BlockSize        uint32
-	ContentType      string
-	CreationTime     int64
-	AccessTime       int64
-	ModificationTime int64
-	MetaReference    []byte
-	InodeAddress     []byte
+type Stat struct {
+	Name      string `json:"name"`
+	Reference string `json:"reference"`
+}
+
+func (u *Users) GetUserStat(userInfo *Info) (*Stat, error) {
+	if !u.IsUsernameAvailable(userInfo.name, u.dataDir) {
+		return nil, ErrInvalidUserName
+	}
+
+	stat := &Stat{
+		Name:      userInfo.name,
+		Reference: userInfo.GetAccount().GetAddress(account.UserAccountIndex).Hex(),
+	}
+	return stat, nil
 }

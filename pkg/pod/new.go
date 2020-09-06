@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	PodFileSuffix = ".pods"
+	podFile = "Pods"
 )
 
 func (p *Pod) CreatePod(podName, passPhrase string) (*Info, error) {
@@ -99,8 +99,7 @@ func (p *Pod) CreatePod(podName, passPhrase string) (*Info, error) {
 
 func (p *Pod) loadUserPods() (map[int]string, error) {
 	// The user pod file topic should be in the name of the user account
-	podsFileName := p.acc.GetAddress(account.UserAccountIndex).Hex() + PodFileSuffix
-	topic := utils.HashString(podsFileName)
+	topic := utils.HashString(podFile)
 	_, data, err := p.fd.GetFeedData(topic, p.acc.GetAddress(account.UserAccountIndex))
 	if err != nil {
 		if err.Error() != "no feed updates found" {
@@ -142,8 +141,7 @@ func (p *Pod) storeUserPods(pods map[int]string) error {
 		buf.WriteString(line + "\n")
 	}
 
-	podsFileName := p.acc.GetAddress(account.UserAccountIndex).Hex() + PodFileSuffix
-	topic := utils.HashString(podsFileName)
+	topic := utils.HashString(podFile)
 	_, err := p.fd.UpdateFeed(topic, p.acc.GetAddress(account.UserAccountIndex), buf.Bytes())
 	if err != nil {
 		return fmt.Errorf("store pods: %w", err)

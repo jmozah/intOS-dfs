@@ -14,31 +14,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package pod
+package utils
 
 import (
+	"bytes"
+	"crypto/rand"
 	"fmt"
+	"testing"
 
-	"github.com/jmozah/intOS-dfs/pkg/utils"
+	"github.com/ethersphere/bee/pkg/content"
 )
 
-func (p *Pod) Cat(podName string, fileName string) error {
+func Test_Address(t *testing.T) {
 
-	if !p.isPodOpened(podName) {
-		return fmt.Errorf("cat: login to pod to do this operation")
-	}
-
-	podInfo, err := p.GetPodInfoFromPodMap(podName)
+	buf := make([]byte, 4096)
+	_, err := rand.Read(buf)
 	if err != nil {
-		return fmt.Errorf("cat: %w", err)
+		t.Fatal(err)
+	}
+	ch, err := content.NewChunk(buf)
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	var fname string
-	if podInfo.IsCurrentDirRoot() {
-		fname = podInfo.GetCurrentPodPathAndName() + fileName
-	} else {
-		fname = podInfo.GetCurrentDirPathAndName() + utils.PathSeperator + fileName
+	refBytes := ch.Address().Bytes()
+	ref := NewReference(refBytes)
+	refHexString := ref.String()
+	fmt.Println(refHexString)
+	newRef, err := ParseHexReference(refHexString)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(refBytes, newRef.Bytes()) {
+		t.Fatalf("bytes are not equal")
 	}
 
-	return podInfo.getFile().Cat(fname)
 }

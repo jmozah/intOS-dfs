@@ -25,9 +25,7 @@ import (
 )
 
 func (f *File) Cat(fileName string) error {
-
 	//TODO: need to change the access time
-
 	meta := f.GetFromFileMap(fileName)
 	if meta == nil {
 		return fmt.Errorf("cat: file not found")

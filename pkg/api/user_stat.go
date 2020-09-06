@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,48 +23,28 @@ import (
 	"resenje.org/jsonhttp"
 
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
-	"github.com/jmozah/intOS-dfs/pkg/dfs"
-	"github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
-type PodListResponse struct {
-	Pods []string `json:"name"`
-}
-
-func (h *Handler) PodListHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetUserStatHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("delete: ", err)
+		fmt.Println("user stat: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		jsonhttp.BadRequest(w, "ls pod: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "user stat: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
-	// fetch pods and list them
-	pods, err := h.dfsAPI.ListPods(sessionId)
+	userStat, err := h.dfsAPI.GetUserStat(sessionId)
 	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
-		if err == dfs.ErrUserNotLoggedIn ||
-			err == pod.ErrPodNotOpened {
-			fmt.Println("ls pod: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "ls pod: " + err.Error()})
-			return
-		}
-		fmt.Println("ls pod: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "ls pod: " + err.Error()})
+		fmt.Println("user stat: ", err)
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "user stat: " + err.Error()})
 		return
-	}
-
-	if pods == nil {
-		pods = make([]string, 0)
 	}
 
 	w.Header().Set("Content-Type", " application/json")
-	jsonhttp.OK(w, &PodListResponse{
-		Pods: pods,
-	})
+	jsonhttp.OK(w, userStat)
 }

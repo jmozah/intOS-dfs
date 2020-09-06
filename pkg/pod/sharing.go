@@ -17,60 +17,75 @@ limitations under the License.
 package pod
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
+	"path/filepath"
+	"time"
+
+	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-const (
-	inboxFileName  = "inbox"
-	outboxFileName = "outbox"
-)
-
-type Inbox struct {
-	Entries []InboxEntry `json:"entries"`
-}
-
-type InboxEntry struct {
-	FileMetaHash string `json:"meta_hash"`
-	Sender       string `json:"sender_ref"`
-	SentTime     string `json:"sent_time"`
-}
-
-type Outbox struct {
-	Entries []OutboxEntry `json:"entries"`
-}
-
-type OutboxEntry struct {
-	SourcePod    string `json:"pod_name"`
-	FileMetaHash string `json:"meta_hash"`
-	Sender       string `json:"sender_ref"`
-	SentTime     string `json:"sent_time"`
-}
-
-func (p *Pod) CreateSharingFiles(podName, podDir string) error {
-	// create inbox file
-	inboxFile := &Inbox{Entries: make([]InboxEntry, 0)}
-	data, err := json.Marshal(&inboxFile)
-	if err != nil {
-		return fmt.Errorf("sharing: %w", err)
-	}
-	reader := bytes.NewReader(data)
-	_, err = p.UploadFile(podName, inboxFileName, int64(len(data)), reader, podDir, "10M")
-	if err != nil {
-		return fmt.Errorf("sharing: %w", err)
+func (p *Pod) GetMetaReferenceOfFile(podName, filePath string) ([]byte, string, error) {
+	if !p.isPodOpened(podName) {
+		return nil, "", fmt.Errorf("share: login to pod to do this operation")
 	}
 
-	// create outbox file
-	outFile := &Outbox{Entries: make([]OutboxEntry, 0)}
-	data, err = json.Marshal(&outFile)
+	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return fmt.Errorf("sharing: %w", err)
+		return nil, "", fmt.Errorf("share: %w", err)
 	}
-	reader = bytes.NewReader(data)
-	_, err = p.UploadFile(podName, outboxFileName, int64(len(data)), reader, podDir, "10M")
+
+	podDir := filepath.Dir(filePath)
+	fileName := filepath.Base(filePath)
+	path := p.getFilePath(podDir, podInfo)
+	fpath := path + utils.PathSeperator + fileName
+
+	return podInfo.getFile().GetFileReference(fpath)
+}
+
+func (p *Pod) ReceiveFileAndStore(podName, podDir, fileName, metaHexRef string) error {
+	if !p.isPodOpened(podName) {
+		return fmt.Errorf("receive: login to pod to do this operation")
+	}
+
+	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return fmt.Errorf("sharing: %w", err)
+		return fmt.Errorf("receive: %w", err)
 	}
-	return nil
+
+	path := p.getFilePath(podDir, podInfo)
+	dir := podInfo.getDirectory()
+
+	_, dirInode, err := dir.GetDirNode(path, podInfo.getFeed(), podInfo.getAccountInfo())
+	if err != nil {
+		return fmt.Errorf("receive: error while fetching pod info: %w", err)
+	}
+
+	// check if the file exists already
+	fpath := path + utils.PathSeperator + fileName
+	if podInfo.file.IsFileAlreadyPResent(fpath) {
+		return fmt.Errorf("receive: file already present in the destination dir")
+	}
+
+	// append the file meta to the parent directory and update the directory feed
+	metaReference, err := utils.ParseHexReference(metaHexRef)
+	if err != nil {
+		return fmt.Errorf("receive: %w", err)
+	}
+	dirInode.Hashes = append(dirInode.Hashes, metaReference.Bytes())
+	dirInode.Meta.ModificationTime = time.Now().Unix()
+	topic, err := dir.UpdateDirectory(dirInode)
+	if err != nil {
+		return fmt.Errorf("receive: error updating directory: %w", err)
+	}
+
+	// if the directory path is not root.. then update all the parents too
+	if path != podInfo.GetCurrentPodPathAndName() {
+		err = p.UpdateTillThePod(podName, podInfo.getDirectory(), topic, path, true)
+		if err != nil {
+			return fmt.Errorf("receive: error updating directory: %w", err)
+		}
+	}
+
+	// Add to file path map
+	return podInfo.getFile().AddFileToPath(fpath, metaHexRef)
 }

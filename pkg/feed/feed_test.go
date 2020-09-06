@@ -36,7 +36,7 @@ func TestFeed(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	acc1 := account.New("feed_pod1", tempDir)
-	_, _, err = acc1.CreateUserAccount("password", "")
+	_, err = acc1.CreateUserAccount("password", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +69,7 @@ func TestFeed(t *testing.T) {
 	t.Run("create-from-user1-read-from-user2", func(t *testing.T) {
 		//create account2
 		acc2 := account.New("feed_pod2", tempDir)
-		_, _, err = acc2.CreateUserAccount("password", "")
+		_, err = acc2.CreateUserAccount("password", "")
 		if err != nil {
 			t.Fatal(err)
 		}

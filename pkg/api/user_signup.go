@@ -26,8 +26,8 @@ import (
 )
 
 type UserSignupResponse struct {
-	Reference string `json:"reference"`
-	Mnemonic  string `json:"mnemonic"`
+	Address  string `json:"address"`
+	Mnemonic string `json:"mnemonic"`
 }
 
 func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +46,7 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", " application/json")
 
 	// create user
-	reference, mnemonic, _, err := h.dfsAPI.CreateUser(user, password, mnemonic, w, "")
+	address, mnemonic, err := h.dfsAPI.CreateUser(user, password, mnemonic, w, "")
 	if err != nil {
 		if err == u.ErrUserAlreadyPresent {
 			fmt.Println("signup: ", err)
@@ -60,7 +60,7 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 
 	// send the response
 	jsonhttp.Created(w, &UserSignupResponse{
-		Reference: reference,
-		Mnemonic:  mnemonic,
+		Address:  address,
+		Mnemonic: mnemonic,
 	})
 }

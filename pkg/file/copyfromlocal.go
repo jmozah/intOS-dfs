@@ -110,6 +110,7 @@ func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo,
 		return nil, fmt.Errorf("copyFromLocal: %w", err)
 	}
 
+	meta.MetaReference = metaAddr // to get the address for sharing
 	f.AddToFileMap(filePath, &meta)
 	return metaAddr, nil
 }
