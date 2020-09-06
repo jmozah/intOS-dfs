@@ -21,7 +21,6 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee"
 	"github.com/jmozah/intOS-dfs/pkg/dir"
@@ -107,8 +106,7 @@ func (d *DfsAPI) SaveAvatar(sessionId string, data []byte) error {
 		return ErrUserNotLoggedIn
 	}
 
-	rootReference := ui.GetAccount().GetAddress(account.UserAccountIndex)
-	return d.users.StoreSettingsFile(rootReference, user.AvatarFileSuffix, ui.GetFeed(), data)
+	return d.users.SaveAvatar(data, ui)
 }
 
 func (d *DfsAPI) GetAvatar(sessionId string) ([]byte, error) {
@@ -118,8 +116,7 @@ func (d *DfsAPI) GetAvatar(sessionId string) ([]byte, error) {
 		return nil, ErrUserNotLoggedIn
 	}
 
-	rootReference := ui.GetAccount().GetAddress(account.UserAccountIndex)
-	return d.users.LoadSettingsFile(rootReference, user.AvatarFileSuffix, ui.GetFeed())
+	return d.users.GetAvatar(ui)
 }
 
 func (d *DfsAPI) SaveName(firstName, lastName, middleName, surname, sessionId string) error {
@@ -156,6 +153,33 @@ func (d *DfsAPI) GetContact(sessionId string) (*user.Contacts, error) {
 		return nil, ErrUserNotLoggedIn
 	}
 	return d.users.GetContacts(ui)
+}
+
+func (d *DfsAPI) GetUserStat(sessionId string) (*user.Stat, error) {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return nil, ErrUserNotLoggedIn
+	}
+	return d.users.GetUserStat(ui)
+}
+
+func (d *DfsAPI) GetUserSharingInbox(sessionId string) (*user.Inbox, error) {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return nil, ErrUserNotLoggedIn
+	}
+	return d.users.GetSharingInbox(ui)
+}
+
+func (d *DfsAPI) GetUserSharingOutbox(sessionId string) (*user.Outbox, error) {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return nil, ErrUserNotLoggedIn
+	}
+	return d.users.GetSharingOutbox(ui)
 }
 
 //

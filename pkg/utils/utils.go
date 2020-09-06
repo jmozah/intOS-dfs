@@ -30,8 +30,6 @@ import (
 )
 
 const (
-	ReferenceLength        = 32
-	AddressLength          = 20
 	MaxChunkLength         = 4096
 	FileNameLength         = 50
 	MaxDirectoryNameLength = 50
@@ -39,64 +37,6 @@ const (
 	MaxPodNameLength       = 25
 	SpanLength             = 8
 )
-
-type Reference struct {
-	r []byte
-}
-
-func NewReference(b []byte) Reference {
-	return Reference{r: b}
-}
-func ParseHexReference(s string) (a Reference, err error) {
-	b, err := hex.DecodeString(s)
-	if err != nil {
-		return a, err
-	}
-	return NewReference(b), nil
-}
-func (ref Reference) String() string {
-	return hex.EncodeToString(ref.r)
-}
-func (ref Reference) Bytes() []byte {
-	return ref.r
-}
-
-type Address [AddressLength]byte
-
-func NewAddress(b []byte) Address {
-	var a Address
-	a.SetBytes(b)
-	return a
-}
-func (a *Address) String() string {
-	return hex.EncodeToString(a[:])
-}
-func (a *Address) ParseAddress(s string) (Address, error) {
-	b, err := hex.DecodeString(s)
-	if err != nil {
-		return ZeroAddress, err
-	}
-	return NewAddress(b), nil
-}
-
-var ZeroAddress = NewAddress(nil)
-
-func HexToAddress(s string) Address { return BytesToAddress(FromHex(s)) }
-func FromHex(s string) []byte {
-	if len(s) > 1 {
-		if s[0:2] == "0x" || s[0:2] == "0X" {
-			s = s[2:]
-		}
-	}
-	if len(s)%2 == 1 {
-		s = "0" + s
-	}
-	return Hex2Bytes(s)
-}
-func Hex2Bytes(str string) []byte {
-	h, _ := hex.DecodeString(str)
-	return h
-}
 
 type decError struct{ msg string }
 
@@ -109,39 +49,6 @@ var (
 	ErrOddLength     = &decError{"hex string of odd length"}
 	ErrUint64Range   = &decError{"hex number > 64 bits"}
 )
-
-func (a Address) Hex() string {
-	unchecksummed := hex.EncodeToString(a[:])
-	sha := sha3.NewLegacyKeccak256()
-	_, err := sha.Write([]byte(unchecksummed))
-	if err != nil {
-		return ""
-	}
-	sumHash := sha.Sum(nil)
-
-	result := []byte(unchecksummed)
-	for i := 0; i < len(result); i++ {
-		hashByte := sumHash[i/2]
-		if i%2 == 0 {
-			hashByte = hashByte >> 4
-		} else {
-			hashByte &= 0xf
-		}
-		if result[i] > '9' && hashByte > 7 {
-			result[i] -= 32
-		}
-	}
-	return "0x" + string(result)
-}
-
-func (a Address) StringToAddress(addr string) error {
-	addrByte, err := hex.DecodeString(addr)
-	if err != nil {
-		return err
-	}
-	copy(a[:], addrByte)
-	return nil
-}
 
 const wordSize = int(unsafe.Sizeof(uintptr(0)))
 const supportsUnaligned = runtime.GOARCH == "386" || runtime.GOARCH == "amd64" || runtime.GOARCH == "ppc64" || runtime.GOARCH == "ppc64le" || runtime.GOARCH == "s390x"
@@ -226,19 +133,6 @@ func mapError(err error) error {
 		return ErrOddLength
 	}
 	return err
-}
-
-func BytesToAddress(b []byte) Address {
-	var a Address
-	a.SetBytes(b)
-	return a
-}
-
-func (a *Address) SetBytes(b []byte) {
-	if len(b) > len(a) {
-		b = b[len(b)-AddressLength:]
-	}
-	copy(a[AddressLength-len(b):], b)
 }
 
 func hashFunc() hash.Hash {

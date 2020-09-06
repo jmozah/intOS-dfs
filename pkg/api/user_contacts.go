@@ -47,6 +47,12 @@ func (h *Handler) SaveUserContactHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if phone == "" && mobile == "" && addrLine1 == "" {
+		fmt.Println("save contact: one of the contact information should be given")
+		jsonhttp.BadRequest(w, "save contact: one of the contact information should be given")
+		return
+	}
+
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
@@ -79,5 +85,23 @@ func (h *Handler) SaveUserContactHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *Handler) GetUserContactHandler(w http.ResponseWriter, r *http.Request) {
+	// get values from cookie
+	sessionId, err := cookie.GetSessionIdFromCookie(r)
+	if err != nil {
+		fmt.Println("get contact: ", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if sessionId == "" {
+		jsonhttp.BadRequest(w, "get contact: \"cookie-id\" parameter missing in cookie")
+		return
+	}
 
+	contacts, err := h.dfsAPI.GetContact(sessionId)
+	if err != nil {
+		fmt.Println("get contact: ", err)
+		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "get contact: " + err.Error()})
+		return
+	}
+	jsonhttp.OK(w, contacts)
 }

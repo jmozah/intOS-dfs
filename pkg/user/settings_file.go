@@ -17,49 +17,154 @@ limitations under the License.
 package user
 
 import (
+	"encoding/json"
 	"fmt"
 
+	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
 const (
-	AvatarFileSuffix = ".avatar"
+	avatarFeedName   = "Avatar"
+	nameFeedName     = "Name"
+	contactsFeedName = "Contacts"
 )
 
-func (u *Users) StoreSettingsFile(rootReference utils.Address, fileType string, fd *feed.API, data []byte) error {
-	fileName := rootReference.Hex() + fileType
-	topic := utils.HashString(fileName)
-
-	// If the avatar not already present, create it
-	_, _, err := fd.GetFeedData(topic, rootReference)
-	if err != nil {
-		if err.Error() == "no feed updates found" {
-			_, err := fd.CreateFeed(topic, rootReference, data)
-			if err != nil {
-				return fmt.Errorf("store settings: %w", err)
-			}
-			return nil
-		}
-	}
-
-	// if the avatar is already present, update it
-	_, err = fd.UpdateFeed(topic, rootReference, data)
-	if err != nil {
-		return fmt.Errorf("store settings: %w", err)
-	}
-	return nil
+type Name struct {
+	FirstName  string `json:"first_name"`
+	MiddleName string `json:"middle_name"`
+	LastName   string `json:"last_name"`
+	SurName    string `json:"surname"`
 }
 
-func (u *Users) LoadSettingsFile(rootReference utils.Address, fileType string, fd *feed.API) ([]byte, error) {
-	fileName := rootReference.Hex() + fileType
-	topic := utils.HashString(fileName)
+type Contacts struct {
+	Phone  string  `json:"phone_number"`
+	Mobile string  `json:"mobile"`
+	Addr   Address `json:"address"`
+}
 
+type Address struct {
+	AddressLine1 string `json:"address_line_1"`
+	AddressLine2 string `json:"address_line_2"`
+	State        string `json:"state/Province/Region"`
+	ZipCode      string `json:"zip_code"`
+}
+
+func (u *Users) SaveName(firstName, lastName, middleName, surName string, userInfo *Info) error {
+	rootAddress := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
+	data, err := getFeedData(nameFeedName, rootAddress, userInfo.GetFeed())
+	if err != nil {
+		return fmt.Errorf("save name: %w", err)
+	}
+	name := &Name{}
+	err = json.Unmarshal(data, name)
+	if err != nil {
+		return fmt.Errorf("save name: %w", err)
+	}
+	if firstName != "" {
+		name.FirstName = firstName
+	}
+	if lastName != "" {
+		name.LastName = lastName
+	}
+	if middleName != "" {
+		name.MiddleName = middleName
+	}
+	if surName != "" {
+		name.SurName = surName
+	}
+
+	nameData, err := json.Marshal(name)
+	if err != nil {
+		return fmt.Errorf("save name: %w", err)
+	}
+	return putFeedData(nameFeedName, rootAddress, nameData, userInfo.GetFeed())
+}
+
+func (u *Users) GetName(userInfo *Info) (*Name, error) {
+	rootAddress := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
+	data, err := getFeedData(nameFeedName, rootAddress, userInfo.GetFeed())
+	if err != nil {
+		return nil, fmt.Errorf("get name: %w", err)
+	}
+	name := &Name{}
+	err = json.Unmarshal(data, name)
+	if err != nil {
+		return nil, fmt.Errorf("get name: %w", err)
+	}
+	return name, nil
+}
+
+func (u *Users) SaveContacts(phone, mobile string, address *Address, userInfo *Info) error {
+	rootAddress := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
+	data, err := getFeedData(contactsFeedName, rootAddress, userInfo.GetFeed())
+	if err != nil {
+		return fmt.Errorf("save contacts: %w", err)
+	}
+	contacts := &Contacts{}
+	err = json.Unmarshal(data, contacts)
+	if err != nil {
+		return fmt.Errorf("save contacts: %w", err)
+	}
+
+	if phone != "" {
+		contacts.Phone = phone
+	}
+	if mobile != "" {
+		contacts.Mobile = mobile
+	}
+	if address != nil {
+		contacts.Addr.AddressLine1 = address.AddressLine1
+		contacts.Addr.AddressLine2 = address.AddressLine2
+		contacts.Addr.State = address.State
+		contacts.Addr.ZipCode = address.ZipCode
+	}
+	contactData, err := json.Marshal(contacts)
+	if err != nil {
+		return fmt.Errorf("save name: %w", err)
+	}
+	return putFeedData(contactsFeedName, rootAddress, contactData, userInfo.GetFeed())
+}
+
+func (u *Users) GetContacts(userInfo *Info) (*Contacts, error) {
+	rootReference := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
+	data, err := getFeedData(contactsFeedName, rootReference, userInfo.GetFeed())
+	if err != nil {
+		return nil, fmt.Errorf("get contacts: %w", err)
+	}
+	contacts := &Contacts{}
+	err = json.Unmarshal(data, contacts)
+	if err != nil {
+		return nil, fmt.Errorf("get contacts: %w", err)
+	}
+	return contacts, nil
+}
+
+func (u *Users) SaveAvatar(avatar []byte, userInfo *Info) error {
+	rootReference := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
+	return putFeedData(avatarFeedName, rootReference, avatar, userInfo.GetFeed())
+}
+
+func (u *Users) GetAvatar(userInfo *Info) ([]byte, error) {
+	rootReference := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
+	return getFeedData(avatarFeedName, rootReference, userInfo.GetFeed())
+}
+
+func getFeedData(fileName string, rootReference utils.Address, fd *feed.API) ([]byte, error) {
+	topic := utils.HashString(fileName)
 	_, data, err := fd.GetFeedData(topic, rootReference)
 	if err != nil {
-		if err.Error() != "no feed updates found" {
-			return nil, fmt.Errorf("load settings: %w", err)
-		}
+		return nil, err
 	}
 	return data, nil
+}
+
+func putFeedData(fileName string, rootReference utils.Address, data []byte, fd *feed.API) error {
+	topic := utils.HashString(fileName)
+	_, err := fd.UpdateFeed(topic, rootReference, data)
+	if err != nil {
+		return err
+	}
+	return nil
 }
