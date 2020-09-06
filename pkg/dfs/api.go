@@ -592,7 +592,7 @@ func (d *DfsAPI) ShareFile(podFile, destinationUser, sessionId string) (*user.Ou
 	return outEntry, nil
 }
 
-func (d *DfsAPI) ReceiveFile(sessionId string, outboxEntry user.OutboxEntry) error {
+func (d *DfsAPI) ReceiveFile(sessionId string, inboxEntry user.InboxEntry) error {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(sessionId)
 	if ui == nil {
@@ -604,5 +604,5 @@ func (d *DfsAPI) ReceiveFile(sessionId string, outboxEntry user.OutboxEntry) err
 		return ErrPodNotOpen
 	}
 
-	return d.users.ReceiveFileFromUser(ui.GetPodName(), outboxEntry, ui, ui.GetPod())
+	return d.users.ReceiveFileFromUser(ui.GetPodName(), inboxEntry, ui, ui.GetPod())
 }

@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
@@ -37,11 +38,12 @@ type Inbox struct {
 }
 
 type InboxEntry struct {
-	FileName     string `json:"name"`
+	FilePath     string `json:"file_path"`
+	PodName      string `json:"pod_name"`
 	FileMetaHash string `json:"meta_ref"`
-	Sender       string `json:"source_ref"`
-	Receiver     string `json:"dest_ref"`
-	SharedTime   string `json:"sent_time"`
+	Sender       string `json:"source_address"`
+	Receiver     string `json:"dest_address"`
+	SharedTime   string `json:"shared_time"`
 }
 
 type Outbox struct {
@@ -52,8 +54,8 @@ type OutboxEntry struct {
 	FileName     string `json:"name"`
 	PodName      string `json:"pod_name"`
 	FileMetaHash string `json:"meta_ref"`
-	Sender       string `json:"source_ref"`
-	Receiver     string `json:"dest_ref"`
+	Sender       string `json:"source_address"`
+	Receiver     string `json:"dest_address"`
 	SharedTime   string `json:"shared_time"`
 }
 
@@ -66,14 +68,15 @@ func (u *Users) ShareFileWithUser(podName, podFilePath, destinationRef string, u
 
 	// Create a outbox entry
 	rootReference := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
-	now := time.Now().String()
+	now := time.Now()
+	nowTimeStr := now.Format(time.RFC3339)
 	outEntry := OutboxEntry{
 		FileName:     fileName,
 		PodName:      userInfo.podName,
 		FileMetaHash: utils.NewReference(metaRef).String(),
 		Sender:       rootReference.String(),
 		Receiver:     destinationRef,
-		SharedTime:   now,
+		SharedTime:   nowTimeStr,
 	}
 
 	// get the outbox reference from outbox feed
@@ -114,18 +117,12 @@ func (u *Users) ShareFileWithUser(podName, podFilePath, destinationRef string, u
 	return &outEntry, nil
 }
 
-func (u *Users) ReceiveFileFromUser(podName string, outboxEntry OutboxEntry, userInfo *Info, pod *pod.Pod) error {
-	// construct the inbox entry
-	inboxEntry := InboxEntry{
-		FileName:     outboxEntry.FileName,
-		FileMetaHash: outboxEntry.FileMetaHash,
-		Sender:       outboxEntry.Sender,
-		Receiver:     outboxEntry.Receiver,
-		SharedTime:   outboxEntry.SharedTime,
-	}
-
+func (u *Users) ReceiveFileFromUser(podName string, inboxEntry InboxEntry, userInfo *Info, pod *pod.Pod) error {
 	// add the file to the pod directory specified
-	err := pod.ReceiveFileAndStore(podName, utils.PathSeperator, outboxEntry.FileName, outboxEntry.FileMetaHash)
+	podDir := filepath.Dir(inboxEntry.FilePath)
+	fileName := filepath.Base(inboxEntry.FilePath)
+	inboxEntry.PodName = podName
+	err := pod.ReceiveFileAndStore(podName, podDir, fileName, inboxEntry.FileMetaHash)
 	if err != nil {
 		return fmt.Errorf("share: %w", err)
 	}

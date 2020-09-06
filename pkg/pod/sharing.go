@@ -87,5 +87,5 @@ func (p *Pod) ReceiveFileAndStore(podName, podDir, fileName, metaHexRef string) 
 	}
 
 	// Add to file path map
-	return podInfo.getFile().AddFileToPath(path, metaHexRef)
+	return podInfo.getFile().AddFileToPath(fpath, metaHexRef)
 }

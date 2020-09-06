@@ -75,8 +75,8 @@ func (h *Handler) FileReceiveHandler(w http.ResponseWriter, r *http.Request) {
 		jsonhttp.BadRequest(w, "receive: no data in body")
 		return
 	}
-	outboxEntry := user.OutboxEntry{}
-	err = json.Unmarshal(data, &outboxEntry)
+	inboxEntry := user.InboxEntry{}
+	err = json.Unmarshal(data, &inboxEntry)
 	if err != nil {
 		jsonhttp.BadRequest(w, &ErrorMessage{Err: "share: " + err.Error()})
 		return
@@ -95,7 +95,7 @@ func (h *Handler) FileReceiveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", " application/json")
-	err = h.dfsAPI.ReceiveFile(sessionId, outboxEntry)
+	err = h.dfsAPI.ReceiveFile(sessionId, inboxEntry)
 	if err != nil {
 		fmt.Println("share: ", err)
 		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "share: " + err.Error()})
@@ -103,7 +103,7 @@ func (h *Handler) FileReceiveHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonhttp.OK(w, &receiveFileResponse{
-		FileName:  outboxEntry.FileName,
-		Reference: outboxEntry.FileMetaHash,
+		FileName:  inboxEntry.FilePath,
+		Reference: inboxEntry.FileMetaHash,
 	})
 }
