@@ -42,13 +42,24 @@ function App() {
         history.push("/account-create");
       } else {
         // do the api all to see if the user is logged in
-        const loggedIn = await isLoggedIn(account.username).catch(e => {
+        const checkIsLoggedIn = await isLoggedIn(account.username).then(result => {
+          if (result.data.loggedin) {
+            history.push("/drive/root");
+            dispatch({
+              type: "SET_SYSTEM",
+              data: {
+                unlocked: true
+              }
+            });
+          } else {
+            history.push("/unlock");
+          }
+        }).catch(e => {
           return e;
         });
-        console.log(loggedIn);
-        //history.push("/drive/root");
+
         // when not logged in
-        // history.push("/unlock");
+        //
         // const res = await api.checkIsLoggedIn()
       }
     }

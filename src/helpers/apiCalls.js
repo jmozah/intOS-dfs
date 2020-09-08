@@ -1,5 +1,6 @@
 import axios from "axios";
 import qs from "querystring";
+import {Avatar} from "@material-ui/core";
 
 const axi = axios.create({baseURL: "http://localhost:9090/v0/", timeout: 120000});
 
@@ -44,7 +45,27 @@ export async function isLoggedIn(username) {
       }
     };
 
-    const response = await axi({method: "GET", url: "user/loggedin", config: config, data: qs.stringify(requestBody), withCredentials: true});
+    const response = await axi({method: "POST", url: "user/isloggedin", config: config, data: qs.stringify(requestBody), withCredentials: true});
+
+    return response;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function isUsernamePresent(username) {
+  try {
+    const requestBody = {
+      user: username
+    };
+
+    const config = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    };
+
+    const response = await axi({method: "POST", url: "user/present", config: config, data: qs.stringify(requestBody), withCredentials: true});
 
     return response;
   } catch (error) {
@@ -88,6 +109,15 @@ export async function getDirectory(directory) {
         "Content-Type": "application/x-www-form-urlencoded"
       }
     };
+
+    const openPod = await axi({
+      method: "POST",
+      url: "pod/open",
+      data: qs.stringify({password: "1234", pod: "Fairdrive"}),
+      config: config,
+      withCredentials: true
+    });
+
     let data = "/";
 
     if (directory == "root") {
@@ -107,7 +137,6 @@ export async function getDirectory(directory) {
 }
 
 export async function createAccount(username, password, mnemonic) {
-  console.log("create account saga started");
   try {
     const requestBody = {
       user: username,
@@ -127,6 +156,43 @@ export async function createAccount(username, password, mnemonic) {
     console.log("error on timeout", e);
   }
 }
+
+function dataURLtoFile(dataurl, filename) {
+  var arr = dataurl.split(","),
+    mime = arr[0].match(/:(.*?);/)[1],
+    bstr = atob(arr[1]),
+    n = bstr.length,
+    u8arr = new Uint8Array(n);
+
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+
+  return new File([u8arr], filename, {type: mime});
+}
+
+export async function storeAvatar(avatar) {
+  try {
+    //Usage example:
+    var file = dataURLtoFile(avatar, "avatar.jpg");
+
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    const config = {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    };
+
+    const response = await axi({method: "POST", url: "user/avatar", config: config, data: formData, withCredentials: true});
+    return response.data;
+  } catch (e) {
+    console.log("error on timeout", e);
+  }
+}
+
+export async function getAvatar(username) {}
 
 export async function createPod(passWord, podName) {
   try {

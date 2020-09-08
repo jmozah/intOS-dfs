@@ -2,7 +2,7 @@ import React, {useState} from "react";
 import {useHistory} from "react-router-dom";
 import {useDispatch} from "react-redux";
 import defaultAvatar from "images/defaultAvatar.png";
-import {createAccount, createDirectory, createPod} from "helpers/apiCalls";
+import {createAccount, createDirectory, createPod, isUsernamePresent, storeAvatar} from "helpers/apiCalls";
 
 // Sub-pages
 import AccountCreateIntro from "./pages/AccountCreateIntro";
@@ -13,6 +13,7 @@ import ChoosePassword from "./pages/ChoosePassword";
 import ChooseAvatar from "./pages/ChooseAvatar";
 import CreatingAccount from "./pages/CreatingAccount";
 import {createNextState} from "@reduxjs/toolkit";
+import {SignalCellularNull} from "@material-ui/icons";
 
 // Ids
 const accountCreateIntroId = "accountCreateIntroId";
@@ -48,6 +49,7 @@ export function AccountCreateRoot() {
   const [collection, setCollection] = useState();
   const [avatar, setAvatar] = useState(defaultAvatar);
   const [username, setUsername] = useState("");
+  const [usernameExists, setUsernameExists] = useState(null);
   const [password, setPassword] = useState();
 
   const [accountCreateDone, setAccountCreateDone] = useState(false);
@@ -56,11 +58,28 @@ export function AccountCreateRoot() {
   const [item2, setItem2] = useState(false);
   const [item3, setItem3] = useState(false);
 
+  async function handleUsername(username) {
+    setUsername(username);
+    await isUsernamePresent(username).then(res => {
+      console.log(res);
+      if (res.data.present) {
+        setUsernameExists("Username taken.");
+      } else {
+        setUsernameExists(null);
+      }
+    }).catch(e => {
+      console.log(e);
+    });
+  }
+
   // Create account function
   const createAccountProcess = async () => {
     setStage(creatingAccountId);
     const mnemonicJoined = mnemonic.join(" ");
-    const newUser = await createAccount(username, password, mnemonicJoined);
+    const newUser = await createAccount(username, password, mnemonicJoined).catch(e => {
+      throw new Error("User creation error");
+    });
+    const avatarStorage = await storeAvatar(avatar);
 
     setItem0(true);
     await createPod(password, "Fairdrive");
@@ -103,7 +122,7 @@ export function AccountCreateRoot() {
     case mnemonicCheckId:
       return (<MnemonicCheck nextStage={() => setStage(chooseUsernameId)} prevStage={() => setStage(mnemonicShowId)} exitStage={() => setStage(accountCreateIntroId)} mnemonic={mnemonic}/>);
     case chooseUsernameId:
-      return (<ChooseUsername avatar={avatar} setUsername={setUsername} username={username} nextStage={() => setStage(choosePasswordId)} exitStage={() => setStage(accountCreateIntroId)} avatarStage={() => setStage(chooseAvatarId)}></ChooseUsername>);
+      return (<ChooseUsername usernameExists={usernameExists} avatar={avatar} setUsername={handleUsername} username={username} nextStage={() => setStage(choosePasswordId)} exitStage={() => setStage(accountCreateIntroId)} avatarStage={() => setStage(chooseAvatarId)}></ChooseUsername>);
     case chooseAvatarId:
       return (<ChooseAvatar avatar={defaultAvatar} exitStage={() => setStage(chooseUsernameId)} setAvatar={setAvatar}></ChooseAvatar>);
     case choosePasswordId:

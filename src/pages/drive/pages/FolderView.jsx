@@ -115,6 +115,20 @@ export function FolderView({
         break;
     }
   };
+
+  const Entries = contents => {
+    switch (contents.entries.length) {
+      case 0:
+        return <div className={styles.folderLoading}>Nothing here yet.</div>;
+        break;
+      default:
+        return contents.entries.map(item => (<div key={item.name} className={styles.rowItem} onClick={() => handleLocation(item.name)}>
+          <div>{selectedIcon(item.type)}</div>
+          <div className={styles.folderText}>{item.name}</div>
+        </div>));
+        break;
+    }
+  };
   return (<div className={styles.container}>
     <div className={styles.topbar}>
       <div className={styles.topmenu}>
@@ -151,11 +165,8 @@ export function FolderView({
     </div>
     <div className={styles.innercontainer}>
       {
-        contents.Entries
-          ? (contents.Entries.map(item => (<div className={styles.rowItem} onClick={() => handleLocation(item.name)}>
-            <div>{selectedIcon(item.type)}</div>
-            <div className={styles.folderText}>{item.name}</div>
-          </div>)))
+        contents
+          ? (Entries(contents))
           : (<div className={styles.folderLoading}>
             <CircularProgress></CircularProgress>
           </div>)

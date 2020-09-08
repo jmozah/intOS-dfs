@@ -81,6 +81,14 @@ cursor: pointer;
   line-height: 14px;
 }
 
+.usernameExists {
+  composes: bodyBold from "../../styles.module.css";
+  color: var(--fds-red);
+  text-align: center;
+  margin: 0px 0px 0px 0px;
+  line-height: 14px;
+}
+
 .showkeystoggle {
   composes: smallBold from "../../styles.module.css";
   color: var(--sc-grey3);
@@ -294,7 +302,6 @@ cursor: pointer;
   align-items: center;
 }
 
-
 .statusboxitemactive {
   color: var(--fds-blue);
 }
@@ -358,11 +365,11 @@ input[type="range"]::-webkit-slider-runnable-track {
   width: 168px;
   height: 2px;
   cursor: pointer;
-  background: var(--fds-dark);
+  background: var(--fds-blue);
 }
 
 input[type="range"]::-webkit-slider-thumb {
-  border: 1px solidar(--fds-dark);
+  border: 1px solid var(--fds-blue);
   height: 18px;
   width: 18px;
   border-radius: 50%;
@@ -376,14 +383,14 @@ input[type="range"]::-moz-range-track {
   width: 168px;
   height: 2px;
   cursor: pointer;
-  background: var(--fds-dark);
+  background: var(--fds-blue);
 }
 input[type="range"]::-moz-range-thumb {
-  border: 1px solidar(--fds-dark);
+  border: 1px solid var(--fds-blue);
   height: 18px;
   width: 18px;
   border-radius: 50%;
-  background: var(--sc-blue);
+  background: var(--fds-blue);
   cursor: pointer;
   margin-top: -8px;
 }

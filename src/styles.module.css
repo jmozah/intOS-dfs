@@ -10,6 +10,7 @@
   --fds-yellow: #efd96f;
   --fds-blue: #92e7fa;
   --fds-dark: #333333;
+  --fds-red: #d13a3a;
 }
 
 body {
@@ -449,12 +450,13 @@ cursor: pointer;
 .dialogPassword {
   composes: bodyDefault;
   width: 205px;
-  color: white;
   text-align: left;
   padding-bottom: 5px;
   border: 0px;
   border-bottom: 1px solid var(--fds-blue);
   background-color: transparent;
+  color: var(--text-light);
+  outline: none;
 }
 
 .dialogPasswordiconbox {

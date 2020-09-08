@@ -13,41 +13,28 @@ function getAccount(state) {
   return state.account;
 }
 
-function getContents(state) {
-  return state.drive.fairdrive;
-}
-
 export function DriveRoot() {
   const params = useParams();
   const path = params.path;
   const account = useSelector(state => getAccount(state));
-  const driveContent = useSelector(state => getContents(state)) || {
-    directories: [],
-    files: []
-  };
 
-  const dispatch = useDispatch();
-
-  const [contents, setContents] = useState(driveContent);
+  const [contents, setContents] = useState(null);
 
   async function getDirectoryContent(path) {
     const content = await getDirectory(path);
+    console.log(content);
     setContents(content);
-    //return content;
+    return content;
   }
 
   useEffect(() => {
-    //dispatch({type: "GET_DRIVE"});
-    setContents({Loading: true});
-
-    getDirectoryContent(path).catch(e => console.log(e));
-
-    //console.log("account:", account);
+    setContents(null);
+    getDirectoryContent(path).then(res => {
+      console.log(res);
+    }).catch(e => console.log(e));
   }, [path]);
 
   const [stage, setStage] = useState(folderViewId);
-
-  const history = useHistory();
 
   // Router
   switch (stage) {
