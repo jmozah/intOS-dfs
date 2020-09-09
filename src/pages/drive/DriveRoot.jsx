@@ -20,6 +20,8 @@ export function DriveRoot() {
 
   const [contents, setContents] = useState(null);
 
+  const [folderShown, setFolderShown] = useState(false);
+
   async function getDirectoryContent(path) {
     const content = await getDirectory(path);
     console.log(content);
@@ -29,17 +31,19 @@ export function DriveRoot() {
 
   useEffect(() => {
     setContents(null);
-    getDirectoryContent(path).then(res => {
-      console.log(res);
-    }).catch(e => console.log(e));
-  }, [path]);
+    if (folderShown) {
+      getDirectoryContent(path).then(res => {
+        console.log(res);
+      }).catch(e => console.log(e));
+    }
+  }, [folderShown, path]);
 
   const [stage, setStage] = useState(folderViewId);
 
   // Router
   switch (stage) {
     case folderViewId:
-      return (<FolderView path={path} refresh={getDirectoryContent} account={account} contents={contents} nextStage={() => setStage()} exitStage={() => setStage()}></FolderView>);
+      return (<FolderView path={path} setFolderShown={setFolderShown} refresh={getDirectoryContent} account={account} contents={contents} nextStage={() => setStage()} exitStage={() => setStage()}></FolderView>);
     default:
       return <h1>Oops...</h1>;
   }
