@@ -103,7 +103,7 @@ func startHttpService() {
 	http.Handle("/", router)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:9090"},
+		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
 		// Enable Debugging for testing, consider disabling in production
 		// Debug: true,
