@@ -19,9 +19,11 @@ import {
 import {
   mdiFolder,
   mdiFolderEdit,
+  mdiFolderMultiplePlus,
   mdiSettingsHelper,
   mdiShare,
   mdiTrashCan,
+  mdiUpload,
   mdiZipBox
 } from "@mdi/js";
 import Icon from "@mdi/react";
@@ -232,13 +234,13 @@ export function FolderView({
         <List>
           <ListItem button="button" divider="divider" role="listitem">
             <ListItemIcon>
-              <Icon path={mdiShare} size="24px"></Icon>
+              <Icon path={mdiFolderMultiplePlus} size="24px"></Icon>
             </ListItemIcon>
             <ListItemText primary="New Folder"/>
           </ListItem>
           <ListItem button="button" divider="divider" role="listitem">
             <ListItemIcon>
-              <Icon path={mdiFolderEdit} size="24px"></Icon>
+              <Icon path={mdiUpload} size="24px"></Icon>
             </ListItemIcon>
             <ListItemText primary="Upload Items"/>
           </ListItem>
@@ -275,7 +277,7 @@ export function FolderView({
                   : path
               }
             </div>
-            <div className={styles.status}>~3211MB</div>
+            <div className={styles.status}>321MB of 1TB used</div>
           </div>)
       }
     </div>
