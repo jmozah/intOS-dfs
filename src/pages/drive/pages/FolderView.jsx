@@ -1,8 +1,30 @@
-import React, {useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import styles from "../drive.module.css";
 import {Route, NavLink} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import {useHistory} from "react-router-dom";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText
+} from "@material-ui/core";
+
+import {
+  mdiFolder,
+  mdiFolderEdit,
+  mdiSettingsHelper,
+  mdiShare,
+  mdiTrashCan,
+  mdiZipBox
+} from "@mdi/js";
+import Icon from "@mdi/react";
 
 import {
   AddCircleOutline,
@@ -24,19 +46,45 @@ export function FolderView({
   path,
   contents,
   account,
-  refresh
+  refresh,
+  setFolderShown
 }) {
   const [uploadShown, setUploadShown] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("ready");
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const hiddenFileInput = React.useRef(null);
+  const [folderToEdit, setFolderToEdit] = useState("");
+  const [openFolder, setFolderOpen] = useState(false);
+  const [openNew, setNewOpen] = useState(false);
+
+  const hiddenFileInput = useRef(null);
+
   const dispatch = useDispatch();
   const history = useHistory();
 
-  const handleClick = event => {
+  function handleFolderClickOpen() {
+    setFolderOpen(true);
+  }
+
+  function handleFolderClose() {
+    setFolderOpen(false);
+  }
+
+  function handleNewClickOpen() {
+    setNewOpen(true);
+  }
+
+  function handleNewClose() {
+    setNewOpen(false);
+  }
+
+  useEffect(() => {
+    setFolderShown(true);
+  }, []);
+
+  function handleClick(event) {
     hiddenFileInput.current.click();
-  };
+  }
 
   function handleChange(event) {
     handleFileUpload(event.target.files);
@@ -64,6 +112,11 @@ export function FolderView({
     setUploadShown(!uploadShown);
   }
 
+  function toggleFolderMenuShown(item) {
+    setFolderToEdit(item);
+    handleFolderClickOpen();
+  }
+
   function handleLocation(item) {
     console.log(item);
     history.push("/drive/" + item);
@@ -71,11 +124,11 @@ export function FolderView({
 
   const selectedIcon = icon => {
     switch (icon) {
-      case "Dir":
-        return <Folder></Folder>;
+      case "inode/directory":
+        return <Icon path={mdiFolder}></Icon>;
         break;
-      case "txt":
-        return <Subject></Subject>;
+      case "application/zip":
+        return <Icon path={mdiZipBox}></Icon>;
         break;
       case "mp3":
         return <LibraryMusic></LibraryMusic>;
@@ -122,12 +175,79 @@ export function FolderView({
         return <div className={styles.folderLoading}>Nothing here yet.</div>;
         break;
       default:
-        return contents.entries.map(item => (<div key={item.name} className={styles.rowItem} onClick={() => handleLocation(item.name)}>
-          <div>{selectedIcon(item.type)}</div>
-          <div className={styles.folderText}>{item.name}</div>
+        return contents.entries.map(item => (<div key={item.name} className={styles.rowItem}>
+          <div onClick={() => handleLocation(item.name)}>
+            {selectedIcon(item.content_type)}
+          </div>
+          <div onClick={() => handleLocation(item.name)} className={styles.folderText}>
+            {item.name}
+          </div>
+          <div>
+            <Icon path={mdiSettingsHelper} onClick={() => toggleFolderMenuShown(item.name)} className={styles.custom} rotate={90} size="36px"></Icon>
+          </div>
         </div>));
         break;
     }
+  };
+
+  const FolderDialogFragment = () => {
+    return (<Dialog open={openFolder} onClose={handleFolderClose} fullWidth="fullWidth">
+      <DialogTitle>
+        <span className={styles.folderMenuTitle}>{folderToEdit}</span>
+      </DialogTitle>
+      <DialogContent>
+        <List>
+          <ListItem button="button" divider="divider" role="listitem">
+            <ListItemIcon>
+              <Icon path={mdiShare} size="24px"></Icon>
+            </ListItemIcon>
+            <ListItemText primary="Share"/>
+          </ListItem>
+          <ListItem button="button" divider="divider" role="listitem">
+            <ListItemIcon>
+              <Icon path={mdiFolderEdit} size="24px"></Icon>
+            </ListItemIcon>
+            <ListItemText primary="Rename"/>
+          </ListItem>
+          <ListItem button="button" divider="divider" role="listitem">
+            <ListItemIcon>
+              <Icon path={mdiTrashCan} size="24px"></Icon>
+            </ListItemIcon>
+            <ListItemText primary="Delete"/>
+          </ListItem>
+        </List>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleFolderClose}>Close</Button>
+      </DialogActions>
+    </Dialog>);
+  };
+
+  const NewDialogFragment = () => {
+    return (<Dialog open={openNew} onClose={handleNewClose} fullWidth="fullWidth">
+      <DialogTitle>
+        <span className={styles.folderMenuTitle}>New</span>
+      </DialogTitle>
+      <DialogContent>
+        <List>
+          <ListItem button="button" divider="divider" role="listitem">
+            <ListItemIcon>
+              <Icon path={mdiShare} size="24px"></Icon>
+            </ListItemIcon>
+            <ListItemText primary="New Folder"/>
+          </ListItem>
+          <ListItem button="button" divider="divider" role="listitem">
+            <ListItemIcon>
+              <Icon path={mdiFolderEdit} size="24px"></Icon>
+            </ListItemIcon>
+            <ListItemText primary="Upload Items"/>
+          </ListItem>
+        </List>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleNewClose}>Close</Button>
+      </DialogActions>
+    </Dialog>);
   };
   return (<div className={styles.container}>
     <div className={styles.topbar}>
@@ -139,12 +259,8 @@ export function FolderView({
             &nbsp; BZZ
           </div>
         </div>
-        <div className={styles.addButton} onClick={() => toggleUploadShown()}>
-          {
-            uploadShown
-              ? (<HighlightOff fontSize="large"></HighlightOff>)
-              : (<AddCircleOutline fontSize="large"></AddCircleOutline>)
-          }
+        <div className={styles.addButton} onClick={() => handleNewClickOpen()}>
+          <AddCircleOutline fontSize="large"></AddCircleOutline>
         </div>
       </div>
       <div className={styles.flexer}></div>
@@ -172,6 +288,8 @@ export function FolderView({
           </div>)
       }
     </div>
+    {FolderDialogFragment()}
+    {NewDialogFragment()}
   </div>);
 }
 
