@@ -28,8 +28,6 @@ type Web struct {
 
 func NewWeb() *Web {
 	return &Web{
-		indexTmpl:      template.Must(template.ParseFiles("pkg/web/templates/index.html")),
-		signupPageTmpl: template.Must(template.ParseFiles("pkg/web/templates/signup.html")),
-		loginPageTmpl:  template.Must(template.ParseFiles("pkg/web/templates/login.html")),
+		indexTmpl:      template.Must(template.ParseFiles("build/index.html")),
 	}
 }

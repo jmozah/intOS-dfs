@@ -45,14 +45,7 @@ func init() {
 }
 
 func startHttpService() {
-	fs := http.FileServer(http.Dir("pkg/web/static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	router := mux.NewRouter()
-
-	// Web page handlers
-	router.HandleFunc("/", handler.WebHandlers.IndexPageHandler)
-	router.HandleFunc("/login_page", handler.WebHandlers.LoginPageHandler).Methods("POST")
-	router.HandleFunc("/signup_page", handler.WebHandlers.SignupPageHandler).Methods("POST")
 
 	// User account related handlers which does not login need middleware
 	router.HandleFunc("/v0/user/signup", handler.UserSignupHandler).Methods("POST")
@@ -105,6 +98,8 @@ func startHttpService() {
 	fileRouter.HandleFunc("/share", handler.FileShareHandler).Methods("POST")
 	fileRouter.HandleFunc("/receive", handler.FileReceiveHandler).Methods("POST")
 
+	// Web page handlers
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./build/")))
 	http.Handle("/", router)
 
 	c := cors.New(cors.Options{
