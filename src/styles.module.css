@@ -435,7 +435,6 @@ cursor: pointer;
   border-radius: 50%;
   height: 64px;
   width: 64px;
-  margin-bottom: 60px;
 }
 
 .dialogPasswordBox {
@@ -467,4 +466,12 @@ cursor: pointer;
   margin-top: -40px;
   max-width: 520px;
   padding: 20px;
+}
+
+.username {
+  composes: bodyBold;
+  color: var(--text-light);
+  text-align: center;
+  margin: 20px 0px 0px 0px;
+  line-height: 14px;
 }

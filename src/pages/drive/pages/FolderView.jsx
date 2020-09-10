@@ -122,6 +122,10 @@ export function FolderView({
     history.push("/drive/" + item);
   }
 
+  function handleGotoAccount() {
+    history.push("/account");
+  }
+
   const selectedIcon = icon => {
     switch (icon) {
       case "inode/directory":
@@ -253,7 +257,9 @@ export function FolderView({
     <div className={styles.topbar}>
       <div className={styles.topmenu}>
         <div className={styles.user}>
-          <div className={styles.username}>{account.username}</div>
+          <div onClick={() => handleGotoAccount()} className={styles.username}>
+            {account.username}
+          </div>
           <div className={styles.balance}>
             {account.balance}
             &nbsp; BZZ

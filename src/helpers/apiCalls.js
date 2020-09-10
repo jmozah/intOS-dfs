@@ -22,10 +22,30 @@ export async function logIn(username, password) {
     const openPod = await axi({
       method: "POST",
       url: "pod/open",
-      data: qs.stringify({password: "1234", pod: "Fairdrive"}),
+      data: qs.stringify({password: password, pod: "Fairdrive"}),
       config: config,
       withCredentials: true
     });
+
+    return response;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function logOut(username) {
+  try {
+    const requestBody = {
+      user: username
+    };
+
+    const config = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    };
+
+    const response = await axi({method: "POST", url: "user/logout", config: config, data: qs.stringify(requestBody), withCredentials: true});
 
     return response;
   } catch (error) {
@@ -192,7 +212,37 @@ export async function storeAvatar(avatar) {
   }
 }
 
-export async function getAvatar(username) {}
+export async function getAvatar(username) {
+  try {
+    const config = {
+      responseType: "arraybuffer",
+
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    };
+
+    const data = {
+      username: username
+    };
+
+    const response = await axi({method: "GET", url: "user/avatar", config: config, data: qs.stringify(data), withCredentials: true});
+    console.log(response);
+
+    const blob = new Blob([response.data]);
+
+    var reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = function () {
+      var base64data = reader.result;
+      console.log(base64data);
+    };
+
+    return response.data;
+  } catch (e) {
+    console.log("error on timeout", e);
+  }
+}
 
 export async function createPod(passWord, podName) {
   try {
