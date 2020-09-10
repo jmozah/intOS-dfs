@@ -3,6 +3,8 @@ import styles from "../drive.module.css";
 import {Route, NavLink} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import {useHistory} from "react-router-dom";
+import sortByProp from "helpers/sortByProp";
+
 import {
   Button,
   Dialog,
@@ -38,7 +40,7 @@ import {
 
 import {CircularProgress, LinearProgress} from "@material-ui/core";
 import defaultAvatar from "images/defaultAvatar.png";
-import {fileUpload} from "helpers/apiCalls";
+import {createDirectory, deleteDirectory, fileUpload} from "helpers/apiCalls";
 
 export function FolderView({
   nextStage,
@@ -49,6 +51,9 @@ export function FolderView({
   refresh,
   setFolderShown
 }) {
+  const homeId = "homeId";
+  const newFolderId = "newFolderId";
+
   const [uploadShown, setUploadShown] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("ready");
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -56,8 +61,15 @@ export function FolderView({
   const [folderToEdit, setFolderToEdit] = useState("");
   const [openFolder, setFolderOpen] = useState(false);
   const [openNew, setNewOpen] = useState(false);
+  const [newDialogContentState, setNewDialogContentState] = useState(homeId);
+
+  const [newFolderName, setNewFolderName] = useState();
 
   const hiddenFileInput = useRef(null);
+
+  const toSortProp = "name";
+  const [toSort, setToSort] = useState(toSortProp);
+  const orderProp = "asc";
 
   const dispatch = useDispatch();
   const history = useHistory();
@@ -88,6 +100,10 @@ export function FolderView({
 
   function handleChange(event) {
     handleFileUpload(event.target.files);
+  }
+
+  function handleFolderNameChange(e) {
+    setNewFolderName(e.target.value);
   }
 
   async function handleFileUpload(files) {
@@ -124,6 +140,20 @@ export function FolderView({
 
   function handleGotoAccount() {
     history.push("/account");
+  }
+
+  async function handleNewFolder() {
+    console.log(newFolderName);
+    await createDirectory(newFolderName);
+    refresh(path);
+    handleNewClose();
+  }
+
+  async function handleDeleteFolder(folderName) {
+    console.log(folderName);
+    await deleteDirectory(folderName);
+    refresh(path);
+    handleFolderClose();
   }
 
   const selectedIcon = icon => {
@@ -179,7 +209,7 @@ export function FolderView({
         return <div className={styles.folderLoading}>Nothing here yet.</div>;
         break;
       default:
-        return contents.entries.map(item => (<div key={item.name} className={styles.rowItem}>
+        return contents.entries.sort(sortByProp(toSort, orderProp)).map(item => (<div key={item.name} className={styles.rowItem}>
           <div onClick={() => handleLocation(item.name)}>
             {selectedIcon(item.content_type)}
           </div>
@@ -213,7 +243,7 @@ export function FolderView({
             </ListItemIcon>
             <ListItemText primary="Rename"/>
           </ListItem>
-          <ListItem button="button" divider="divider" role="listitem">
+          <ListItem onClick={() => handleDeleteFolder(folderToEdit)} button="button" divider="divider" role="listitem">
             <ListItemIcon>
               <Icon path={mdiTrashCan} size="24px"></Icon>
             </ListItemIcon>
@@ -227,30 +257,51 @@ export function FolderView({
     </Dialog>);
   };
 
+  const NewDialogContent = () => {
+    switch (newDialogContentState) {
+      case homeId:
+        return (<div>
+          <DialogContent>
+            <List>
+              <ListItem onClick={() => setNewDialogContentState(newFolderId)} button="button" divider="divider" role="listitem">
+                <ListItemIcon>
+                  <Icon path={mdiShare} size="24px"></Icon>
+                </ListItemIcon>
+                <ListItemText primary="New Folder"/>
+              </ListItem>
+              <ListItem button="button" divider="divider" role="listitem">
+                <ListItemIcon>
+                  <Icon path={mdiFolderEdit} size="24px"></Icon>
+                </ListItemIcon>
+                <ListItemText primary="Upload Items"/>
+              </ListItem>
+            </List>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleNewClose}>Close</Button>
+          </DialogActions>
+        </div>);
+        break;
+      case newFolderId:
+        return (<div>
+          <DialogContent>
+            <input type="text" onChange={e => handleFolderNameChange(e)}></input>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleNewFolder}>Save</Button>
+
+            <Button onClick={handleNewClose}>Close</Button>
+          </DialogActions>
+        </div>);
+
+      default:
+        break;
+    }
+  };
+
   const NewDialogFragment = () => {
     return (<Dialog open={openNew} onClose={handleNewClose} fullWidth="fullWidth">
-      <DialogTitle>
-        <span className={styles.folderMenuTitle}>New</span>
-      </DialogTitle>
-      <DialogContent>
-        <List>
-          <ListItem button="button" divider="divider" role="listitem">
-            <ListItemIcon>
-              <Icon path={mdiShare} size="24px"></Icon>
-            </ListItemIcon>
-            <ListItemText primary="New Folder"/>
-          </ListItem>
-          <ListItem button="button" divider="divider" role="listitem">
-            <ListItemIcon>
-              <Icon path={mdiFolderEdit} size="24px"></Icon>
-            </ListItemIcon>
-            <ListItemText primary="Upload Items"/>
-          </ListItem>
-        </List>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleNewClose}>Close</Button>
-      </DialogActions>
+      {NewDialogContent()}
     </Dialog>);
   };
   return (<div className={styles.container}>

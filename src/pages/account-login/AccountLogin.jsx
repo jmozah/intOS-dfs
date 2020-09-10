@@ -34,11 +34,20 @@ export default function AccountLogin({open}) {
   };
 
   async function onLogin() {
-    const isUserLoggedIn = await logIn(username, password);
+    const isUserLoggedIn = await logIn(username, password).catch(e => console.error(e));
     console.log(isUserLoggedIn);
 
     if (isUserLoggedIn.data.code == 200) {
-      const avatar = getAvatar(username);
+      const avatar = await getAvatar(username);
+      console.log(avatar);
+      dispatch({
+        type: "SET_ACCOUNT",
+        data: {
+          username: username,
+          avatar: avatar,
+          balance: 0.0
+        }
+      });
       dispatch({
         type: "SET_SYSTEM",
         data: {
