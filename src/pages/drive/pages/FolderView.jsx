@@ -4,6 +4,8 @@ import {Route, NavLink} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import {useHistory} from "react-router-dom";
 import sortByProp from "helpers/sortByProp";
+import urlPath from "helpers/urlPath";
+import NewDialog from "./components/NewDialog";
 
 import {
   Button,
@@ -51,20 +53,15 @@ export function FolderView({
   refresh,
   setFolderShown
 }) {
-  const homeId = "homeId";
-  const newFolderId = "newFolderId";
-
   const [uploadShown, setUploadShown] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("ready");
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const [folderToEdit, setFolderToEdit] = useState("");
   const [openFolder, setFolderOpen] = useState(false);
-  const [openNew, setNewOpen] = useState(false);
-  const [newDialogContentState, setNewDialogContentState] = useState(homeId);
+  const [openNew, setNewOpen] = useState(true);
 
-  const [newFolderName, setNewFolderName] = useState();
-
+  const [newFolderName, setNewFolderName] = useState("");
   const hiddenFileInput = useRef(null);
 
   const toSortProp = "name";
@@ -86,7 +83,7 @@ export function FolderView({
     setNewOpen(true);
   }
 
-  function handleNewClose() {
+  function handleNewClickClose() {
     setNewOpen(false);
   }
 
@@ -135,18 +132,17 @@ export function FolderView({
 
   function handleLocation(item) {
     console.log(item);
-    history.push("/drive/" + item);
+    let writePath = "";
+    if (path == "root") {
+      writePath = "";
+    } else {
+      writePath = path + "&";
+    }
+    history.push("/drive/" + writePath + item);
   }
 
   function handleGotoAccount() {
     history.push("/account");
-  }
-
-  async function handleNewFolder() {
-    console.log(newFolderName);
-    await createDirectory(newFolderName);
-    refresh(path);
-    handleNewClose();
   }
 
   async function handleDeleteFolder(folderName) {
@@ -257,53 +253,6 @@ export function FolderView({
     </Dialog>);
   };
 
-  const NewDialogContent = () => {
-    switch (newDialogContentState) {
-      case homeId:
-        return (<div>
-          <DialogContent>
-            <List>
-              <ListItem onClick={() => setNewDialogContentState(newFolderId)} button="button" divider="divider" role="listitem">
-                <ListItemIcon>
-                  <Icon path={mdiShare} size="24px"></Icon>
-                </ListItemIcon>
-                <ListItemText primary="New Folder"/>
-              </ListItem>
-              <ListItem button="button" divider="divider" role="listitem">
-                <ListItemIcon>
-                  <Icon path={mdiFolderEdit} size="24px"></Icon>
-                </ListItemIcon>
-                <ListItemText primary="Upload Items"/>
-              </ListItem>
-            </List>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleNewClose}>Close</Button>
-          </DialogActions>
-        </div>);
-        break;
-      case newFolderId:
-        return (<div>
-          <DialogContent>
-            <input type="text" onChange={e => handleFolderNameChange(e)}></input>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleNewFolder}>Save</Button>
-
-            <Button onClick={handleNewClose}>Close</Button>
-          </DialogActions>
-        </div>);
-
-      default:
-        break;
-    }
-  };
-
-  const NewDialogFragment = () => {
-    return (<Dialog open={openNew} onClose={handleNewClose} fullWidth="fullWidth">
-      {NewDialogContent()}
-    </Dialog>);
-  };
   return (<div className={styles.container}>
     <div className={styles.topbar}>
       <div className={styles.topmenu}>
@@ -346,7 +295,7 @@ export function FolderView({
       }
     </div>
     {FolderDialogFragment()}
-    {NewDialogFragment()}
+    <NewDialog open={openNew} onClose={() => handleNewClickClose()} path={path} refresh={refresh}></NewDialog>
   </div>);
 }
 

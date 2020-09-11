@@ -8,6 +8,12 @@
   width: 100vw;
 }
 
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .topbar {
   position: fixed;
   top: 0px;
@@ -67,6 +73,10 @@
 
 .folderMenuTitle {
   composes: bodyBold from "../../styles.module.css";
+}
+
+.dialogContainer {
+  background-color: var(--fds-dark);
 }
 
 .progress {
@@ -161,3 +171,16 @@
 .flexer {
   margin: 20px;
 }
+
+.nameInput {
+  composes: bodyDefault from "../../styles.module.css";
+  width: 205px;
+  text-align: left;
+  padding-bottom: 5px;
+  border: 0px;
+  border-bottom: 1px solid var(--fds-blue);
+  background-color: transparent;
+  color: var(--text-light);
+  outline: none;
+}
+
