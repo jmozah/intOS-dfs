@@ -1,6 +1,17 @@
 import React, {useEffect, useRef, useState} from "react";
 import styles from "../../drive.module.css";
 import urlPath from "helpers/urlPath";
+import rootStyles from "styles.module.css";
+import {
+  AddCircleOutline,
+  Cloud,
+  Folder,
+  HighlightOff,
+  LibraryMusic,
+  Subject,
+  FileCopySharp
+} from "@material-ui/icons/";
+import {CircularProgress, LinearProgress} from "@material-ui/core";
 
 import {
   Button,
@@ -16,10 +27,12 @@ import {
 } from "@material-ui/core";
 import {
   mdiFolder,
+  mdiFolderPlus,
   mdiFolderEdit,
   mdiSettingsHelper,
   mdiShare,
   mdiTrashCan,
+  mdiUpload,
   mdiZipBox
 } from "@mdi/js";
 import Icon from "@mdi/react";
@@ -30,11 +43,20 @@ export default function NewDialog({open, path, refresh, onClose}) {
 
   const homeId = "homeId";
   const newFolderId = "newFolderId";
+  const uploadId = "uploadId";
+  const uploadingId = "uploadingId";
+  const swarmuploadId = "swarmuploadId";
+  const errorId = "errorId";
 
   //const [openNew, setNewOpen] = useState(open);
   const [newDialogContentState, setNewDialogContentState] = useState(homeId);
 
   const [newFolderName, setNewFolderName] = useState();
+
+  const [uploadStatus, setUploadStatus] = useState("ready");
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const hiddenFileInput = useRef(null);
 
   function handleNewClose() {
     setNewDialogContentState(homeId);
@@ -45,60 +67,135 @@ export default function NewDialog({open, path, refresh, onClose}) {
     setNewFolderName(e.target.value);
   }
 
+  function handleClick(event) {
+    hiddenFileInput.current.click();
+  }
+
+  function handleChange(event) {
+    handleFileUpload(event.target.files);
+  }
+
   async function handleNewFolder() {
     console.log(newFolderName);
     let writePath = "";
     if (path == "root") {
       writePath = "/";
     } else {
-      writePath = "/" + urlPath(path);
+      writePath = "/" + urlPath(path) + "/";
     }
     await createDirectory(writePath + newFolderName);
+    //console.log("will create new folder: ", writePath + newFolderName);
     refresh(path);
     handleNewClose();
+  }
+
+  async function handleFileUpload(files) {
+    setNewDialogContentState(uploadingId);
+    await fileUpload(files, urlPath(path), function (progress, total) {
+      setUploadProgress(Math.round((progress / total) * 100));
+      if (progress == total) {
+        setNewDialogContentState(swarmuploadId);
+      }
+    }).then(() => {
+      handleNewClose();
+      setNewDialogContentState(homeId);
+      refresh(path);
+    }).catch(() => {
+      setNewDialogContentState(errorId);
+    });
+
+    //dispatch({type: "GET_DRIVE"});
   }
 
   const NewDialogContent = () => {
     switch (newDialogContentState) {
       case homeId:
-        return (<div>
-          <DialogContent>
-            <List>
-              <ListItem onClick={() => setNewDialogContentState(newFolderId)} button="button" divider="divider" role="listitem">
-                <ListItemIcon>
-                  <Icon path={mdiShare} size="24px"></Icon>
-                </ListItemIcon>
-                <ListItemText primary="New Folder"/>
-              </ListItem>
-              <ListItem button="button" divider="divider" role="listitem">
-                <ListItemIcon>
-                  <Icon path={mdiFolderEdit} size="24px"></Icon>
-                </ListItemIcon>
-                <ListItemText primary="Upload Items"/>
-              </ListItem>
-            </List>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleNewClose}>Close</Button>
-          </DialogActions>
+        return (<div className={styles.foldermenu}>
+          <div className={styles.menutitle}>
+            <div>New</div>
+            <div className={styles.close} onClick={handleNewClose}>
+              <div className={styles.closeicon}/>
+            </div>
+          </div>
+          <div className={styles.menuitem} onClick={() => setNewDialogContentState(newFolderId)}>
+            <Icon path={mdiFolderPlus} className={styles.blue} size="24px"></Icon>
+            New folder
+          </div>
+          <div className={styles.menuitem} onClick={() => setNewDialogContentState(uploadId)}>
+            <Icon path={mdiUpload} className={styles.blue} size="24px"></Icon>
+            Upload files
+          </div>
         </div>);
         break;
       case newFolderId:
-        return (<div>
-          <DialogContent className={styles.center}>
-            <input className={styles.nameInput} placeholder="Folder name" type="text" onChange={e => handleFolderNameChange(e)}></input>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleNewFolder}>Save</Button>
+        return (<div className={styles.foldermenu}>
+          <div className={styles.menutitle}>
+            <div>New folder</div>
+            <div className={styles.close} onClick={handleNewClose}>
+              <div className={styles.closeicon}/>
+            </div>
+          </div>
 
-            <Button onClick={handleNewClose}>Close</Button>
-          </DialogActions>
+          <input className={styles.nameInput} placeholder="Folder name" type="text" onChange={e => handleFolderNameChange(e)}></input>
+          <div className={styles.flexer}></div>
+
+          <div onClick={handleNewFolder} className={styles.buttonPlace}>
+            <div className={rootStyles.buttontext}>> create folder</div>
+          </div>
         </div>);
+      case uploadId:
+        return (<div className={styles.foldermenu}>
+          <div className={styles.menutitle}>
+            <div>Upload</div>
+            <div className={styles.close} onClick={handleNewClose}>
+              <div className={styles.closeicon}/>
+            </div>
+          </div>
+          <div onClick={handleClick} className={styles.buttonPlace}>
+            <div className={rootStyles.buttontext}>> select files</div>
+          </div>
+          <input multiple="multiple" type="file" ref={hiddenFileInput} onChange={handleChange} style={{
+              display: "none"
+            }}/>
+        </div>);
+        break;
+      case uploadingId:
+        return (<div className={styles.foldermenu}>
+          <div className={styles.close} onClick={handleNewClose}>
+            <div className={styles.closeicon}/>
+          </div>
+          <div className={styles.uploadSpace} onClick={handleClick}>
+            <div className={styles.statusText}>Uploading...</div>
+            <LinearProgress className={styles.progress} variant="determinate" value={uploadProgress}/>
+          </div>
+        </div>);
+        break;
+      case swarmuploadId:
+        return (<div className={styles.foldermenu}>
+          <div className={styles.close} onClick={handleNewClose}>
+            <div className={styles.closeicon}/>
+          </div>
+          <div className={styles.uploadSpace} onClick={handleClick}>
+            <div className={styles.statusText}>Storing on Swarm...</div>
+            <LinearProgress className={styles.progress}/>
+          </div>
+        </div>);
+        break;
+      case errorId:
+        return (<div className={styles.foldermenu}>
+          <div className={styles.close} onClick={handleNewClose}>
+            <div className={styles.closeicon}/>
+          </div>
+
+          <div className={styles.uploadSpace} onClick={handleClick}>
+            <div className={styles.statusText}>Error...</div>
+          </div>
+        </div>);
+        break;
       default:
         break;
     }
   };
-
   return (<Dialog open={open} fullWidth="fullWidth">
     <div className={styles.dialogContainer}>{NewDialogContent()}</div>
   </Dialog>);
