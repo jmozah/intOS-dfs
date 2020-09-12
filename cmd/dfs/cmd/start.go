@@ -103,10 +103,12 @@ func startHttpService() {
 	fileRouter.HandleFunc("/share", handler.FileShareHandler).Methods("POST")
 	fileRouter.HandleFunc("/receive", handler.FileReceiveHandler).Methods("POST")
 
+	// Web page handlers
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./build/")))
 	http.Handle("/", router)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:9090"},
+		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
 		// Enable Debugging for testing, consider disabling in production
 		// Debug: true,
