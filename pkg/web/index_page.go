@@ -14,13 +14,12 @@ limitations under the License.
 package web
 
 import (
-	"fmt"
 	"net/http"
 )
 
 func (web *Web) IndexPageHandler(w http.ResponseWriter, r *http.Request) {
 	err := web.indexTmpl.Execute(w, nil)
 	if err != nil {
-		fmt.Println("index handler: ", err)
+		web.logger.Errorf("index handler: %v", err)
 	}
 }

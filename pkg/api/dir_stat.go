@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -30,6 +29,7 @@ import (
 func (h *Handler) DirectoryStatHandler(w http.ResponseWriter, r *http.Request) {
 	dir := r.FormValue("dir")
 	if dir == "" {
+		h.logger.Errorf("stat dir: \"dir\" argument missing")
 		jsonhttp.BadRequest(w, "stat dir: \"dir\" argument missing")
 		return
 	}
@@ -37,11 +37,12 @@ func (h *Handler) DirectoryStatHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("stat dir: ", err)
+		h.logger.Errorf("stat dir: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("stat dir: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "stat dir: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -49,15 +50,14 @@ func (h *Handler) DirectoryStatHandler(w http.ResponseWriter, r *http.Request) {
 	// stat directory
 	ds, err := h.dfsAPI.DirectoryStat(dir, sessionId)
 	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrPodNotOpen || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
-			fmt.Println("stat dir: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "stat dir: " + err.Error()})
+			h.logger.Errorf("stat dir: %v", err)
+			jsonhttp.BadRequest(w, "stat dir: "+err.Error())
 			return
 		}
-		fmt.Println("stat dir: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "stat dir: " + err.Error()})
+		h.logger.Errorf("stat dir: %v", err)
+		jsonhttp.InternalServerError(w, "stat dir: "+err.Error())
 		return
 	}
 

@@ -18,11 +18,15 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/jmozah/intOS-dfs/pkg/api"
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 	"github.com/rs/cors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -35,8 +39,26 @@ var startCmd = &cobra.Command{
 	Long: `Serves all the dfs commands through an HTTP server so that the upper layers
 can consume it.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		handler = api.NewHandler(dataDir, beeHost, beePort)
-		startHttpService()
+		var logger logging.Logger
+		switch v := strings.ToLower(verbosity); v {
+		case "0", "silent":
+			logger = logging.New(ioutil.Discard, 0)
+		case "1", "error":
+			logger = logging.New(cmd.OutOrStdout(), logrus.ErrorLevel)
+		case "2", "warn":
+			logger = logging.New(cmd.OutOrStdout(), logrus.WarnLevel)
+		case "3", "info":
+			logger = logging.New(cmd.OutOrStdout(), logrus.InfoLevel)
+		case "4", "debug":
+			logger = logging.New(cmd.OutOrStdout(), logrus.DebugLevel)
+		case "5", "trace":
+			logger = logging.New(cmd.OutOrStdout(), logrus.TraceLevel)
+		default:
+			fmt.Println("unknown verbosity level ", v)
+			return
+		}
+		handler = api.NewHandler(dataDir, beeHost, beePort, logger)
+		startHttpService(logger)
 	},
 }
 
@@ -44,7 +66,7 @@ func init() {
 	rootCmd.AddCommand(startCmd)
 }
 
-func startHttpService() {
+func startHttpService(logger logging.Logger) {
 	fs := http.FileServer(http.Dir("build/static"))
 	http.Handle("/static/", fs)
 	router := mux.NewRouter()
@@ -52,21 +74,25 @@ func startHttpService() {
 	// Web page handlers
 	router.HandleFunc("/", handler.WebHandlers.IndexPageHandler)
 
+	apiVersion := "v0"
+	baseRouter := router.PathPrefix("/" + apiVersion).Subrouter()
+
 	// User account related handlers which does not login need middleware
-	router.HandleFunc("/v0/user/signup", handler.UserSignupHandler).Methods("POST")
-	router.HandleFunc("/v0/user/present", handler.UserPresentHandler).Methods("POST")
-	router.HandleFunc("/v0/user/login", handler.UserLoginHandler).Methods("POST")
-	router.HandleFunc("/v0/user/isloggedin", handler.IsUserLoggedInHandler).Methods("POST")
+	baseRouter.Use(handler.LogMiddleware)
+	baseRouter.HandleFunc("/user/signup", handler.UserSignupHandler).Methods("POST")
+	baseRouter.HandleFunc("/user/login", handler.UserLoginHandler).Methods("POST")
+	baseRouter.HandleFunc("/user/present", handler.UserPresentHandler).Methods("GET")
+	baseRouter.HandleFunc("/user/isloggedin", handler.IsUserLoggedInHandler).Methods("GET")
 
 	// user account related handlers which require login middleware
-	userRouter := router.PathPrefix("/v0/user/").Subrouter()
+	userRouter := baseRouter.PathPrefix("/user/").Subrouter()
 	userRouter.Use(handler.LoginMiddleware)
-	userRouter.HandleFunc("/delete", handler.UserDeleteHandler).Methods("POST")
+	userRouter.Use(handler.LogMiddleware)
 	userRouter.HandleFunc("/logout", handler.UserLogoutHandler).Methods("POST")
 	userRouter.HandleFunc("/avatar", handler.SaveUserAvatarHandler).Methods("POST")
 	userRouter.HandleFunc("/name", handler.SaveUserNameHandler).Methods("POST")
 	userRouter.HandleFunc("/contact", handler.SaveUserContactHandler).Methods("POST")
-
+	userRouter.HandleFunc("/delete", handler.UserDeleteHandler).Methods("DELETE")
 	userRouter.HandleFunc("/stat", handler.GetUserStatHandler).Methods("GET")
 	userRouter.HandleFunc("/avatar", handler.GetUserAvatarHandler).Methods("GET")
 	userRouter.HandleFunc("/name", handler.GetUserNameHandler).Methods("GET")
@@ -75,33 +101,36 @@ func startHttpService() {
 	userRouter.HandleFunc("/share/outbox", handler.GetUserSharingOutboxHandler).Methods("GET")
 
 	// pod related handlers
-	podRouter := router.PathPrefix("/v0/pod/").Subrouter()
+	podRouter := baseRouter.PathPrefix("/pod/").Subrouter()
 	podRouter.Use(handler.LoginMiddleware)
+	podRouter.Use(handler.LogMiddleware)
 	podRouter.HandleFunc("/new", handler.PodCreateHandler).Methods("POST")
-	podRouter.HandleFunc("/delete", handler.PodDeleteHandler).Methods("POST")
 	podRouter.HandleFunc("/open", handler.PodOpenHandler).Methods("POST")
 	podRouter.HandleFunc("/close", handler.PodCloseHandler).Methods("POST")
-	podRouter.HandleFunc("/ls", handler.PodListHandler).Methods("POST")
-	podRouter.HandleFunc("/stat", handler.PodStatHandler).Methods("POST")
 	podRouter.HandleFunc("/sync", handler.PodSyncHandler).Methods("POST")
+	podRouter.HandleFunc("/delete", handler.PodDeleteHandler).Methods("DELETE")
+	podRouter.HandleFunc("/ls", handler.PodListHandler).Methods("GET")
+	podRouter.HandleFunc("/stat", handler.PodStatHandler).Methods("GET")
 
 	// directory related handlers
-	dirRouter := router.PathPrefix("/v0/dir/").Subrouter()
+	dirRouter := baseRouter.PathPrefix("/dir/").Subrouter()
 	dirRouter.Use(handler.LoginMiddleware)
+	dirRouter.Use(handler.LogMiddleware)
 	dirRouter.HandleFunc("/mkdir", handler.DirectoryMkdirHandler).Methods("POST")
-	dirRouter.HandleFunc("/rmdir", handler.DirectoryRmdirHandler).Methods("POST")
-	dirRouter.HandleFunc("/ls", handler.DirectoryLsHandler).Methods("POST")
-	dirRouter.HandleFunc("/stat", handler.DirectoryStatHandler).Methods("POST")
+	dirRouter.HandleFunc("/rmdir", handler.DirectoryRmdirHandler).Methods("DELETE")
+	dirRouter.HandleFunc("/ls", handler.DirectoryLsHandler).Methods("GET")
+	dirRouter.HandleFunc("/stat", handler.DirectoryStatHandler).Methods("GET")
 
 	// file related handlers
-	fileRouter := router.PathPrefix("/v0/file/").Subrouter()
+	fileRouter := baseRouter.PathPrefix("/file/").Subrouter()
 	fileRouter.Use(handler.LoginMiddleware)
+	fileRouter.Use(handler.LogMiddleware)
 	fileRouter.HandleFunc("/download", handler.FileDownloadHandler).Methods("POST")
 	fileRouter.HandleFunc("/upload", handler.FileUploadHandler).Methods("POST")
-	fileRouter.HandleFunc("/stat", handler.FileStatHandler).Methods("POST")
-	fileRouter.HandleFunc("/delete", handler.FileDeleteHandler).Methods("POST")
 	fileRouter.HandleFunc("/share", handler.FileShareHandler).Methods("POST")
 	fileRouter.HandleFunc("/receive", handler.FileReceiveHandler).Methods("POST")
+	fileRouter.HandleFunc("/delete", handler.FileDeleteHandler).Methods("DELETE")
+	fileRouter.HandleFunc("/stat", handler.FileStatHandler).Methods("GET")
 
 	// Web page handlers
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./build/")))
@@ -110,18 +139,18 @@ func startHttpService() {
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
-		// Enable Debugging for testing, consider disabling in production
-		// Debug: true,
+		AllowedHeaders:   []string{"Origin", "Accept", "Authorization", "Content-Type", "X-Requested-With", "Access-Control-Request-Headers", "Access-Control-Request-Method"},
+		AllowedMethods:   []string{"GET", "POST", "DELETE"},
+		MaxAge:           3600,
 	})
 
 	// Insert the middleware
 	handler := c.Handler(router)
 
-	fmt.Println("listening on port:", httpPort)
+	logger.Infof("listening on port: %v", httpPort)
 	err := http.ListenAndServe(":"+httpPort, handler)
 	if err != nil {
-		fmt.Println("listenAndServe: %w", err)
+		logger.Errorf("listenAndServe: %w", err)
 		return
 	}
-
 }

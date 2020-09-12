@@ -30,7 +30,8 @@ func (h *Handler) LoginMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			err1 := h.dfsAPI.LogoutUser(sessionId, w)
 			if err1 == nil {
-				jsonhttp.BadRequest(w, ErrorMessage{Err: "Logged out: invalid cookie"})
+				h.logger.Errorf("logged out: invalid cookie")
+				jsonhttp.BadRequest(w, "Logged out: invalid cookie")
 			}
 			return
 		}
@@ -40,14 +41,16 @@ func (h *Handler) LoginMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			err1 := h.dfsAPI.LogoutUser(sessionId, w)
 			if err1 == nil {
-				jsonhttp.BadRequest(w, ErrorMessage{Err: "Logged out: invalid login timeout"})
+				h.logger.Errorf("Logged out: invalid login timeout")
+				jsonhttp.BadRequest(w, "Logged out: invalid login timeout")
 			}
 			return
 		}
 		if loginTime.Before(time.Now()) {
 			err = h.dfsAPI.LogoutUser(sessionId, w)
 			if err == nil {
-				jsonhttp.BadRequest(w, ErrorMessage{Err: "Logging out as cookie login timeout expired"})
+				h.logger.Errorf("Logging out as cookie login timeout expired")
+				jsonhttp.BadRequest(w, "Logging out as cookie login timeout expired")
 				return
 			}
 		}

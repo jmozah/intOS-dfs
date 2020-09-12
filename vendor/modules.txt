@@ -61,6 +61,9 @@ github.com/ethersphere/bmt/legacy
 github.com/fsnotify/fsnotify
 # github.com/go-stack/stack v1.8.0
 github.com/go-stack/stack
+# github.com/gorilla/handlers v1.4.2
+## explicit
+github.com/gorilla/handlers
 # github.com/gorilla/mux v1.7.4
 ## explicit
 github.com/gorilla/mux
@@ -84,6 +87,8 @@ github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
+# github.com/konsorten/go-windows-terminal-sequences v1.0.3
+github.com/konsorten/go-windows-terminal-sequences
 # github.com/magiconair/properties v1.8.1
 github.com/magiconair/properties
 # github.com/marten-seemann/chacha20 v0.2.0
@@ -116,6 +121,9 @@ github.com/pkg/term/termios
 # github.com/rs/cors v1.7.0
 ## explicit
 github.com/rs/cors
+# github.com/sirupsen/logrus v1.6.0
+## explicit
+github.com/sirupsen/logrus
 # github.com/spf13/afero v1.3.1
 github.com/spf13/afero
 github.com/spf13/afero/mem
@@ -169,3 +177,6 @@ gopkg.in/yaml.v2
 resenje.org/jsonhttp
 # resenje.org/jsonresponse v0.1.2
 ## explicit
+# resenje.org/web v0.4.3
+## explicit
+resenje.org/web

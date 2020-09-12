@@ -17,23 +17,24 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
+
+	"resenje.org/jsonhttp"
 
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	u "github.com/jmozah/intOS-dfs/pkg/user"
-	"resenje.org/jsonhttp"
 )
 
 func (h *Handler) UserLogoutHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("logout: ", err)
+		h.logger.Errorf("logout: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("logout: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "logout: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -41,16 +42,14 @@ func (h *Handler) UserLogoutHandler(w http.ResponseWriter, r *http.Request) {
 	// logout user
 	err = h.dfsAPI.LogoutUser(sessionId, w)
 	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
 		if err == u.ErrUserNotLoggedIn || err == u.ErrInvalidUserName {
-			fmt.Println("logout: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "logout: " + err.Error()})
+			h.logger.Errorf("logout: %v", err)
+			jsonhttp.BadRequest(w, "logout: "+err.Error())
 			return
 		}
-		fmt.Println("logout: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "logout: " + err.Error()})
+		h.logger.Errorf("logout: %v", err)
+		jsonhttp.InternalServerError(w, "logout: "+err.Error())
 		return
 	}
-
-	jsonhttp.OK(w, nil)
+	jsonhttp.OK(w, "used logged out successfully")
 }

@@ -22,6 +22,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
@@ -33,7 +34,8 @@ func TestAccount_CreateRootAccount(t *testing.T) {
 
 	podName := "test_pod1"
 	password := "letmein"
-	acc := New(podName, tempDir)
+	logger := logging.New(ioutil.Discard, 0)
+	acc := New(podName, tempDir, logger)
 	_, err = acc.CreateUserAccount(password, "")
 	if err != nil {
 		t.Fatal(err)
@@ -74,7 +76,8 @@ func TestLoadAndStoreMnemonic(t *testing.T) {
 	}
 	podName := "test_pod1"
 	password := "letmein"
-	acc := New(podName, tempDir)
+	logger := logging.New(ioutil.Discard, 0)
+	acc := New(podName, tempDir, logger)
 	_, err = acc.CreateUserAccount(password, "")
 	if err != nil {
 		t.Fatal(err)

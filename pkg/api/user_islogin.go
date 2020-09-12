@@ -29,7 +29,8 @@ type LoginStatus struct {
 func (h *Handler) IsUserLoggedInHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	if user == "" {
-		jsonhttp.BadRequest(w, "isUserloggedIn: \"user\" argument missing")
+		h.logger.Errorf("isloggedin: \"user\" argument missing")
+		jsonhttp.BadRequest(w, "isloggedin: \"user\" argument missing")
 		return
 	}
 
@@ -37,5 +38,4 @@ func (h *Handler) IsUserLoggedInHandler(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.OK(w, &LoginStatus{LoggedIn: yes})
-
 }

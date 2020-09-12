@@ -17,14 +17,14 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
+
+	"resenje.org/jsonhttp"
 
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	"github.com/jmozah/intOS-dfs/pkg/dir"
 	p "github.com/jmozah/intOS-dfs/pkg/pod"
-	"resenje.org/jsonhttp"
 )
 
 type ListFileResponse struct {
@@ -43,6 +43,7 @@ type DirOrFileEntry struct {
 func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 	directory := r.FormValue("dir")
 	if directory == "" {
+		h.logger.Errorf("ls dir: \"dir\" argument missing")
 		jsonhttp.BadRequest(w, "ls dir: \"dir\" argument missing")
 		return
 	}
@@ -50,11 +51,12 @@ func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("ls dir: ", err)
+		h.logger.Errorf("ls dir: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("ls dir: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "ls dir: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -62,22 +64,20 @@ func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 	// list directory
 	entries, err := h.dfsAPI.ListDir(directory, sessionId)
 	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrPodNotOpen || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
-			fmt.Println("ls dir: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "ls dir: " + err.Error()})
+			h.logger.Errorf("ls dir: %v", err)
+			jsonhttp.BadRequest(w, "ls dir: "+err.Error())
 			return
 		}
-		fmt.Println("ls dir: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "ls dir: " + err.Error()})
+		h.logger.Errorf("ls dir: %v", err)
+		jsonhttp.InternalServerError(w, "ls dir: "+err.Error())
 		return
 	}
 
 	if entries == nil {
 		entries = make([]dir.DirOrFileEntry, 0)
 	}
-
 	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.OK(w, &ListFileResponse{
 		Entries: entries,

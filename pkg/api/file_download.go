@@ -31,6 +31,7 @@ import (
 func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	podFile := r.FormValue("file")
 	if podFile == "" {
+		h.logger.Errorf("download: \"file\" argument missing")
 		jsonhttp.BadRequest(w, "download: \"file\" argument missing")
 		return
 	}
@@ -38,11 +39,12 @@ func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("download: ", err)
+		h.logger.Errorf("download: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("download: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "download: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -51,13 +53,12 @@ func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 	reader, reference, size, err := h.dfsAPI.DownloadFile(podFile, sessionId)
 	if err != nil {
 		if err == dfs.ErrPodNotOpen {
-			fmt.Println("download:", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "download: " + err.Error()})
+			h.logger.Errorf("download: %v", err)
+			jsonhttp.BadRequest(w, "download: "+err.Error())
 			return
 		}
-		w.Header().Set("Content-Type", " application/json")
-		fmt.Println("download: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "download: " + err.Error()})
+		h.logger.Errorf("download: %v", err)
+		jsonhttp.InternalServerError(w, "download: "+err.Error())
 		return
 	}
 
@@ -66,8 +67,8 @@ func (h *Handler) FileDownloadHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err = io.Copy(w, reader)
 	if err != nil {
-		fmt.Println("download:", err)
+		h.logger.Errorf("download: %v", err)
 		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "stat dir: " + err.Error()})
+		jsonhttp.InternalServerError(w, "stat dir: "+err.Error())
 	}
 }

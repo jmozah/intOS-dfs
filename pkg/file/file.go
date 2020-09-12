@@ -22,6 +22,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 	m "github.com/jmozah/intOS-dfs/pkg/meta"
 )
 
@@ -32,6 +33,7 @@ type File struct {
 	acc     *account.AccountInfo
 	fileMap map[string]*m.FileMetaData
 	fileMu  *sync.RWMutex
+	logger  logging.Logger
 }
 
 type FileINode struct {
@@ -44,7 +46,7 @@ type FileBlock struct {
 	Address []byte
 }
 
-func NewFile(podName string, client blockstore.Client, fd *feed.API, acc *account.AccountInfo) *File {
+func NewFile(podName string, client blockstore.Client, fd *feed.API, acc *account.AccountInfo, logger logging.Logger) *File {
 	return &File{
 		podName: podName,
 		client:  client,
@@ -52,6 +54,7 @@ func NewFile(podName string, client blockstore.Client, fd *feed.API, acc *accoun
 		acc:     acc,
 		fileMap: make(map[string]*m.FileMetaData),
 		fileMu:  &sync.RWMutex{},
+		logger:  logger,
 	}
 }
 

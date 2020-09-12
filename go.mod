@@ -11,6 +11,7 @@ require (
 	github.com/ethereum/go-ethereum v1.9.5
 	github.com/ethersphere/bee v0.1.1-0.20200801200258-e9d1e561d12b
 	github.com/ethersphere/bmt v0.1.2
+	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.4
 	github.com/gorilla/securecookie v1.1.1
 	github.com/hashicorp/golang-lru v0.5.4
@@ -21,6 +22,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/term v0.0.0-20200520122047-c3ffed290a03 // indirect
 	github.com/rs/cors v1.7.0
+	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.7.0
 	github.com/tyler-smith/go-bip32 v0.0.0-20170922074101-2c9cfd177564 // indirect
@@ -30,4 +32,5 @@ require (
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	resenje.org/jsonhttp v0.2.0
 	resenje.org/jsonresponse v0.1.2 // indirect
+	resenje.org/web v0.4.3
 )

@@ -63,13 +63,13 @@ func (p *Pod) RemoveFile(podName string, podFile string) error {
 		if err != nil {
 			data, respCode, err := p.GetClient().DownloadBlob(hash)
 			if err != nil || respCode != http.StatusOK {
-				fmt.Println("could not load address ", swarm.NewAddress(hash).String())
+				p.logger.Warningf("could not load address ", swarm.NewAddress(hash).String())
 				continue
 			}
 			var meta *m.FileMetaData
 			err = json.Unmarshal(data, &meta)
 			if err != nil {
-				fmt.Println("could not unmarshall data in address ", swarm.NewAddress(hash).String())
+				p.logger.Warningf("could not unmarshall data in address ", swarm.NewAddress(hash).String())
 				continue
 			}
 			if meta.Name != gopath.Base(path) {

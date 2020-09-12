@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -39,17 +38,19 @@ type PodStatResponse struct {
 func (h *Handler) PodStatHandler(w http.ResponseWriter, r *http.Request) {
 	pod := r.FormValue("pod")
 	if pod == "" {
+		h.logger.Errorf("stat podd: \"pod\" argument missing")
 		jsonhttp.BadRequest(w, "stat podd: \"pod\" argument missing")
 		return
 	}
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("stat pod: ", err)
+		h.logger.Errorf("stat pod: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("stat pod: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "stat pod: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -57,15 +58,14 @@ func (h *Handler) PodStatHandler(w http.ResponseWriter, r *http.Request) {
 	// fetch pod stat
 	stat, err := h.dfsAPI.PodStat(pod, sessionId)
 	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidPodName {
-			fmt.Println("stat pod: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "stat pod: " + err.Error()})
+			h.logger.Errorf("stat pod: %v", err)
+			jsonhttp.BadRequest(w, "stat pod: "+err.Error())
 			return
 		}
-		fmt.Println("stat pod: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "stat pod: " + err.Error()})
+		h.logger.Errorf("stat pod: %v", err)
+		jsonhttp.InternalServerError(w, "stat pod: "+err.Error())
 		return
 	}
 

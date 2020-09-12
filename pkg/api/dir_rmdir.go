@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -30,6 +29,7 @@ import (
 func (h *Handler) DirectoryRmdirHandler(w http.ResponseWriter, r *http.Request) {
 	dir := r.FormValue("dir")
 	if dir == "" {
+		h.logger.Errorf("rmdir: \"dir\" argument missing")
 		jsonhttp.BadRequest(w, "rmdir: \"dir\" argument missing")
 		return
 	}
@@ -37,11 +37,12 @@ func (h *Handler) DirectoryRmdirHandler(w http.ResponseWriter, r *http.Request) 
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("rmdir: ", err)
+		h.logger.Error("rmdir: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("rmdir: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "rmdir: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -49,17 +50,15 @@ func (h *Handler) DirectoryRmdirHandler(w http.ResponseWriter, r *http.Request) 
 	// remove directory
 	err = h.dfsAPI.RmDir(dir, sessionId)
 	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrPodNotOpen || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
-			fmt.Println("rmdir: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "rmdir: " + err.Error()})
+			h.logger.Errorf("rmdir: %v", err)
+			jsonhttp.BadRequest(w, "rmdir: "+err.Error())
 			return
 		}
-		fmt.Println("rmdir: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "rmdir: " + err.Error()})
+		h.logger.Errorf("rmdir: %v", err)
+		jsonhttp.InternalServerError(w, "rmdir: "+err.Error())
 		return
 	}
-
-	w.WriteHeader(http.StatusNoContent)
+	jsonhttp.OK(w, "directory removed successfully")
 }

@@ -17,21 +17,23 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
-	u "github.com/jmozah/intOS-dfs/pkg/user"
 	"resenje.org/jsonhttp"
+
+	u "github.com/jmozah/intOS-dfs/pkg/user"
 )
 
 func (h *Handler) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	password := r.FormValue("password")
 	if user == "" {
+		h.logger.Errorf("login: \"user\" argument missing")
 		jsonhttp.BadRequest(w, "login: \"user\" argument missing")
 		return
 	}
 	if password == "" {
+		h.logger.Errorf("login: \"password\" argument missing")
 		jsonhttp.BadRequest(w, "login: \"password\" argument missing")
 		return
 	}
@@ -39,18 +41,16 @@ func (h *Handler) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 	// login user
 	err := h.dfsAPI.LoginUser(user, password, w, "")
 	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
 		if err == u.ErrUserAlreadyLoggedIn ||
 			err == u.ErrInvalidUserName ||
 			err == u.ErrInvalidPassword {
-			fmt.Println("login: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "login: " + err.Error()})
+			h.logger.Errorf("login: %v", err)
+			jsonhttp.BadRequest(w, "login: "+err.Error())
 			return
 		}
-		fmt.Println("login: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "login: " + err.Error()})
+		h.logger.Errorf("login: %v", err)
+		jsonhttp.InternalServerError(w, "login: "+err.Error())
 		return
 	}
-
-	jsonhttp.OK(w, nil)
+	jsonhttp.OK(w, "user logged-in successfully")
 }

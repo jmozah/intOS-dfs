@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -29,6 +28,7 @@ import (
 func (h *Handler) PodDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	podName := r.FormValue("pod")
 	if podName == "" {
+		h.logger.Errorf("delete pod: \"pod\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "delete pod: \"pod\" parameter missing in cookie")
 		return
 	}
@@ -36,11 +36,12 @@ func (h *Handler) PodDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("delete pod: ", err)
+		h.logger.Errorf("delete pod: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("delete pod: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "delete pod: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -48,16 +49,14 @@ func (h *Handler) PodDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// delete pod
 	err = h.dfsAPI.DeletePod(podName, sessionId)
 	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrUserNotLoggedIn {
-			fmt.Println("delete pod:", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "delete pod: " + err.Error()})
+			h.logger.Errorf("delete pod: %v", err)
+			jsonhttp.BadRequest(w, "delete pod: "+err.Error())
 			return
 		}
-		fmt.Println("delete pod:", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "delete pod: " + err.Error()})
+		h.logger.Errorf("delete pod: %v", err)
+		jsonhttp.InternalServerError(w, "delete pod: "+err.Error())
 		return
 	}
-
-	w.WriteHeader(http.StatusNoContent)
+	jsonhttp.OK(w, "pod deleted successfully")
 }

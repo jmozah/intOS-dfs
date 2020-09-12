@@ -39,6 +39,6 @@ func (f *File) LoadFileMeta(podName string, addr []byte) (int, error) {
 
 	f.AddToFileMap(meta.Path+utils.PathSeperator+meta.Name, meta)
 	fileName := strings.TrimPrefix(meta.Path+utils.PathSeperator+meta.Name, podName)
-	fmt.Println(fileName)
+	f.logger.Infof(fileName)
 	return http.StatusOK, nil
 }

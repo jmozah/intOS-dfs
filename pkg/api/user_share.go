@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -29,19 +28,20 @@ func (h *Handler) GetUserSharingInboxHandler(w http.ResponseWriter, r *http.Requ
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("get share inbox: ", err)
+		h.logger.Errorf("get share inbox: invalid cookie: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("get share inbox: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "get share inbox: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	sharingInbox, err := h.dfsAPI.GetUserSharingInbox(sessionId)
 	if err != nil {
-		fmt.Println("get share inbox: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "get share inbox: " + err.Error()})
+		h.logger.Errorf("get share inbox: %v", err)
+		jsonhttp.InternalServerError(w, "get share inbox: "+err.Error())
 		return
 	}
 
@@ -53,19 +53,20 @@ func (h *Handler) GetUserSharingOutboxHandler(w http.ResponseWriter, r *http.Req
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("get share outbox: ", err)
+		h.logger.Errorf("get share outbox: invalid cookie: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("get share outbox: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "get share outbox: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	sharingOutbox, err := h.dfsAPI.GetUserSharingOutbox(sessionId)
 	if err != nil {
-		fmt.Println("get share outbox: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "get share outbox: " + err.Error()})
+		h.logger.Errorf("get share outbox: %v", err)
+		jsonhttp.InternalServerError(w, "get share outbox: "+err.Error())
 		return
 	}
 

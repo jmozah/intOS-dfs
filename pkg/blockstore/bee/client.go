@@ -31,6 +31,8 @@ import (
 	bmtlegacy "github.com/ethersphere/bmt/legacy"
 	lru "github.com/hashicorp/golang-lru"
 	"golang.org/x/crypto/sha3"
+
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 )
 
 const (
@@ -48,6 +50,7 @@ type BeeClient struct {
 	client *http.Client
 	hasher *bmtlegacy.Hasher
 	cache  *lru.Cache
+	logger logging.Logger
 }
 
 func hashFunc() hash.Hash {
@@ -58,7 +61,7 @@ type bytesPostResponse struct {
 	Reference swarm.Address `json:"reference"`
 }
 
-func NewBeeClient(host, port string) *BeeClient {
+func NewBeeClient(host, port string, logger logging.Logger) *BeeClient {
 	p := bmtlegacy.NewTreePool(hashFunc, swarm.Branches, bmtlegacy.PoolSize)
 	cache, err := lru.New(LRUSize)
 	if err != nil {
@@ -71,6 +74,7 @@ func NewBeeClient(host, port string) *BeeClient {
 		client: createHTTPClient(),
 		hasher: bmtlegacy.New(p),
 		cache:  cache,
+		logger: logger,
 	}
 }
 
