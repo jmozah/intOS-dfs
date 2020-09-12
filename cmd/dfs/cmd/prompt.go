@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/jmozah/intOS-dfs/pkg/user"
 	"io/ioutil"
 	"log"
 	"os"
@@ -104,6 +105,10 @@ var suggestions = []prompt.Suggest{
 	{Text: "user logout", Description: "logout from a logged in user"},
 	{Text: "user present", Description: "is user present"},
 	{Text: "user ls", Description: "list all users"},
+	{Text: "user name", Description: "sets and gets the user name information"},
+	{Text: "user contact", Description: "sets and gets the user contact information"},
+	{Text: "user share inbox", Description: "gets the information about the files received by the user"},
+	{Text: "user share outbox", Description: "gets the information about the files shared by the user"},
 	{Text: "pod new", Description: "create a new pod for a user"},
 	{Text: "pod del", Description: "delete a existing pod of a user"},
 	{Text: "pod open", Description: "open to a existing pod of a user"},
@@ -159,7 +164,7 @@ func executor(in string) {
 				return
 			}
 			fmt.Println("user created with address ", ref)
-			fmt.Println("Please store the following 24 words safely")
+			fmt.Println("Please store the following 12 words safely")
 			fmt.Println("if you loose this, you cannot recover the data in-case of an emergency.")
 			fmt.Println("you can also use this mnemonic to access the data from another device")
 			fmt.Println("=============== Mnemonic ==========================")
@@ -217,6 +222,84 @@ func executor(in string) {
 			users := dfsAPI.ListAllUsers()
 			for _, user := range users {
 				fmt.Println(user)
+			}
+			currentPrompt = getCurrentPrompt()
+		case "name":
+			if len(blocks) == 6 {
+				firstName := blocks[2]
+				middleName := blocks[3]
+				lastName := blocks[4]
+				surNmae := blocks[5]
+				err := dfsAPI.SaveName(firstName, lastName, middleName, surNmae, DefaultSessionId)
+				if err != nil {
+					fmt.Println("name: ", err)
+					return
+				}
+			} else if len(blocks) == 2 {
+				name, err := dfsAPI.GetName(DefaultSessionId)
+				if err != nil {
+					fmt.Println("name: ", err)
+					return
+				}
+				fmt.Println("first_name : ", name.FirstName)
+				fmt.Println("middle_name: ", name.MiddleName)
+				fmt.Println("last_name  : ", name.LastName)
+				fmt.Println("surname    : ", name.SurName)
+			}
+			currentPrompt = getCurrentPrompt()
+		case "contact":
+			if len(blocks) == 8 {
+				phone := blocks[2]
+				mobile := blocks[3]
+				address_line1 := blocks[4]
+				address_line2 := blocks[5]
+				state := blocks[6]
+				zip := blocks[7]
+				addr := &user.Address{
+					AddressLine1: address_line1,
+					AddressLine2: address_line2,
+					State:        state,
+					ZipCode:      zip,
+				}
+				err := dfsAPI.SaveContact(phone, mobile, addr, DefaultSessionId)
+				if err != nil {
+					fmt.Println("contact: ", err)
+					return
+				}
+			} else if len(blocks) == 2 {
+				contacts, err := dfsAPI.GetContact(DefaultSessionId)
+				if err != nil {
+					fmt.Println("contact: ", err)
+					return
+				}
+				fmt.Println("phone        : ", contacts.Phone)
+				fmt.Println("mobile       : ", contacts.Mobile)
+				fmt.Println("address_line1: ", contacts.Addr.AddressLine1)
+				fmt.Println("address_line2: ", contacts.Addr.AddressLine2)
+				fmt.Println("state        : ", contacts.Addr.State)
+				fmt.Println("zipcode      : ", contacts.Addr.ZipCode)
+			}
+			currentPrompt = getCurrentPrompt()
+		case "share":
+			switch blocks[3] {
+			case "inbox":
+				inbox, err := dfsAPI.GetUserSharingInbox(DefaultSessionId)
+				if err != nil {
+					fmt.Println("sharing inbox: ", err)
+					return
+				}
+				for _, entry := range inbox.Entries {
+					fmt.Println(entry)
+				}
+			case "outbox":
+				outbox, err := dfsAPI.GetUserSharingOutbox(DefaultSessionId)
+				if err != nil {
+					fmt.Println("sharing outbox: ", err)
+					return
+				}
+				for _, entry := range outbox.Entries {
+					fmt.Println(entry)
+				}
 			}
 			currentPrompt = getCurrentPrompt()
 		default:
@@ -495,6 +578,12 @@ func help() {
 	fmt.Println(" - user <logout> - logout a logged in user")
 	fmt.Println(" - user <present> <user-name> - returns true if the user is present, false otherwise")
 	fmt.Println(" - user <ls> - lists all the user present in this instance")
+	fmt.Println(" - user <name> (first_name) (middle_name) (last_name) (surname) - sets the user name information")
+	fmt.Println(" - user <name> - gets the user name information")
+	fmt.Println(" - user <contact> (phone) (mobile) (address_line1) (address_line2) (state) (zipcode) - sets the user contact information")
+	fmt.Println(" - user <contact> gets the user contact information")
+	fmt.Println(" - user <share> <inbox> - shows details of the files you have received from other users")
+	fmt.Println(" - user <share> <outbox> - shows details of the files you have sent to other users")
 
 	fmt.Println(" - pod <new> (pod-name) - create a new pod for the logged in user and opens the pod")
 	fmt.Println(" - pod <del> (pod-name) - deletes a already created pod of the user")
@@ -507,12 +596,11 @@ func help() {
 	fmt.Println(" - cd <directory name>")
 	fmt.Println(" - ls ")
 	fmt.Println(" - copyToLocal <source file in pod, destination directory in local fs>")
-	fmt.Println(" - copyFromLocal <source file in local fs, destination directory in pod, block size in MB>")
+	fmt.Println(" - copyFromLocal <source file in local fs, destination directory in pod, block size (ex: 1Mb, 64Mb)>")
 	fmt.Println(" - mkdir <directory name>")
 	fmt.Println(" - rmdir <directory name>")
 	fmt.Println(" - rm <file name>")
 	fmt.Println(" - pwd - show present working directory")
-	fmt.Println(" - head <no of lines>")
 	fmt.Println(" - cat  - stream the file to stdout")
 	fmt.Println(" - stat <file name or directory name> - shows the information about a file or directory")
 	fmt.Println(" - help - display this help")
