@@ -25,9 +25,10 @@ The basic storage unit in dfs is a pod. A user can create multiple pods and use 
 ### How to run dfs?
 - git clone https://github.com/jmozah/intOS-dfs.git
 - cd intOS-dfs
+- make binary
 - yarn 
-- yarn start (for the front-end)
-- yarn server (in separate terminal)
+- yarn build
+- ./dist/dfs start (starts server and serves the front end too)
 
 ### How to build dfs?
 - yarn build (will build the frontend and copy it over to the go project)
@@ -38,31 +39,45 @@ The basic storage unit in dfs is a pod. A user can create multiple pods and use 
 - POST -F 'user=\<username\>' -F 'password=\<password\>' -F 'mnemonic=<12 words from bip39 list>' http://localhost:9090/v0/user/signup
 - POST -F 'user=\<username\>' -F 'password=\<password\>' http://localhost:9090/v0/user/signup
 - POST -F 'user=\<username\>' -F 'password=\<password\>' http://localhost:9090/v0/user/login 
-- POST -F 'user=\<username\>' http://localhost:9090/v0/user/present
 - POST http://localhost:9090/v0/user/logout
-- POST -F 'password=\<password\>' http://localhost:9090/v0/user/delete
+- POST http://localhost:9090/v0/user/avatar
+- POST -F 'first_name=\<firstName\>' -F 'middle_name=\<middleName\>' -F 'last_name=\<lastName\>' -F 'surname=\<surName\>' http://localhost:9090/v0/user/name
+- POST -F 'phone=\<phone\>' -F 'mobile=\<mobile\>' -F 'address_line_1=\<address1\>' -F 'address_line_2=\<address2\>' http://localhost:9090/v0/user/contact
+- DELETE -F 'password=\<password\>' http://localhost:9090/v0/user/delete
+- GET  -F 'user=\<username\>' http://localhost:9090/v0/user/present
+- GET  -F 'user=\<username\>' http://localhost:9090/v0/user/isloggedin
+- GET  http://localhost:9090/v0/user/stat
+- GET  http://localhost:9090/v0/user/avatar
+- GET  http://localhost:9090/v0/user/name
+- GET  http://localhost:9090/v0/user/contact
+- GET  http://localhost:9090/v0/user/share/inbox
+- GET  http://localhost:9090/v0/user/share/outbox
+
 
 
 ##### pod related APIs   
 - POST -F 'password=\<password\>' -F 'pod=\<podname\>'  http://localhost:9090/v0/pod/new
 - POST -F 'password=\<password\>' -F 'pod=\<podname\>'  http://localhost:9090/v0/pod/open
-- POST http://localhost:9090/v0/pod/ls
-- POST -F 'user=\<username\>' -F 'pod=\<podname\>'  http://localhost:9090/v0/pod/stat
 - POST http://localhost:9090/v0/pod/sync
 - POST http://localhost:9090/v0/pod/close
-- POST http://localhost:9090/v0/pod/delete
+- DELETE http://localhost:9090/v0/pod/delete
+- GET http://localhost:9090/v0/pod/ls
+- GET -F 'user=\<username\>' -F 'pod=\<podname\>'  http://localhost:9090/v0/pod/stat
+
 
 ##### dir related APIs   
 - POST -F 'dir=\<dir_with_path\>'  http://localhost:9090/v0/dir/mkdir
-- POST -F 'dir=\<dir_with_path\>'  http://localhost:9090/v0/dir/ls
-- POST -F 'dir=\<dir_with_path\>'  http://localhost:9090/v0/dir/stat
-- POST -F 'dir=\<dir_with_path\>'  http://localhost:9090/v0/dir/rmdir
+- DELETE -F 'dir=\<dir_with_path\>'  http://localhost:9090/v0/dir/rmdir
+- GET  -F 'dir=\<dir_with_path\>'  http://localhost:9090/v0/dir/ls
+- GET  -F 'dir=\<dir_with_path\>'  http://localhost:9090/v0/dir/stat
 
 ##### file related APIs   
 - POST -F 'pod_dir=\<dir_with_path\>' -F 'block_size=\<in_Mb\>' -F 'files=@\<filename1\>' -F 'files=@\<filename2\>' http://localhost:9090/v0/file/upload
-- POST -F 'file=\<file_path\>'  http://localhost:9090/v0/file/stat
 - POST -F 'file=\<file_path\>'  http://localhost:9090/v0/file/download
-- POST -F 'file=\<file_path\>'  http://localhost:9090/v0/file/delete
+- POST -F 'file=\<file_path\>' -F 'to=\<destination_user\>' http://localhost:9090/v0/file/share
+- POST http://localhost:9090/v0/file/share -d &InboxEntry(json struct)
+- GET  -F 'file=\<file_path\>'  http://localhost:9090/v0/file/stat
+- DELETE -F 'file=\<file_path\>'  http://localhost:9090/v0/file/delete
 
 
 ### Comands in dfs
