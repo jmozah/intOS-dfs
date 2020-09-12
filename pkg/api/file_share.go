@@ -18,7 +18,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -36,11 +35,13 @@ type receiveFileResponse struct {
 func (h *Handler) FileShareHandler(w http.ResponseWriter, r *http.Request) {
 	podFile := r.FormValue("file")
 	if podFile == "" {
+		h.logger.Errorf("share: \"file\" argument missing")
 		jsonhttp.BadRequest(w, "share: \"file\" argument missing")
 		return
 	}
 	destinationRef := r.FormValue("to")
 	if destinationRef == "" {
+		h.logger.Errorf("share: \"to\" argument missing")
 		jsonhttp.BadRequest(w, "share: \"to\" argument missing")
 		return
 	}
@@ -48,23 +49,24 @@ func (h *Handler) FileShareHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("share: ", err)
+		h.logger.Errorf("share: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("share: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "share: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
-	w.Header().Set("Content-Type", " application/json")
 	outEntry, err := h.dfsAPI.ShareFile(podFile, destinationRef, sessionId)
 	if err != nil {
-		fmt.Println("share: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "share: " + err.Error()})
+		h.logger.Errorf("share: %v", err)
+		jsonhttp.InternalServerError(w, "share: "+err.Error())
 		return
 	}
 
+	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.OK(w, outEntry)
 }
 
@@ -72,36 +74,39 @@ func (h *Handler) FileReceiveHandler(w http.ResponseWriter, r *http.Request) {
 	// get the outbox entry
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
+		h.logger.Errorf("receive: no data in body")
 		jsonhttp.BadRequest(w, "receive: no data in body")
 		return
 	}
 	inboxEntry := user.InboxEntry{}
 	err = json.Unmarshal(data, &inboxEntry)
 	if err != nil {
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "share: " + err.Error()})
+		h.logger.Errorf("share: %v", err)
+		jsonhttp.BadRequest(w, "share: "+err.Error())
 		return
 	}
 
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("share: ", err)
+		h.logger.Errorf("share: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("share: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "share: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
-	w.Header().Set("Content-Type", " application/json")
 	err = h.dfsAPI.ReceiveFile(sessionId, inboxEntry)
 	if err != nil {
-		fmt.Println("share: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "share: " + err.Error()})
+		h.logger.Errorf("share: %v", err)
+		jsonhttp.InternalServerError(w, "share: "+err.Error())
 		return
 	}
 
+	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.OK(w, &receiveFileResponse{
 		FileName:  inboxEntry.FilePath,
 		Reference: inboxEntry.FileMetaHash,

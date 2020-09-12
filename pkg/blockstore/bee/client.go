@@ -26,11 +26,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/ethersphere/bee/pkg/swarm"
 	bmtlegacy "github.com/ethersphere/bmt/legacy"
 	lru "github.com/hashicorp/golang-lru"
 	"golang.org/x/crypto/sha3"
+
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 )
 
 const (
@@ -48,6 +51,7 @@ type BeeClient struct {
 	client *http.Client
 	hasher *bmtlegacy.Hasher
 	cache  *lru.Cache
+	logger logging.Logger
 }
 
 func hashFunc() hash.Hash {
@@ -58,7 +62,7 @@ type bytesPostResponse struct {
 	Reference swarm.Address `json:"reference"`
 }
 
-func NewBeeClient(host, port string) *BeeClient {
+func NewBeeClient(host, port string, logger logging.Logger) *BeeClient {
 	p := bmtlegacy.NewTreePool(hashFunc, swarm.Branches, bmtlegacy.PoolSize)
 	cache, err := lru.New(LRUSize)
 	if err != nil {
@@ -71,11 +75,13 @@ func NewBeeClient(host, port string) *BeeClient {
 		client: createHTTPClient(),
 		hasher: bmtlegacy.New(p),
 		cache:  cache,
+		logger: logger,
 	}
 }
 
 // upload a chunk in bee
 func (s *BeeClient) UploadChunk(ch swarm.Chunk) (address []byte, err error) {
+	to := time.Now()
 	path := filepath.Join(ChunkUploadDownloadUrl, ch.Address().String())
 	fullUrl := fmt.Sprintf(s.url + path)
 	req, err := http.NewRequest(http.MethodPost, fullUrl, bytes.NewBuffer(ch.Data()))
@@ -95,11 +101,13 @@ func (s *BeeClient) UploadChunk(ch swarm.Chunk) (address []byte, err error) {
 	if s.inCache(ch.Address().String()) {
 		s.addToCache(ch.Address().String(), ch.Data())
 	}
+	s.logger.Infof("upload chunk: %s, time: %s", ch.Address().String(), time.Since(to).String())
 	return ch.Address().Bytes(), nil
 }
 
 // download a chunk from bee
 func (s *BeeClient) DownloadChunk(ctx context.Context, address []byte) (data []byte, err error) {
+	to := time.Now()
 	addrString := swarm.NewAddress(address).String()
 	if s.inCache(addrString) {
 		return s.getFromCache(swarm.NewAddress(address).String()), nil
@@ -129,12 +137,13 @@ func (s *BeeClient) DownloadChunk(ctx context.Context, address []byte) (data []b
 	}
 
 	s.addToCache(addrString, data)
-
+	s.logger.Infof("download chunk: %s, time: %s", addrString, time.Since(to).String())
 	return data, nil
 }
 
 // upload a chunk in bee
 func (s *BeeClient) UploadBlob(data []byte) (address []byte, err error) {
+	to := time.Now()
 	fullUrl := fmt.Sprintf(s.url + BytesUploadDownloadUrl)
 	req, err := http.NewRequest(http.MethodPost, fullUrl, bytes.NewBuffer(data))
 	if err != nil {
@@ -160,11 +169,12 @@ func (s *BeeClient) UploadBlob(data []byte) (address []byte, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling response")
 	}
-
+	s.logger.Infof("upload blob: %s, size: %d, time: %s", resp.Reference.String(), len(data), time.Since(to).String())
 	return resp.Reference.Bytes(), nil
 }
 
 func (s *BeeClient) DownloadBlob(address []byte) ([]byte, int, error) {
+	to := time.Now()
 	addrString := swarm.NewAddress(address).String()
 	if s.inCache(addrString) {
 		return s.getFromCache(addrString), 200, nil
@@ -189,7 +199,7 @@ func (s *BeeClient) DownloadBlob(address []byte) ([]byte, int, error) {
 	if err != nil {
 		return nil, response.StatusCode, errors.New("error downloading blob")
 	}
-
+	s.logger.Infof("download blob: %s, size: %d, time: %s", addrString, len(respData), time.Since(to).String())
 	return respData, response.StatusCode, nil
 }
 

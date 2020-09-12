@@ -17,17 +17,18 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
+
+	"resenje.org/jsonhttp"
 
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	u "github.com/jmozah/intOS-dfs/pkg/user"
-	"resenje.org/jsonhttp"
 )
 
 func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	if password == "" {
+		h.logger.Errorf("delete: \"password\" argument missing")
 		jsonhttp.BadRequest(w, "delete: \"password\" argument missing")
 		return
 	}
@@ -35,11 +36,12 @@ func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("delete: ", err)
+		h.logger.Errorf("delete: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("delete: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "delete: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -47,17 +49,16 @@ func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// delete user
 	err = h.dfsAPI.DeleteUser(password, sessionId, w)
 	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
 		if err == u.ErrInvalidUserName ||
 			err == u.ErrInvalidPassword ||
 			err == u.ErrUserNotLoggedIn {
-			fmt.Println("delete: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "delete: " + err.Error()})
+			h.logger.Errorf("delete: %v", err)
+			jsonhttp.BadRequest(w, "delete: "+err.Error())
 			return
 		}
-		fmt.Println("delete: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "delete: " + err.Error()})
+		h.logger.Errorf("delete: %v", err)
+		jsonhttp.InternalServerError(w, "delete: "+err.Error())
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
+	jsonhttp.OK(w, "user deleted successfully")
 }

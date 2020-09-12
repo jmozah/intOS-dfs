@@ -25,6 +25,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee"
 	"github.com/jmozah/intOS-dfs/pkg/dir"
 	"github.com/jmozah/intOS-dfs/pkg/file"
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 	"github.com/jmozah/intOS-dfs/pkg/user"
 )
@@ -33,15 +34,17 @@ type DfsAPI struct {
 	dataDir string
 	client  blockstore.Client
 	users   *user.Users
+	logger  logging.Logger
 }
 
-func NewDfsAPI(dataDir, host, port string) *DfsAPI {
-	c := bee.NewBeeClient(host, port)
-	users := user.NewUsers(dataDir, c)
+func NewDfsAPI(dataDir, host, port string, logger logging.Logger) *DfsAPI {
+	c := bee.NewBeeClient(host, port, logger)
+	users := user.NewUsers(dataDir, c, logger)
 	return &DfsAPI{
 		dataDir: dataDir,
 		client:  c,
 		users:   users,
+		logger:  logger,
 	}
 }
 

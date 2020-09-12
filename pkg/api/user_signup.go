@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -35,30 +34,31 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	mnemonic := r.FormValue("mnemonic") // this is optional
 	if user == "" {
+		h.logger.Errorf("signup: \"user\" argument missing")
 		jsonhttp.BadRequest(w, "signup: \"user\" argument missing")
 		return
 	}
 	if password == "" {
+		h.logger.Errorf("signup: \"password\" argument missing")
 		jsonhttp.BadRequest(w, "signup: \"password\" argument missing")
 		return
 	}
-
-	w.Header().Set("Content-Type", " application/json")
 
 	// create user
 	address, mnemonic, err := h.dfsAPI.CreateUser(user, password, mnemonic, w, "")
 	if err != nil {
 		if err == u.ErrUserAlreadyPresent {
-			fmt.Println("signup: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "signup: " + err.Error()})
+			h.logger.Errorf("signup: %v", err)
+			jsonhttp.BadRequest(w, "signup: "+err.Error())
 			return
 		}
-		fmt.Println("signup: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "signup: " + err.Error()})
+		h.logger.Errorf("signup: %v", err)
+		jsonhttp.InternalServerError(w, "signup: "+err.Error())
 		return
 	}
 
 	// send the response
+	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.Created(w, &UserSignupResponse{
 		Address:  address,
 		Mnemonic: mnemonic,

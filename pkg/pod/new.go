@@ -61,9 +61,9 @@ func (p *Pod) CreatePod(podName, passPhrase string) (*Info, error) {
 		return nil, err
 	}
 	accountInfo := p.acc.GetAccountInfo(freeId)
-	fd := feed.New(accountInfo, p.client)
-	file := f.NewFile(podName, p.client, fd, accountInfo)
-	dir := d.NewDirectory(podName, p.client, fd, accountInfo, file)
+	fd := feed.New(accountInfo, p.client, p.logger)
+	file := f.NewFile(podName, p.client, fd, accountInfo, p.logger)
+	dir := d.NewDirectory(podName, p.client, fd, accountInfo, file, p.logger)
 
 	// create the pod inode
 	dirInode, _, err := dir.CreatePodINode(podName)

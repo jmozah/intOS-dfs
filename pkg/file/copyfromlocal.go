@@ -86,7 +86,7 @@ func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo,
 		}
 
 		fileINode.FileBlocks = append(fileINode.FileBlocks, fileBlock)
-		fmt.Println(hex.EncodeToString(addr))
+		f.logger.Infof(hex.EncodeToString(addr))
 		i++
 	}
 

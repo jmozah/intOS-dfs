@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -31,11 +30,12 @@ func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("sync pod: ", err)
+		h.logger.Errorf("sync pod: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("sync pod: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "sync pod: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -43,19 +43,17 @@ func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
 	// fetch pods and list them
 	err = h.dfsAPI.SyncPod(sessionId)
 	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrPodNotOpen || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidPodName ||
 			err == p.ErrTooLongPodName ||
 			err == p.ErrPodNotOpened {
-			fmt.Println("sync pod: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "sync pod: " + err.Error()})
+			h.logger.Errorf("sync pod: %v", err)
+			jsonhttp.BadRequest(w, "sync pod: "+err.Error())
 			return
 		}
-		fmt.Println("sync pod: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "sync pod: " + err.Error()})
+		h.logger.Errorf("sync pod: %v", err)
+		jsonhttp.InternalServerError(w, "sync pod: "+err.Error())
 		return
 	}
-
-	jsonhttp.OK(w, nil)
+	jsonhttp.OK(w, "pod synced successfully")
 }

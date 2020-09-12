@@ -18,16 +18,18 @@ package web
 
 import (
 	"html/template"
+
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 )
 
 type Web struct {
-	indexTmpl      *template.Template
-	signupPageTmpl *template.Template
-	loginPageTmpl  *template.Template
+	indexTmpl *template.Template
+	logger    logging.Logger
 }
 
-func NewWeb() *Web {
+func NewWeb(logger logging.Logger) *Web {
 	return &Web{
-		indexTmpl:      template.Must(template.ParseFiles("build/index.html")),
+		indexTmpl: template.Must(template.ParseFiles("build/index.html")),
+		logger:    logger,
 	}
 }

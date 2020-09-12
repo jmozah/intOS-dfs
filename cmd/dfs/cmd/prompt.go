@@ -18,14 +18,17 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 
 	prompt "github.com/c-bata/go-prompt"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -42,6 +45,7 @@ var (
 	currentPodInfo *pod.Info
 	currentPrompt  string
 	dfsAPI         *dfs.DfsAPI
+	logger         logging.Logger
 )
 
 // promptCmd represents the prompt command
@@ -51,7 +55,24 @@ var promptCmd = &cobra.Command{
 	Long: `A command prompt where you can interact with the distributed
 file system of the intOS.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		dfsAPI = dfs.NewDfsAPI(dataDir, beeHost, beePort)
+		switch v := strings.ToLower(verbosity); v {
+		case "0", "silent":
+			logger = logging.New(ioutil.Discard, 0)
+		case "1", "error":
+			logger = logging.New(cmd.OutOrStdout(), logrus.ErrorLevel)
+		case "2", "warn":
+			logger = logging.New(cmd.OutOrStdout(), logrus.WarnLevel)
+		case "3", "info":
+			logger = logging.New(cmd.OutOrStdout(), logrus.InfoLevel)
+		case "4", "debug":
+			logger = logging.New(cmd.OutOrStdout(), logrus.DebugLevel)
+		case "5", "trace":
+			logger = logging.New(cmd.OutOrStdout(), logrus.TraceLevel)
+		default:
+			fmt.Println("unknown verbosity level: ", v)
+			return
+		}
+		dfsAPI = dfs.NewDfsAPI(dataDir, beeHost, beePort, logger)
 		initPrompt()
 	},
 }

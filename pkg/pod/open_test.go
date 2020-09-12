@@ -25,6 +25,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
@@ -36,13 +37,14 @@ func TestPod_LoginPod(t *testing.T) {
 	defer os.RemoveAll(tempDir)
 
 	mockClient := mock.NewMockBeeClient()
-	acc := account.New("user1", tempDir)
+	logger := logging.New(ioutil.Discard, 0)
+	acc := account.New("user1", tempDir, logger)
 	_, err = acc.CreateUserAccount("password", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	fd := feed.New(acc.GetAccountInfo(account.UserAccountIndex), mockClient)
-	pod1 := NewPod(mockClient, fd, acc)
+	fd := feed.New(acc.GetAccountInfo(account.UserAccountIndex), mockClient, logger)
+	pod1 := NewPod(mockClient, fd, acc, logger)
 
 	podName1 := "test1"
 	firstDir := "dir1"
