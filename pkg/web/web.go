@@ -24,12 +24,12 @@ import (
 
 type Web struct {
 	indexTmpl *template.Template
-	logger logging.Logger
+	logger    logging.Logger
 }
 
 func NewWeb(logger logging.Logger) *Web {
 	return &Web{
 		indexTmpl: template.Must(template.ParseFiles("build/index.html")),
-		logger: logger,
+		logger:    logger,
 	}
 }
