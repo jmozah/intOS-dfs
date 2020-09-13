@@ -17,8 +17,10 @@ limitations under the License.
 package account
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/sha256"
+	"encoding/binary"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -27,12 +29,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/btcsuite/btcd/btcec"
 	"github.com/ethersphere/bee/pkg/crypto"
-	"github.com/jmozah/intOS-dfs/pkg/logging"
-	"github.com/jmozah/intOS-dfs/pkg/utils"
 	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
 	"github.com/tyler-smith/go-bip39"
 	"golang.org/x/crypto/ssh/terminal"
+
+	"github.com/jmozah/intOS-dfs/pkg/logging"
+	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
 const (
@@ -71,6 +75,13 @@ func New(podName, dataDir string, logger logging.Logger) *Account {
 		podAccounts:      make(map[int]*AccountInfo),
 		logger:           logger,
 	}
+}
+
+func CreateRandomKeyPair(now int64) (*ecdsa.PrivateKey, error) {
+	randBytes := make([]byte, 40)
+	binary.LittleEndian.PutUint64(randBytes, uint64(now))
+	randReader := bytes.NewReader(randBytes)
+	return ecdsa.GenerateKey(btcec.S256(), randReader)
 }
 
 func (a *Account) IsAlreadyInitialized() bool {

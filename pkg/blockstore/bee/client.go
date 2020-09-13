@@ -31,6 +31,7 @@ import (
 	"github.com/ethersphere/bee/pkg/swarm"
 	bmtlegacy "github.com/ethersphere/bmt/legacy"
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/sha3"
 
 	"github.com/jmozah/intOS-dfs/pkg/logging"
@@ -101,7 +102,11 @@ func (s *BeeClient) UploadChunk(ch swarm.Chunk) (address []byte, err error) {
 	if s.inCache(ch.Address().String()) {
 		s.addToCache(ch.Address().String(), ch.Data())
 	}
-	s.logger.Infof("upload chunk: %s, time: %s", ch.Address().String(), time.Since(to).String())
+	fields := logrus.Fields{
+		"reference": ch.Address().String(),
+		"duration":  time.Since(to).String(),
+	}
+	s.logger.WithFields(fields).Log(logrus.DebugLevel, "upload chunk: ")
 	return ch.Address().Bytes(), nil
 }
 
@@ -137,7 +142,11 @@ func (s *BeeClient) DownloadChunk(ctx context.Context, address []byte) (data []b
 	}
 
 	s.addToCache(addrString, data)
-	s.logger.Infof("download chunk: %s, time: %s", addrString, time.Since(to).String())
+	fields := logrus.Fields{
+		"reference": addrString,
+		"duration":  time.Since(to).String(),
+	}
+	s.logger.WithFields(fields).Log(logrus.DebugLevel, "download chunk: ")
 	return data, nil
 }
 
@@ -169,7 +178,12 @@ func (s *BeeClient) UploadBlob(data []byte) (address []byte, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling response")
 	}
-	s.logger.Infof("upload blob: %s, size: %d, time: %s", resp.Reference.String(), len(data), time.Since(to).String())
+	fields := logrus.Fields{
+		"reference": resp.Reference.String(),
+		"size":      len(data),
+		"duration":  time.Since(to).String(),
+	}
+	s.logger.WithFields(fields).Log(logrus.DebugLevel, "upload blob: ")
 	return resp.Reference.Bytes(), nil
 }
 
@@ -199,7 +213,12 @@ func (s *BeeClient) DownloadBlob(address []byte) ([]byte, int, error) {
 	if err != nil {
 		return nil, response.StatusCode, errors.New("error downloading blob")
 	}
-	s.logger.Infof("download blob: %s, size: %d, time: %s", addrString, len(respData), time.Since(to).String())
+	fields := logrus.Fields{
+		"reference": addrString,
+		"size":      len(respData),
+		"duration":  time.Since(to).String(),
+	}
+	s.logger.WithFields(fields).Log(logrus.DebugLevel, "download blob: ")
 	return respData, response.StatusCode, nil
 }
 

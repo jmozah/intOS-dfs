@@ -28,6 +28,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/logging"
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 	"github.com/jmozah/intOS-dfs/pkg/user"
+	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
 type DfsAPI struct {
@@ -576,36 +577,36 @@ func (d *DfsAPI) DownloadFile(podFile, sessionId string) (io.ReadCloser, string,
 	return reader, ref, size, nil
 }
 
-func (d *DfsAPI) ShareFile(podFile, destinationUser, sessionId string) (*user.OutboxEntry, error) {
+func (d *DfsAPI) ShareFile(podFile, destinationUser, sessionId string) (string, error) {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(sessionId)
 	if ui == nil {
-		return nil, ErrUserNotLoggedIn
+		return "", ErrUserNotLoggedIn
 	}
 
 	// check if pod open
 	if ui.GetPodName() == "" {
-		return nil, ErrPodNotOpen
+		return "", ErrPodNotOpen
 	}
 
-	outEntry, err := d.users.ShareFileWithUser(ui.GetPodName(), podFile, destinationUser, ui, ui.GetPod())
+	sharingRef, err := d.users.ShareFileWithUser(ui.GetPodName(), podFile, destinationUser, ui, ui.GetPod())
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return outEntry, nil
+	return sharingRef, nil
 }
 
-func (d *DfsAPI) ReceiveFile(sessionId string, inboxEntry user.InboxEntry) error {
+func (d *DfsAPI) ReceiveFile(sessionId string, sharingRef utils.SharingReference, dir string) (string, string, error) {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(sessionId)
 	if ui == nil {
-		return ErrUserNotLoggedIn
+		return "", "", ErrUserNotLoggedIn
 	}
 
 	// check if pod open
 	if ui.GetPodName() == "" {
-		return ErrPodNotOpen
+		return "", "", ErrPodNotOpen
 	}
 
-	return d.users.ReceiveFileFromUser(ui.GetPodName(), inboxEntry, ui, ui.GetPod())
+	return d.users.ReceiveFileFromUser(ui.GetPodName(), sharingRef, ui, ui.GetPod(), dir)
 }
