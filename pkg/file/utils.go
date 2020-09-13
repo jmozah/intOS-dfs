@@ -36,7 +36,7 @@ func (f *File) LoadFileMeta(podName string, addr []byte) (int, error) {
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("unmarshall error: %w", err)
 	}
-
+	meta.MetaReference = addr
 	f.AddToFileMap(meta.Path+utils.PathSeperator+meta.Name, meta)
 	fileName := strings.TrimPrefix(meta.Path+utils.PathSeperator+meta.Name, podName)
 	f.logger.Infof(fileName)

@@ -74,8 +74,8 @@ The basic storage unit in dfs is a pod. A user can create multiple pods and use 
 ##### file related APIs   
 - POST -F 'pod_dir=\<dir_with_path\>' -F 'block_size=\<in_Mb\>' -F 'files=@\<filename1\>' -F 'files=@\<filename2\>' http://localhost:9090/v0/file/upload
 - POST -F 'file=\<file_path\>'  http://localhost:9090/v0/file/download
-- POST -F 'file=\<file_path\>' -F 'to=\<destination_user\>' http://localhost:9090/v0/file/share
-- POST http://localhost:9090/v0/file/share -d &InboxEntry(json struct)
+- POST -F 'file=\<file_path\>' -F 'to=\<destination_user_address\>' http://localhost:9090/v0/file/share
+- POST -F 'ref=\<sharing_reference\>' -F 'dir=\<pod_dir_to_store_file\>' http://localhost:9090/v0/file/share/receive 
 - GET  -F 'file=\<file_path\>'  http://localhost:9090/v0/file/stat
 - DELETE -F 'file=\<file_path\>'  http://localhost:9090/v0/file/delete
 

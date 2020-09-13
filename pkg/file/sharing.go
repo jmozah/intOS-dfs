@@ -48,6 +48,7 @@ func (f *File) AddFileToPath(filePath, metaHexRef string) error {
 	if err != nil {
 		return fmt.Errorf("receive: %w", err)
 	}
+	meta.MetaReference = metaReferenace.Bytes()
 	f.AddToFileMap(filePath, meta)
 	return nil
 }
