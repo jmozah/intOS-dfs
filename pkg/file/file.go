@@ -41,9 +41,10 @@ type FileINode struct {
 }
 
 type FileBlock struct {
-	Name    string
-	Size    uint32
-	Address []byte
+	Name           string
+	Size           uint32
+	CompressedSize uint32
+	Address        []byte
 }
 
 func NewFile(podName string, client blockstore.Client, fd *feed.API, acc *account.AccountInfo, logger logging.Logger) *File {

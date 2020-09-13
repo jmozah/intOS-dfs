@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/golang/snappy"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
 )
 
@@ -126,9 +127,21 @@ func (r *Reader) getBlock(addr []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	//outBytes, err := decompress(stdoutBytes)
+	//if err != nil {
+	//	return nil, err
+	//}
 	return stdoutBytes, nil
 }
 
 func (r *Reader) Close() error {
 	return nil
+}
+
+func decompress(dataToDecompress []byte) ([]byte, error) {
+	decoded, err := snappy.Decode(nil, dataToDecompress)
+	if err != nil {
+		return nil, err
+	}
+	return decoded, nil
 }

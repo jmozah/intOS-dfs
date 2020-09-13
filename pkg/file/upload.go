@@ -27,6 +27,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/snappy"
 	m "github.com/jmozah/intOS-dfs/pkg/meta"
 )
 
@@ -87,6 +88,9 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 				<-worker
 				wg.Done()
 			}()
+			// compress the data
+			//compressedData := compress(data[:size])
+
 			addr, err := f.client.UploadBlob(data[:size])
 			if err != nil {
 				errC <- err
@@ -96,6 +100,7 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 			fileBlock := &FileBlock{
 				Name:    fmt.Sprintf("block-%05d", counter),
 				Size:    uint32(size),
+				CompressedSize: uint32(len(data[:size])),
 				Address: addr,
 			}
 
@@ -147,4 +152,9 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 	meta.MetaReference = metaAddr // the self address is stored to share this file easily
 	f.AddToFileMap(filePath, &meta)
 	return metaAddr, nil
+}
+
+
+func compress(dataToCompress []byte) []byte {
+	return snappy.Encode(nil, dataToCompress)
 }

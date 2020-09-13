@@ -42,6 +42,7 @@ type Blocks struct {
 	Name      string `json:"name"`
 	Reference string `json:"reference"`
 	Size      string `json:"size"`
+	CompressedSize string `json:"compressed_size"`
 }
 
 func (f *File) FileStat(podName, fileName, account string) (*FileStats, error) {
@@ -66,6 +67,7 @@ func (f *File) FileStat(podName, fileName, account string) (*FileStats, error) {
 			Name:      b.Name,
 			Reference: hex.EncodeToString(b.Address),
 			Size:      strconv.Itoa(int(b.Size)),
+			CompressedSize: strconv.Itoa(int(b.CompressedSize)),
 		}
 		fileBlocks = append(fileBlocks, fb)
 	}
