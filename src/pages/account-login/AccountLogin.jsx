@@ -48,13 +48,14 @@ export default function AccountLogin({open}) {
           balance: 0.0
         }
       });
-      dispatch({
+      
+       dispatch({
         type: "SET_SYSTEM",
         data: {
           passWord: password
         }
       });
-
+  
       console.log(avatar);
       history.push("/drive/root");
     } else {

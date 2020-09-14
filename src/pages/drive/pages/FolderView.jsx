@@ -126,6 +126,10 @@ export function FolderView({
     handleFolderClose();
   }
 
+  function handleGotoAccount() {
+    history.push("/account");
+  }
+
   const selectedIcon = icon => {
     switch (icon) {
       case "inode/directory":
