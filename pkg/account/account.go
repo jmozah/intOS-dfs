@@ -291,7 +291,7 @@ func (a *Account) storeAsEncryptedMnemonicToDisk(mnemonic, passPhrase string) (s
 	// get the password and hash it to 256 bits
 	password := passPhrase
 	if password == "" {
-		fmt.Print("Enter root password to unlock root account: ")
+		fmt.Print("Enter password to unlock user account: ")
 		password = a.getPassword()
 		password = strings.Trim(password, "\n")
 	}
