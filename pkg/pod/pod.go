@@ -23,6 +23,7 @@ import (
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
@@ -38,15 +39,17 @@ type Pod struct {
 	client blockstore.Client
 	podMap map[string]*Info //  podName -> dir
 	podMu  *sync.RWMutex
+	logger logging.Logger
 }
 
-func NewPod(client blockstore.Client, feed *feed.API, account *account.Account) *Pod {
+func NewPod(client blockstore.Client, feed *feed.API, account *account.Account, logger logging.Logger) *Pod {
 	return &Pod{
 		fd:     feed,
 		acc:    account,
 		client: client,
 		podMap: make(map[string]*Info),
 		podMu:  &sync.RWMutex{},
+		logger: logger,
 	}
 }
 

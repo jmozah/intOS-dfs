@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -31,11 +30,12 @@ func (h *Handler) PodCloseHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("close pod: ", err)
+		h.logger.Errorf("close pod: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("close pod: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "close pod: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -43,17 +43,15 @@ func (h *Handler) PodCloseHandler(w http.ResponseWriter, r *http.Request) {
 	// close pod
 	err = h.dfsAPI.ClosePod(sessionId)
 	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrPodNotOpen || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
-			fmt.Println("close pod:", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "close pod: " + err.Error()})
+			h.logger.Errorf("close pod: %v", err)
+			jsonhttp.BadRequest(w, "close pod: "+err.Error())
 			return
 		}
-		fmt.Println("close pod: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "close pod: " + err.Error()})
+		h.logger.Errorf("close pod: %v", err)
+		jsonhttp.InternalServerError(w, "close pod: "+err.Error())
 		return
 	}
-
-	jsonhttp.OK(w, nil)
+	jsonhttp.OK(w, "pod closed successfully")
 }

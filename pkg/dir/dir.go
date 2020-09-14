@@ -24,6 +24,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
 	f "github.com/jmozah/intOS-dfs/pkg/file"
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 	m "github.com/jmozah/intOS-dfs/pkg/meta"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
@@ -40,6 +41,7 @@ type Directory struct {
 	file    *f.File
 	dirMap  map[string]*DirInode // path to dirInode cache
 	dirMu   *sync.RWMutex
+	logger  logging.Logger
 }
 
 type DirInode struct {
@@ -47,7 +49,7 @@ type DirInode struct {
 	Hashes [][]byte
 }
 
-func NewDirectory(podName string, client blockstore.Client, fd *feed.API, acc *account.AccountInfo, file *f.File) *Directory {
+func NewDirectory(podName string, client blockstore.Client, fd *feed.API, acc *account.AccountInfo, file *f.File, logger logging.Logger) *Directory {
 	return &Directory{
 		podName: podName,
 		client:  client,
@@ -56,6 +58,7 @@ func NewDirectory(podName string, client blockstore.Client, fd *feed.API, acc *a
 		file:    file,
 		dirMap:  make(map[string]*DirInode),
 		dirMu:   &sync.RWMutex{},
+		logger:  logger,
 	}
 }
 

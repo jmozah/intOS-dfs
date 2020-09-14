@@ -17,12 +17,12 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
+
+	"resenje.org/jsonhttp"
 
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
-	"resenje.org/jsonhttp"
 )
 
 type uploadFileResponse struct {
@@ -43,10 +43,12 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	podDir := r.FormValue("pod_dir")
 	blockSize := r.FormValue("block_size")
 	if podDir == "" {
+		h.logger.Errorf("upload: \"pod_dir\" argument missing")
 		jsonhttp.BadRequest(w, "upload: \"pod_dir\" argument missing")
 		return
 	}
 	if blockSize == "" {
+		h.logger.Errorf("upload: \"block_size\" argument missing")
 		jsonhttp.BadRequest(w, "upload: \"block_size\" argument missing")
 		return
 	}
@@ -54,28 +56,27 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("upload: ", err)
+		h.logger.Errorf("upload: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("upload: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "upload: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
-	w.Header().Set("Content-Type", " application/json")
-
 	//  get the files parameter from the multi part
 	err = r.ParseMultipartForm(defaultMaxMemory)
 	if err != nil {
-		fmt.Println("upload: ", err)
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "upload: " + err.Error()})
+		h.logger.Errorf("upload: %v", err)
+		jsonhttp.BadRequest(w, "upload: "+err.Error())
 		return
 	}
 	files := r.MultipartForm.File["files"]
 	if len(files) == 0 {
-		fmt.Println("upload: ", err)
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "upload: parameter \"files\" missing"})
+		h.logger.Errorf("upload: parameter \"files\" missing")
+		jsonhttp.BadRequest(w, "upload: parameter \"files\" missing")
 		return
 	}
 
@@ -86,11 +87,11 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			err := fd.Close()
 			if err != nil {
-				fmt.Println("upload: error closing file: ", err)
+				h.logger.Errorf("upload: error closing file: %v", err)
 			}
 		}()
 		if err != nil {
-			fmt.Println("upload: ", err)
+			h.logger.Errorf("upload: %v", err)
 			references = append(references, Reference{FileName: file.Filename, Error: err.Error()})
 			continue
 		}
@@ -99,17 +100,18 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		reference, err := h.dfsAPI.UploadFile(file.Filename, sessionId, file.Size, fd, podDir, blockSize)
 		if err != nil {
 			if err == dfs.ErrPodNotOpen {
-				fmt.Println("upload:", err)
-				jsonhttp.BadRequest(w, &ErrorMessage{Err: "upload: " + err.Error()})
+				h.logger.Errorf("upload: %v", err)
+				jsonhttp.BadRequest(w, "upload: "+err.Error())
 				return
 			}
-			fmt.Println("upload: ", err)
+			h.logger.Errorf("upload: %v", err)
 			references = append(references, Reference{FileName: file.Filename, Error: err.Error()})
 			continue
 		}
 		references = append(references, Reference{FileName: file.Filename, Reference: reference})
 	}
 
+	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.OK(w, &uploadFileResponse{
 		References: references,
 	})

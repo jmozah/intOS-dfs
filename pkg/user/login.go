@@ -38,10 +38,10 @@ func (u *Users) LoginUser(userName, passPhrase, dataDir string, client blockstor
 		return ErrInvalidUserName
 	}
 
-	acc := account.New(userName, dataDir)
+	acc := account.New(userName, dataDir, u.logger)
 	accountInfo := acc.GetAccountInfo(account.UserAccountIndex)
-	fd := feed.New(accountInfo, client)
-	file := f.NewFile(userName, client, fd, accountInfo)
+	fd := feed.New(accountInfo, client, u.logger)
+	file := f.NewFile(userName, client, fd, accountInfo, u.logger)
 	err := acc.LoadUserAccount(passPhrase)
 	if err != nil {
 		if err.Error() == "mnemonic is invalid" {
@@ -49,7 +49,7 @@ func (u *Users) LoginUser(userName, passPhrase, dataDir string, client blockstor
 		}
 		return fmt.Errorf("user login: %w", err)
 	}
-	dir := d.NewDirectory(userName, client, fd, accountInfo, file)
+	dir := d.NewDirectory(userName, client, fd, accountInfo, file, u.logger)
 
 	if sessionId == "" {
 		sessionId = cookie.GetUniqueSessionId()
@@ -62,7 +62,7 @@ func (u *Users) LoginUser(userName, passPhrase, dataDir string, client blockstor
 		account:   acc,
 		file:      file,
 		dir:       dir,
-		pods:      pod.NewPod(u.client, fd, acc),
+		pods:      pod.NewPod(u.client, fd, acc, u.logger),
 	}
 
 	// set cookie and add user to map

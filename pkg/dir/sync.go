@@ -48,7 +48,7 @@ func (d *Directory) LoadDirMeta(podName string, curDirInode *DirInode, fd *feed.
 
 		path := dirInode.Meta.Path + utils.PathSeperator + dirInode.Meta.Name
 		d.AddToDirectoryMap(path, dirInode)
-		fmt.Println(path)
+		d.logger.Infof(path)
 
 		_, newDirInode, err := d.GetDirNode(path, fd, accountInfo)
 		if err != nil {

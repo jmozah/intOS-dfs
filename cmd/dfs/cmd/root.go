@@ -27,11 +27,12 @@ import (
 )
 
 var (
-	cfgFile  string
-	beeHost  string
-	beePort  string
-	httpPort string
-	dataDir  string
+	cfgFile   string
+	beeHost   string
+	beePort   string
+	httpPort  string
+	verbosity string
+	dataDir   string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -50,6 +51,17 @@ It can also be used as a standalone personal, decentralised drive over the inter
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	intOSdfs := `
+	/$$             /$$      /$$$$$$   /$$$$$$                /$$  /$$$$$$
+	|__/            | $$     /$$__  $$ /$$__  $$              | $$ /$$__  $$
+	/$$ /$$$$$$$  /$$$$$$  | $$  \ $$| $$  \__/          /$$$$$$$| $$  \__//$$$$$$$
+	| $$| $$__  $$|_  $$_/  | $$  | $$|  $$$$$$  /$$$$$$ /$$__  $$| $$$$   /$$_____/
+	| $$| $$  \ $$  | $$    | $$  | $$ \____  $$|______/| $$  | $$| $$_/  |  $$$$$$
+	| $$| $$  | $$  | $$ /$$| $$  | $$ /$$  \ $$        | $$  | $$| $$     \____  $$
+	| $$| $$  | $$  |  $$$$/|  $$$$$$/|  $$$$$$/        |  $$$$$$$| $$     /$$$$$$$/
+	|__/|__/  |__/   \___/   \______/  \______/          \_______/|__/    |_______/	
+`
+	fmt.Println(intOSdfs)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -76,10 +88,11 @@ func init() {
 	}
 
 	defaultDataDir := filepath.Join(home, ".intos/dfs")
-	rootCmd.PersistentFlags().StringVar(&dataDir, "dataDir", defaultDataDir, "store data in this dir")
-	rootCmd.PersistentFlags().StringVar(&beeHost, "beeHost", "127.0.0.1", "bee host")
-	rootCmd.PersistentFlags().StringVar(&beePort, "beePort", "8080", "bee port")
-	rootCmd.PersistentFlags().StringVar(&httpPort, "httpPort", "9090", "http port")
+	rootCmd.PersistentFlags().StringVar(&dataDir, "dataDir", defaultDataDir, "store data in this dir (default ~/.intos/dfs)")
+	rootCmd.PersistentFlags().StringVar(&beeHost, "beeHost", "127.0.0.1", "bee host (default 127.0.0.1)")
+	rootCmd.PersistentFlags().StringVar(&beePort, "beePort", "8080", "bee port (default 8080)")
+	rootCmd.PersistentFlags().StringVar(&httpPort, "httpPort", "9090", "http port (default 9090)")
+	rootCmd.PersistentFlags().StringVar(&verbosity, "verbosity", "5", "verbosity level (default 4)")
 }
 
 // initConfig reads in config file and ENV variables if set.

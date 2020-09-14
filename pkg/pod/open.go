@@ -48,8 +48,8 @@ func (p *Pod) OpenPod(podName, passPhrase string) (*Info, error) {
 		return nil, err
 	}
 	accountInfo := p.acc.GetAccountInfo(index)
-	file := f.NewFile(podName, p.client, p.fd, accountInfo)
-	dir := d.NewDirectory(podName, p.client, p.fd, accountInfo, file)
+	file := f.NewFile(podName, p.client, p.fd, accountInfo, p.logger)
+	dir := d.NewDirectory(podName, p.client, p.fd, accountInfo, file, p.logger)
 
 	// get the pod's inode
 	_, dirInode, err := dir.GetDirNode(utils.PathSeperator+podName, p.fd, accountInfo)

@@ -17,15 +17,12 @@ limitations under the License.
 package api
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"resenje.org/jsonhttp"
 
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
-	"github.com/jmozah/intOS-dfs/pkg/user"
+	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
 type receiveFileResponse struct {
@@ -33,14 +30,20 @@ type receiveFileResponse struct {
 	Reference string `json:"reference"`
 }
 
+type SharingReference struct {
+	Reference string `json:"sharing_reference"`
+}
+
 func (h *Handler) FileShareHandler(w http.ResponseWriter, r *http.Request) {
 	podFile := r.FormValue("file")
 	if podFile == "" {
+		h.logger.Errorf("share: \"file\" argument missing")
 		jsonhttp.BadRequest(w, "share: \"file\" argument missing")
 		return
 	}
 	destinationRef := r.FormValue("to")
 	if destinationRef == "" {
+		h.logger.Errorf("share: \"to\" argument missing")
 		jsonhttp.BadRequest(w, "share: \"to\" argument missing")
 		return
 	}
@@ -48,62 +51,74 @@ func (h *Handler) FileShareHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("share: ", err)
+		h.logger.Errorf("share: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("share: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "share: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
-	w.Header().Set("Content-Type", " application/json")
-	outEntry, err := h.dfsAPI.ShareFile(podFile, destinationRef, sessionId)
+	sharingRef, err := h.dfsAPI.ShareFile(podFile, destinationRef, sessionId)
 	if err != nil {
-		fmt.Println("share: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "share: " + err.Error()})
+		h.logger.Errorf("share: %v", err)
+		jsonhttp.InternalServerError(w, "share: "+err.Error())
 		return
 	}
 
-	jsonhttp.OK(w, outEntry)
+	w.Header().Set("Content-Type", " application/json")
+	jsonhttp.OK(w, &SharingReference{
+		Reference: sharingRef,
+	})
 }
 
 func (h *Handler) FileReceiveHandler(w http.ResponseWriter, r *http.Request) {
-	// get the outbox entry
-	data, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		jsonhttp.BadRequest(w, "receive: no data in body")
+	sharingRefString := r.FormValue("ref")
+	if sharingRefString == "" {
+		h.logger.Errorf("receive: \"ref\" argument missing")
+		jsonhttp.BadRequest(w, "receive: \"ref\" argument missing")
 		return
 	}
-	inboxEntry := user.InboxEntry{}
-	err = json.Unmarshal(data, &inboxEntry)
-	if err != nil {
-		jsonhttp.BadRequest(w, &ErrorMessage{Err: "share: " + err.Error()})
+
+	dir := r.FormValue("dir")
+	if dir == "" {
+		h.logger.Errorf("receive: \"dir\" argument missing")
+		jsonhttp.BadRequest(w, "receive: \"dir\" argument missing")
 		return
 	}
 
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("share: ", err)
+		h.logger.Errorf("receive: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("receive: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "share: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
-	w.Header().Set("Content-Type", " application/json")
-	err = h.dfsAPI.ReceiveFile(sessionId, inboxEntry)
+	sharingRef, err := utils.ParseSharingReference(sharingRefString)
 	if err != nil {
-		fmt.Println("share: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "share: " + err.Error()})
+		h.logger.Errorf("receive: invalid reference: ", err)
+		jsonhttp.BadRequest(w, "receive: invalid reference:"+err.Error())
 		return
 	}
 
+	filePath, fileRef, err := h.dfsAPI.ReceiveFile(sessionId, sharingRef, dir)
+	if err != nil {
+		h.logger.Errorf("receive: %v", err)
+		jsonhttp.InternalServerError(w, "receive: "+err.Error())
+		return
+	}
+
+	w.Header().Set("Content-Type", " application/json")
 	jsonhttp.OK(w, &receiveFileResponse{
-		FileName:  inboxEntry.FilePath,
-		Reference: inboxEntry.FileMetaHash,
+		FileName:  filePath,
+		Reference: fileRef,
 	})
 }

@@ -17,17 +17,18 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
+
+	"resenje.org/jsonhttp"
 
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
-	"resenje.org/jsonhttp"
 )
 
 func (h *Handler) FileStatHandler(w http.ResponseWriter, r *http.Request) {
 	podFile := r.FormValue("file")
 	if podFile == "" {
+		h.logger.Errorf("file stat: \"file\" argument missing")
 		jsonhttp.BadRequest(w, "file stat: \"file\" argument missing")
 		return
 	}
@@ -35,26 +36,26 @@ func (h *Handler) FileStatHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("file stat: ", err)
+		h.logger.Errorf("file stat: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("file stat: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "file stat: \"cookie-id\" parameter missing in cookie")
 		return
 	}
-	w.Header().Set("Content-Type", " application/json")
 
 	// get file stat
 	stat, err := h.dfsAPI.FileStat(podFile, sessionId)
 	if err != nil {
 		if err == dfs.ErrPodNotOpen {
-			fmt.Println("file stat:", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "file stat: " + err.Error()})
+			h.logger.Errorf("file stat: %v", err)
+			jsonhttp.BadRequest(w, "file stat: "+err.Error())
 			return
 		}
-		fmt.Println("file stat: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "file stat: " + err.Error()})
+		h.logger.Errorf("file stat: %v", err)
+		jsonhttp.InternalServerError(w, "file stat: "+err.Error())
 		return
 	}
 

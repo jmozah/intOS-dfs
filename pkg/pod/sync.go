@@ -25,6 +25,7 @@ import (
 
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
 	d "github.com/jmozah/intOS-dfs/pkg/dir"
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 	m "github.com/jmozah/intOS-dfs/pkg/meta"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
@@ -44,18 +45,18 @@ func (p *Pod) SyncPod(podName string) error {
 		return fmt.Errorf("sync pod: %w", err)
 	}
 
-	err = podInfo.SyncPod(podName, p.client)
+	err = podInfo.SyncPod(podName, p.client, p.logger)
 	if err != nil {
 		return fmt.Errorf("sync pod: %w", err)
 	}
 	return nil
 }
 
-func (pi *Info) SyncPod(podName string, client blockstore.Client) error {
+func (pi *Info) SyncPod(podName string, client blockstore.Client, logger logging.Logger) error {
 	fd := pi.getFeed()
 	accountInfo := pi.getAccountInfo()
 
-	fmt.Println("Syncing pod", podName)
+	logger.Infof("Syncing pod: %v", podName)
 	var wg sync.WaitGroup
 	for _, ref := range pi.currentPodInode.Hashes {
 		wg.Add(1)
@@ -65,42 +66,44 @@ func (pi *Info) SyncPod(podName string, client blockstore.Client) error {
 			if err != nil {
 				data, respCode, err := client.DownloadBlob(reference)
 				if err != nil {
-					fmt.Println("sync: download error: ", err)
+					logger.Warningf("sync: download error: ", err)
 					return
 				}
 				if respCode != http.StatusOK {
-					fmt.Println("sync: download status not okay: ", respCode)
+					logger.Warningf("sync: download status not okay: ", respCode)
 					return
 				}
 				var meta *m.FileMetaData
 				err = json.Unmarshal(data, &meta)
 				if err != nil {
-					fmt.Println("sync: unmarshall error: ", err)
+					logger.Errorf("sync: unmarshall error: ", err)
+					return
 				}
 
 				path := meta.Path + utils.PathSeperator + meta.Name
+				meta.MetaReference = reference
 				pi.file.AddToFileMap(path, meta)
 				path = strings.TrimPrefix(path, podName)
-				fmt.Println(path)
+				logger.Infof(path)
 				return
 			}
 
 			var dirInode *d.DirInode
 			err = json.Unmarshal(data, &dirInode)
 			if err != nil {
-				fmt.Println("sync: unmarshall error: %w", err)
+				logger.Warningf("sync: unmarshall error: %w", err)
 				return
 			}
 
 			path := dirInode.Meta.Path + utils.PathSeperator + dirInode.Meta.Name
 			err = pi.getDirectory().LoadDirMeta(podName, dirInode, fd, accountInfo)
 			if err != nil {
-				fmt.Println("sync: load meta error: %w", err)
+				logger.Warningf("sync: load meta error: %w", err)
 				return
 			}
 			pi.getDirectory().AddToDirectoryMap(path, dirInode)
 			path = strings.TrimPrefix(path, podName)
-			fmt.Println(path)
+			logger.Infof(path)
 		}(ref)
 	}
 	wg.Wait()

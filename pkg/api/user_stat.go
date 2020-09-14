@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -29,19 +28,20 @@ func (h *Handler) GetUserStatHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("user stat: ", err)
+		h.logger.Errorf("user stat: invalid cookie: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Error("user stat: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "user stat: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	userStat, err := h.dfsAPI.GetUserStat(sessionId)
 	if err != nil {
-		fmt.Println("user stat: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "user stat: " + err.Error()})
+		h.logger.Errorf("user stat: %v", err)
+		jsonhttp.InternalServerError(w, "user stat: "+err.Error())
 		return
 	}
 

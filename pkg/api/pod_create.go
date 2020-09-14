@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -35,10 +34,12 @@ func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	pod := r.FormValue("pod")
 	if password == "" {
+		h.logger.Errorf("create pod: \"password\" argument missing")
 		jsonhttp.BadRequest(w, "create pod: \"password\" argument missing")
 		return
 	}
 	if pod == "" {
+		h.logger.Errorf("create pod: \"pod\" argument missing")
 		jsonhttp.BadRequest(w, "create pod: \"pod\" argument missing")
 		return
 	}
@@ -46,11 +47,12 @@ func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("delete: ", err)
+		h.logger.Errorf("delete: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("create pod: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "create pod: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -58,20 +60,19 @@ func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 	// create pod
 	_, err = h.dfsAPI.CreatePod(pod, password, sessionId)
 	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidPodName ||
 			err == p.ErrTooLongPodName ||
 			err == p.ErrPodAlreadyExists ||
 			err == p.ErrMaxPodsReached {
-			fmt.Println("create pod: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "create pod: " + err.Error()})
+			h.logger.Errorf("create pod: %v", err)
+			jsonhttp.BadRequest(w, "create pod: "+err.Error())
 			return
 		}
-		fmt.Println("create pod: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "create pod: " + err.Error()})
+		h.logger.Errorf("create pod: %v", err)
+		jsonhttp.InternalServerError(w, "create pod: "+err.Error())
 		return
 	}
 
-	jsonhttp.Created(w, nil)
+	jsonhttp.Created(w, "pod created successfully")
 }

@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
@@ -30,6 +29,7 @@ import (
 func (h *Handler) FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	podFile := r.FormValue("file")
 	if podFile == "" {
+		h.logger.Errorf("file delete: \"file\" argument missing")
 		jsonhttp.BadRequest(w, "file delete: \"file\" argument missing")
 		return
 	}
@@ -37,11 +37,12 @@ func (h *Handler) FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("file delete: ", err)
+		h.logger.Errorf("file delete: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("file delete: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "file delete: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -50,15 +51,14 @@ func (h *Handler) FileDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	err = h.dfsAPI.DeleteFile(podFile, sessionId)
 	if err != nil {
 		if err == dfs.ErrPodNotOpen {
-			fmt.Println("file delete:", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "file delete: " + err.Error()})
+			h.logger.Errorf("file delete: %v", err)
+			jsonhttp.BadRequest(w, "file delete: "+err.Error())
 			return
 		}
-		fmt.Println("file delete: %w", err)
-		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "file delete: " + err.Error()})
+		h.logger.Errorf("file delete: %v", err)
+		jsonhttp.InternalServerError(w, "file delete: "+err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	jsonhttp.OK(w, "file deleted successfully")
 }
