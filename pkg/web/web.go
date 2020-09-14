@@ -30,6 +30,6 @@ type Web struct {
 func NewWeb(logger logging.Logger) *Web {
 	return &Web{
 		indexTmpl: template.Must(template.ParseFiles("build/index.html")),
-	  logger:    logger,
+		logger:    logger,
 	}
 }
