@@ -17,7 +17,7 @@ import {
   mdiZipBox
 } from "@mdi/js";
 import Icon from "@mdi/react";
-import {createDirectory, deleteDirectory, deleteFile, fileUpload} from "helpers/apiCalls";
+import {createDirectory, deleteDirectory, deleteFile, fileUpload, shareFile} from "helpers/apiCalls";
 
 export default function FolderDialog({open, path, refresh, onClose, item}) {
   console.log("from newdialog: ", open, path);
@@ -27,10 +27,12 @@ export default function FolderDialog({open, path, refresh, onClose, item}) {
   const renameId = "renameId";
   const deleteId = "deleteId";
   const errorId = "errorId";
+  const showShareId = "showShareId";
 
   const [folderContentState, setFolderContentState] = useState(homeId);
   const [newFolderName, setNewFolderName] = useState();
   const [shareName, setShareName] = useState();
+  const [shareLink, setShareLink] = useState();
 
   const [newName, setNewName] = useState();
 
@@ -77,8 +79,33 @@ export default function FolderDialog({open, path, refresh, onClose, item}) {
   }
 
   async function handleShare() {
-    refresh(path);
-    handleFolderClose();
+    let writePath = "";
+    if (path == "root") {
+      writePath = "/";
+    } else {
+      writePath = "/" + urlPath(path) + "/";
+    }
+    const res = await shareFile(writePath + item.name);
+    console.log(res);
+    setShareLink(res);
+    setFolderContentState(showShareId);
+    selectText();
+    //handleFolderClose();
+  }
+
+  function selectText() {
+    /* Get the text field */
+    var copyText = document.getElementById("link");
+
+    /* Select the text field */
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);/* For mobile devices */
+
+    /* Copy the text inside the text field */
+    document.execCommand("copy");
+
+    /* Alert the copied text */
+    //alert("Copied the text: " + copyText.value);
   }
 
   const FolderDialogContent = () => {
@@ -149,6 +176,23 @@ export default function FolderDialog({open, path, refresh, onClose, item}) {
 
           <div onClick={handleDelete} className={styles.buttonPlace}>
             <div className={rootStyles.buttontext}>> remove permanently</div>
+          </div>
+        </div>);
+        break;
+      case showShareId:
+        return (<div className={styles.foldermenu}>
+          <div className={styles.menutitle}>
+            <div>Share this link with a friend</div>
+            <div className={styles.close} onClick={handleFolderClose}>
+              <div className={styles.closeicon}/>
+            </div>
+          </div>
+          <div className={styles.shareLinkPlace}>
+            <input type="text" value={`https://fairdrive.org/#/receive/` + shareLink} className={styles.nameInput} id="link"></input>
+          </div>
+          <div className={styles.shareLink}>Link copied to clipboard!</div>
+          <div onClick={handleFolderClose} className={styles.buttonPlace}>
+            <div className={rootStyles.buttontext}>> close</div>
           </div>
         </div>);
 

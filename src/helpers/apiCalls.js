@@ -341,3 +341,26 @@ export async function deleteFile(fileName) {
     return true;
   } catch (error) {}
 }
+
+export async function shareFile(fileName, userName) {
+  try {
+    const config = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    };
+
+    const shareFileResult = await axi({
+      method: "POST",
+      url: "file/share",
+      config: config,
+      params: {
+        file: fileName,
+        to: "anon"
+      },
+      withCredentials: true
+    });
+
+    return shareFileResult.data.sharing_reference;
+  } catch (error) {}
+}

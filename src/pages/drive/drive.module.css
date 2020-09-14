@@ -271,3 +271,9 @@ text-align: right;
   composes: bodyBold from "../../styles.module.css";
   color: var(--text-light);
 }
+
+.shareLink {
+  composes: bodyDefault from "../../styles.module.css";
+ margin-top: 10px;
+ color: var(--text-light)
+}
