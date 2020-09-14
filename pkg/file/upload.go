@@ -27,14 +27,16 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/snappy"
 	m "github.com/jmozah/intOS-dfs/pkg/meta"
+	"github.com/klauspost/pgzip"
 )
 
 var (
 	NoOfParallelWorkers = runtime.NumCPU() * 4
 )
 
-func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize uint32, filePath string) ([]byte, error) {
+func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize uint32, filePath, compression string) ([]byte, error) {
 	reader := bufio.NewReader(fd)
 	now := time.Now().Unix()
 	meta := m.FileMetaData{
@@ -43,6 +45,7 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 		Name:             fileName,
 		FileSize:         uint64(fileSize),
 		BlockSize:        blockSize,
+		Compression:      compression,
 		CreationTime:     now,
 		AccessTime:       now,
 		ModificationTime: now,
@@ -87,16 +90,26 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 				<-worker
 				wg.Done()
 			}()
-			addr, err := f.client.UploadBlob(data[:size])
+			// compress the data
+			uploadData := data[:size]
+			if compression != "" {
+				uploadData, err = compress(data[:size], compression, blockSize)
+				if err != nil {
+					errC <- err
+				}
+			}
+
+			addr, err := f.client.UploadBlob(uploadData)
 			if err != nil {
 				errC <- err
 				return
 			}
 
 			fileBlock := &FileBlock{
-				Name:    fmt.Sprintf("block-%05d", counter),
-				Size:    uint32(size),
-				Address: addr,
+				Name:           fmt.Sprintf("block-%05d", counter),
+				Size:           uint32(size),
+				CompressedSize: uint32(len(uploadData)),
+				Address:        addr,
 			}
 
 			refMapMu.Lock()
@@ -147,4 +160,29 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 	meta.MetaReference = metaAddr // the self address is stored to share this file easily
 	f.AddToFileMap(filePath, &meta)
 	return metaAddr, nil
+}
+
+func compress(dataToCompress []byte, compression string, blockSize uint32) ([]byte, error) {
+	switch compression {
+	case "gzip":
+		var b bytes.Buffer
+		w := pgzip.NewWriter(&b)
+		block := int(blockSize / 10)
+		err := w.SetConcurrency(block, 10)
+		if err != nil {
+			return nil, err
+		}
+		_, err = w.Write(dataToCompress)
+		if err != nil {
+			return nil, err
+		}
+		err = w.Close()
+		if err != nil {
+			return nil, err
+		}
+		return b.Bytes(), nil
+	case "snappy":
+		return snappy.Encode(nil, dataToCompress), nil
+	}
+	return dataToCompress, nil
 }

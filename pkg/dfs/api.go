@@ -539,7 +539,7 @@ func (d *DfsAPI) FileStat(fileName, sessionId string) (*file.FileStats, error) {
 	return ds, nil
 }
 
-func (d *DfsAPI) UploadFile(fileName, sessionId string, fileSize int64, fd multipart.File, podDir, blockSize string) (string, error) {
+func (d *DfsAPI) UploadFile(fileName, sessionId string, fileSize int64, fd multipart.File, podDir, blockSize, compression string) (string, error) {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(sessionId)
 	if ui == nil {
@@ -551,7 +551,7 @@ func (d *DfsAPI) UploadFile(fileName, sessionId string, fileSize int64, fd multi
 		return "", ErrPodNotOpen
 	}
 
-	ref, err := ui.GetPod().UploadFile(ui.GetPodName(), fileName, fileSize, fd, podDir, blockSize)
+	ref, err := ui.GetPod().UploadFile(ui.GetPodName(), fileName, fileSize, fd, podDir, blockSize, compression)
 	if err != nil {
 		return "", err
 	}

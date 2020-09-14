@@ -72,7 +72,7 @@ The basic storage unit in dfs is a pod. A user can create multiple pods and use 
 - GET  -F 'dir=\<dir_with_path\>'  http://localhost:9090/v0/dir/stat
 
 ##### file related APIs   
-- POST -F 'pod_dir=\<dir_with_path\>' -F 'block_size=\<in_Mb\>' -F 'files=@\<filename1\>' -F 'files=@\<filename2\>' http://localhost:9090/v0/file/upload
+- POST -F -H "intOS-dfs-Compression: snappy/gzip" 'pod_dir=\<dir_with_path\>' -F 'block_size=\<in_Mb\>' -F 'files=@\<filename1\>' -F 'files=@\<filename2\>' http://localhost:9090/v0/file/upload  (compression header optional)
 - POST -F 'file=\<file_path\>'  http://localhost:9090/v0/file/download
 - POST -F 'file=\<file_path\>' -F 'to=\<destination_user_address\>' http://localhost:9090/v0/file/share
 - POST -F 'ref=\<sharing_reference\>' -F 'dir=\<pod_dir_to_store_file\>' http://localhost:9090/v0/file/share/receive 

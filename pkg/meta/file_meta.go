@@ -27,6 +27,7 @@ type FileMetaData struct {
 	FileSize         uint64
 	BlockSize        uint32
 	ContentType      string
+	Compression      string
 	CreationTime     int64
 	AccessTime       int64
 	ModificationTime int64

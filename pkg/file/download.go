@@ -43,7 +43,7 @@ func (f *File) Download(podFile string) (io.ReadCloser, string, string, error) {
 		return nil, "", "", fmt.Errorf("copyFromLocal: %w", err)
 	}
 
-	reader := NewReader(fileInode, f.getClient(), meta.FileSize, meta.BlockSize)
+	reader := NewReader(fileInode, f.getClient(), meta.FileSize, meta.BlockSize, meta.Compression)
 	ref := swarm.NewAddress(meta.InodeAddress).String()
 	size := strconv.FormatUint(meta.FileSize, 10)
 	return reader, ref, size, nil

@@ -42,6 +42,9 @@ github.com/ethersphere/bmt
 github.com/ethersphere/bmt/legacy
 # github.com/fsnotify/fsnotify v1.4.9
 github.com/fsnotify/fsnotify
+# github.com/golang/snappy v0.0.2-0.20200707131729-196ae77b8a26
+## explicit
+github.com/golang/snappy
 # github.com/gorilla/mux v1.7.4
 ## explicit
 github.com/gorilla/mux
@@ -65,6 +68,12 @@ github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
+# github.com/klauspost/compress v1.10.1
+## explicit
+github.com/klauspost/compress/flate
+# github.com/klauspost/pgzip v1.2.5
+## explicit
+github.com/klauspost/pgzip
 # github.com/konsorten/go-windows-terminal-sequences v1.0.3
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/magiconair/properties v1.8.1
@@ -86,6 +95,8 @@ github.com/miguelmota/go-ethereum-hdwallet
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/mapstructure v1.3.2
 github.com/mitchellh/mapstructure
+# github.com/mmcloughlin/avo v0.0.0-20200803215136-443f81d77104
+## explicit
 # github.com/pelletier/go-toml v1.8.0
 github.com/pelletier/go-toml
 # github.com/pkg/term v0.0.0-20200520122047-c3ffed290a03

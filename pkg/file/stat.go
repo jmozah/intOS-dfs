@@ -31,6 +31,7 @@ type FileStats struct {
 	FileName         string `json:"file_name"`
 	FileSize         string `json:"file_size"`
 	BlockSize        string `json:"block_size"`
+	Compression      string `json:"compression"`
 	ContentType      string `json:"content_type"`
 	CreationTime     string `json:"creation_time"`
 	ModificationTime string `json:"modification_time"`
@@ -39,9 +40,10 @@ type FileStats struct {
 }
 
 type Blocks struct {
-	Name      string `json:"name"`
-	Reference string `json:"reference"`
-	Size      string `json:"size"`
+	Name           string `json:"name"`
+	Reference      string `json:"reference"`
+	Size           string `json:"size"`
+	CompressedSize string `json:"compressed_size"`
 }
 
 func (f *File) FileStat(podName, fileName, account string) (*FileStats, error) {
@@ -63,9 +65,10 @@ func (f *File) FileStat(podName, fileName, account string) (*FileStats, error) {
 	var fileBlocks []Blocks
 	for _, b := range fileInode.FileBlocks {
 		fb := Blocks{
-			Name:      b.Name,
-			Reference: hex.EncodeToString(b.Address),
-			Size:      strconv.Itoa(int(b.Size)),
+			Name:           b.Name,
+			Reference:      hex.EncodeToString(b.Address),
+			Size:           strconv.Itoa(int(b.Size)),
+			CompressedSize: strconv.Itoa(int(b.CompressedSize)),
 		}
 		fileBlocks = append(fileBlocks, fb)
 	}
@@ -76,6 +79,7 @@ func (f *File) FileStat(podName, fileName, account string) (*FileStats, error) {
 		FileName:         meta.Name,
 		FileSize:         strconv.FormatUint(meta.FileSize, 10),
 		BlockSize:        strconv.Itoa(int(meta.BlockSize)),
+		Compression:      meta.Compression,
 		ContentType:      meta.ContentType,
 		CreationTime:     time.Unix(meta.CreationTime, 0).String(),
 		ModificationTime: time.Unix(meta.ModificationTime, 0).String(),
