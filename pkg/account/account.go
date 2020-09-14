@@ -302,7 +302,7 @@ func (a *Account) storeAsEncryptedMnemonicToDisk(mnemonic, passPhrase string) (s
 	// get the password and hash it to 256 bits
 	password := passPhrase
 	if password == "" {
-		fmt.Print("Enter root password to unlock root account: ")
+		fmt.Print("Enter password to unlock user account: ")
 		password = a.getPassword()
 		password = strings.Trim(password, "\n")
 	}
@@ -311,7 +311,7 @@ func (a *Account) storeAsEncryptedMnemonicToDisk(mnemonic, passPhrase string) (s
 	// encrypt the mnemonic
 	encryptedMessage, err := encrypt(aesKey[:], mnemonic)
 	if err != nil {
-		return "", fmt.Errorf("create root account: %w", err)
+		return "", fmt.Errorf("create user account: %w", err)
 	}
 
 	err = os.MkdirAll(filepath.Dir(a.mnemonicFileName), 0777)
