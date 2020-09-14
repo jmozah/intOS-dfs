@@ -18,11 +18,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/jmozah/intOS-dfs/pkg/user"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/jmozah/intOS-dfs/pkg/user"
 
 	prompt "github.com/c-bata/go-prompt"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
@@ -55,8 +56,13 @@ var promptCmd = &cobra.Command{
 	Long: `A command prompt where you can interact with the distributed
 file system of the intOS.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		logger := logging.New(ioutil.Discard, 0)
-		dfsAPI = dfs.NewDfsAPI(dataDir, beeHost, beePort, logger)
+		logger = logging.New(ioutil.Discard, 0)
+		api, err := dfs.NewDfsAPI(dataDir, beeHost, beePort, logger)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		dfsAPI = api
 		initPrompt()
 	},
 }

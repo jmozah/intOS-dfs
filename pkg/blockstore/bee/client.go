@@ -80,6 +80,31 @@ func NewBeeClient(host, port string, logger logging.Logger) *BeeClient {
 	}
 }
 
+func (s *BeeClient) CheckConnection() bool {
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
+	if err != nil {
+		return false
+	}
+
+	response, err := s.client.Do(req)
+	if err != nil {
+		return false
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return false
+	}
+
+	data, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return false
+	}
+	if string(data) != "Ethereum Swarm Bee" {
+		return false
+	}
+	return true
+}
+
 // upload a chunk in bee
 func (s *BeeClient) UploadChunk(ch swarm.Chunk) (address []byte, err error) {
 	to := time.Now()

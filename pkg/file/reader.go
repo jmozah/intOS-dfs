@@ -19,11 +19,12 @@ package file
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
+
 	"github.com/golang/snappy"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
 	"github.com/klauspost/pgzip"
-	"io"
-	"io/ioutil"
 )
 
 type Reader struct {

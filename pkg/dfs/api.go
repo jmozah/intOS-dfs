@@ -38,21 +38,28 @@ type DfsAPI struct {
 	logger  logging.Logger
 }
 
-func NewDfsAPI(dataDir, host, port string, logger logging.Logger) *DfsAPI {
+func NewDfsAPI(dataDir, host, port string, logger logging.Logger) (*DfsAPI, error) {
 	c := bee.NewBeeClient(host, port, logger)
+	if !c.CheckConnection() {
+		return nil, ErrBeeClient
+	}
 	users := user.NewUsers(dataDir, c, logger)
 	return &DfsAPI{
 		dataDir: dataDir,
 		client:  c,
 		users:   users,
 		logger:  logger,
-	}
+	}, nil
 }
 
 //
 //  User related APIs
 //
 func (d *DfsAPI) CreateUser(userName, passPhrase, mnemonic string, response http.ResponseWriter, sessionId string) (string, string, error) {
+	if !d.client.CheckConnection() {
+		return "", "", ErrBeeClient
+	}
+
 	reference, rcvdMnemonic, userInfo, err := d.users.CreateNewUser(userName, passPhrase, mnemonic, d.dataDir, d.client, response, sessionId)
 	if err != nil {
 		return reference, rcvdMnemonic, err

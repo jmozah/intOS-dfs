@@ -28,10 +28,14 @@ type Handler struct {
 	logger      logging.Logger
 }
 
-func NewHandler(dataDir, beeHost, beePort string, logger logging.Logger) *Handler {
+func NewHandler(dataDir, beeHost, beePort string, logger logging.Logger) (*Handler, error) {
+	api, err := dfs.NewDfsAPI(dataDir, beeHost, beePort, logger)
+	if err != nil {
+		return nil, dfs.ErrBeeClient
+	}
 	return &Handler{
-		dfsAPI:      dfs.NewDfsAPI(dataDir, beeHost, beePort, logger),
+		dfsAPI:      api,
 		WebHandlers: web.NewWeb(logger),
 		logger:      logger,
-	}
+	}, nil
 }

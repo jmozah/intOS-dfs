@@ -23,6 +23,7 @@ import (
 )
 
 type Client interface {
+	CheckConnection() bool
 	UploadChunk(ch swarm.Chunk) (address []byte, err error)
 	UploadBlob(data []byte) (address []byte, err error)
 	DownloadChunk(ctx context.Context, address []byte) (data []byte, err error)

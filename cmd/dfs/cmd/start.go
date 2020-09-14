@@ -57,7 +57,12 @@ can consume it.`,
 			fmt.Println("unknown verbosity level ", v)
 			return
 		}
-		handler = api.NewHandler(dataDir, beeHost, beePort, logger)
+		hdlr, err := api.NewHandler(dataDir, beeHost, beePort, logger)
+		if err != nil {
+			logger.Error(err.Error())
+			return
+		}
+		handler = hdlr
 		startHttpService(logger)
 	},
 }
