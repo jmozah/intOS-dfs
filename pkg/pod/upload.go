@@ -26,7 +26,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (p *Pod) UploadFile(podName, fileName string, fileSize int64, fd io.Reader, podDir, blockSize string) (string, error) {
+func (p *Pod) UploadFile(podName, fileName string, fileSize int64, fd io.Reader, podDir, blockSize string, compression string) (string, error) {
 	if !p.isPodOpened(podName) {
 		return "", fmt.Errorf("upload: login to pod to do this operation")
 	}
@@ -53,7 +53,7 @@ func (p *Pod) UploadFile(podName, fileName string, fileSize int64, fd io.Reader,
 	if podInfo.file.IsFileAlreadyPResent(fpath) {
 		return "", fmt.Errorf("upload: file already present in the destination dir")
 	}
-	ref, err := podInfo.file.Upload(fd, fileName, fileSize, uint32(bs), fpath)
+	ref, err := podInfo.file.Upload(fd, fileName, fileSize, uint32(bs), fpath, compression)
 	if err != nil {
 		return "", fmt.Errorf("upload: error while copying file to pod: %w", err)
 	}
