@@ -126,6 +126,8 @@ a {
 }
 
 .link {
+  composes: bodyDefault;
+
 color: var(--fds-blue);
 composes: baseGlowText;
 text-decoration: underline;
@@ -274,9 +276,8 @@ cursor: pointer;
 .button {
   composes: bodyBold;
   composes: baseGlow;
-  width: 75vw;
   min-width: 200px;
-  max-width: 300px;
+  max-width: 280px;
   text-align: center;
   box-sizing: border-box;
   padding: 20px 42px;
@@ -289,10 +290,12 @@ cursor: pointer;
 }
 
 .buttontext {
+  composes: bodyBold;
     composes: baseGlowText;
+    cursor: pointer;
+
     text-transform: capitalize;
     color: var(--fds-blue);
-
 }
 
 

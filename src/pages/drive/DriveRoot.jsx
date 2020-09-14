@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {useHistory, useParams} from "react-router-dom";
 import {getDirectory} from "helpers/apiCalls";
+import styles from "./drive.module.css";
 
 // Sub-pages
 import FolderView from "./pages/FolderView";
@@ -23,7 +24,9 @@ export function DriveRoot() {
   const [folderShown, setFolderShown] = useState(false);
 
   async function getDirectoryContent(path) {
-    const content = await getDirectory(path);
+    // replace & with / for the api
+    const newPath = path.replace(/&/g, "/");
+    const content = await getDirectory(newPath);
     console.log(content);
     setContents(content);
     return content;

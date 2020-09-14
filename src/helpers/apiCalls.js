@@ -33,11 +33,8 @@ export async function logIn(username, password) {
   }
 }
 
-export async function logOut(username) {
+export async function logOut() {
   try {
-    const requestBody = {
-      user: username
-    };
 
     const config = {
       headers: {
@@ -45,7 +42,9 @@ export async function logOut(username) {
       }
     };
 
-    const response = await axi({method: "POST", url: "user/logout", config: config, data: qs.stringify(requestBody), withCredentials: true});
+
+    const response = await axi({method: "POST", url: "user/logout", config: config, withCredentials: true});
+
 
     return response;
   } catch (error) {
@@ -236,9 +235,6 @@ export async function getAvatar(username) {
     reader.onloadend = function () {
       var base64data = reader.result;
       console.log(base64data);
-    };
-
-    return response.data;
   } catch (e) {
     console.log("error on timeout", e);
   }
@@ -260,7 +256,8 @@ export async function createPod(passWord, podName) {
   } catch (error) {}
 }
 
-export async function createDirectory(passWord, directoryName) {
+export async function createDirectory(directoryName) {
+  // Dir = "/" + path + "/"
   try {
     const config = {
       headers: {
@@ -275,6 +272,28 @@ export async function createDirectory(passWord, directoryName) {
       data: qs.stringify({dir: directoryName}),
       withCredentials: true
     });
+
+    return true;
+  } catch (error) {}
+}
+
+export async function deleteDirectory(directoryName) {
+  // Dir = "/" + path + "/"
+  try {
+    const config = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    };
+
+    const deletePictursDirectory = await axi({
+      method: "POST",
+      url: "dir/rmdir",
+      config: config,
+      data: qs.stringify({dir: directoryName}),
+      withCredentials: true
+    });
+
     return true;
   } catch (error) {}
 }

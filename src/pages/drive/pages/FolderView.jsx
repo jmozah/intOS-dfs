@@ -3,6 +3,10 @@ import styles from "../drive.module.css";
 import {Route, NavLink} from "react-router-dom";
 import {useDispatch, useSelector} from "react-redux";
 import {useHistory} from "react-router-dom";
+import sortByProp from "helpers/sortByProp";
+import urlPath from "helpers/urlPath";
+import NewDialog from "./components/NewDialog";
+
 import {
   Button,
   Dialog,
@@ -38,7 +42,7 @@ import {
 
 import {CircularProgress, LinearProgress} from "@material-ui/core";
 import defaultAvatar from "images/defaultAvatar.png";
-import {fileUpload} from "helpers/apiCalls";
+import {createDirectory, deleteDirectory, fileUpload} from "helpers/apiCalls";
 
 export function FolderView({
   nextStage,
@@ -49,15 +53,15 @@ export function FolderView({
   refresh,
   setFolderShown
 }) {
-  const [uploadShown, setUploadShown] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState("ready");
-  const [uploadProgress, setUploadProgress] = useState(0);
-
   const [folderToEdit, setFolderToEdit] = useState("");
   const [openFolder, setFolderOpen] = useState(false);
   const [openNew, setNewOpen] = useState(false);
 
-  const hiddenFileInput = useRef(null);
+  const [newFolderName, setNewFolderName] = useState("");
+
+  const toSortProp = "name";
+  const [toSort, setToSort] = useState(toSortProp);
+  const orderProp = "asc";
 
   const dispatch = useDispatch();
   const history = useHistory();
@@ -74,7 +78,7 @@ export function FolderView({
     setNewOpen(true);
   }
 
-  function handleNewClose() {
+  function handleNewClickClose() {
     setNewOpen(false);
   }
 
@@ -82,34 +86,8 @@ export function FolderView({
     setFolderShown(true);
   }, []);
 
-  function handleClick(event) {
-    hiddenFileInput.current.click();
-  }
-
-  function handleChange(event) {
-    handleFileUpload(event.target.files);
-  }
-
-  async function handleFileUpload(files) {
-    setUploadStatus("uploading");
-    await fileUpload(files, path, function (progress, total) {
-      setUploadProgress(Math.round((progress / total) * 100));
-      if (progress == total) {
-        setUploadStatus("swarmupload");
-      }
-    }).then(() => {
-      toggleUploadShown();
-      setUploadStatus("ready");
-      refresh(path);
-    }).catch(() => {
-      setUploadStatus("error");
-    });
-
-    //dispatch({type: "GET_DRIVE"});
-  }
-
-  function toggleUploadShown() {
-    setUploadShown(!uploadShown);
+  function handleFolderNameChange(e) {
+    setNewFolderName(e.target.value);
   }
 
   function toggleFolderMenuShown(item) {
@@ -119,7 +97,33 @@ export function FolderView({
 
   function handleLocation(item) {
     console.log(item);
-    history.push("/drive/" + item);
+    let writePath = "";
+    if (path == "root") {
+      writePath = "";
+    } else {
+      writePath = path + "&";
+    }
+    history.push("/drive/" + writePath + item);
+  }
+
+  function handleGotoAccount() {
+    history.push("/account");
+  }
+
+  function stripLastPath(path) {
+    return path.split("/").pop();
+  }
+
+  function pathToArray(path) {
+    console.log(urlPath(path).split("/"));
+    return urlPath(path).split("/");
+  }
+
+  async function handleDeleteFolder(folderName) {
+    console.log(folderName);
+    await deleteDirectory(folderName);
+    refresh(path);
+    handleFolderClose();
   }
 
   function handleGotoAccount() {
@@ -142,44 +146,13 @@ export function FolderView({
     }
   };
 
-  const UploadStage = status => {
-    switch (status) {
-      case "ready":
-        return (<div className={styles.uploadSpace} onClick={handleClick}>
-          <Cloud fontSize="large"></Cloud>
-          <div>Upload some files</div>
-          <input multiple="multiple" type="file" ref={hiddenFileInput} onChange={handleChange} style={{
-              display: "none"
-            }}/>
-        </div>);
-        break;
-      case "uploading":
-        return (<div className={styles.uploadSpace} onClick={handleClick}>
-          <div>Uploading...</div>
-          <LinearProgress className={styles.progress} variant="determinate" value={uploadProgress}/>
-        </div>);
-        break;
-      case "swarmupload":
-        return (<div className={styles.uploadSpace} onClick={handleClick}>
-          <div>Storing on Swarm...</div>
-          <LinearProgress className={styles.progress}/>
-        </div>);
-        break;
-      case "error":
-        return (<div className={styles.uploadSpace} onClick={handleClick}>
-          <div>Error</div>
-        </div>);
-        break;
-    }
-  };
-
   const Entries = contents => {
     switch (contents.entries.length) {
       case 0:
         return <div className={styles.folderLoading}>Nothing here yet.</div>;
         break;
       default:
-        return contents.entries.map(item => (<div key={item.name} className={styles.rowItem}>
+        return contents.entries.sort(sortByProp(toSort, orderProp)).map(item => (<div key={item.name} className={styles.rowItem}>
           <div onClick={() => handleLocation(item.name)}>
             {selectedIcon(item.content_type)}
           </div>
@@ -213,7 +186,7 @@ export function FolderView({
             </ListItemIcon>
             <ListItemText primary="Rename"/>
           </ListItem>
-          <ListItem button="button" divider="divider" role="listitem">
+          <ListItem onClick={() => handleDeleteFolder(folderToEdit)} button="button" divider="divider" role="listitem">
             <ListItemIcon>
               <Icon path={mdiTrashCan} size="24px"></Icon>
             </ListItemIcon>
@@ -227,32 +200,25 @@ export function FolderView({
     </Dialog>);
   };
 
-  const NewDialogFragment = () => {
-    return (<Dialog open={openNew} onClose={handleNewClose} fullWidth="fullWidth">
-      <DialogTitle>
-        <span className={styles.folderMenuTitle}>New</span>
-      </DialogTitle>
-      <DialogContent>
-        <List>
-          <ListItem button="button" divider="divider" role="listitem">
-            <ListItemIcon>
-              <Icon path={mdiShare} size="24px"></Icon>
-            </ListItemIcon>
-            <ListItemText primary="New Folder"/>
-          </ListItem>
-          <ListItem button="button" divider="divider" role="listitem">
-            <ListItemIcon>
-              <Icon path={mdiFolderEdit} size="24px"></Icon>
-            </ListItemIcon>
-            <ListItemText primary="Upload Items"/>
-          </ListItem>
-        </List>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleNewClose}>Close</Button>
-      </DialogActions>
-    </Dialog>);
-  };
+  function getPathForItem(item, path) {
+    let patharray = pathToArray(path);
+    let index = patharray.indexOf(item);
+    patharray = patharray.slice(0, index + 1);
+    let urlPath = patharray.join("&");
+    return urlPath;
+  }
+
+  function breadCrumb(path) {
+    let patharray = pathToArray(path);
+    console.log(patharray);
+    patharray = patharray.slice(0, patharray.length - 1);
+    return patharray.map(item => (<div className={styles.breadcrumbspace}>
+      <NavLink className={styles.breadcrumbitem} to={getPathForItem(item, path)}>
+        {item + "/"}
+      </NavLink>
+    </div>));
+  }
+
   return (<div className={styles.container}>
     <div className={styles.topbar}>
       <div className={styles.topmenu}>
@@ -270,20 +236,27 @@ export function FolderView({
         </div>
       </div>
       <div className={styles.flexer}></div>
-      {
-        uploadShown
-          ? (<div>{UploadStage(uploadStatus)}</div>)
-          : (<div>
-            <div className={styles.title}>
-              {
-                path === "root"
-                  ? "My Fairdrive"
-                  : path
-              }
-            </div>
-            <div className={styles.status}>~3211MB</div>
-          </div>)
-      }
+
+      <div>
+        <div className={styles.title}>
+          {
+            path === "root"
+              ? "My Fairdrive"
+              : stripLastPath(urlPath(path))
+          }
+        </div>
+        {
+          path != "root"
+            ? (<div className={styles.breadcrumb}>
+              <div>Back to: &nbsp;</div>
+              <NavLink className={styles.breadcrumbitem} to="/drive/root">
+                My Fairdrive/
+              </NavLink>
+              {breadCrumb(path)}
+            </div>)
+            : ("")
+        }
+      </div>
     </div>
     <div className={styles.innercontainer}>
       {
@@ -295,7 +268,7 @@ export function FolderView({
       }
     </div>
     {FolderDialogFragment()}
-    {NewDialogFragment()}
+    <NewDialog open={openNew} onClose={() => handleNewClickClose()} path={path} refresh={refresh}></NewDialog>
   </div>);
 }
 
