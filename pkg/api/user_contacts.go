@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -33,22 +32,25 @@ func (h *Handler) SaveUserContactHandler(w http.ResponseWriter, r *http.Request)
 	addrLine1 := r.FormValue("address_line_1")
 	addrLine2 := r.FormValue("address_line_2")
 	if addrLine1 != "" && addrLine2 == "" {
-		jsonhttp.BadRequest(w, "login: \"address_line_2\" argument missing")
+		h.logger.Errorf("save contact: \"address_line_2\" argument missing")
+		jsonhttp.BadRequest(w, "save contact: \"address_line_2\" argument missing")
 		return
 	}
 	state := r.FormValue("state_province_region")
 	if addrLine1 != "" && state == "" {
-		jsonhttp.BadRequest(w, "login: \"state_province_region\" argument missing")
+		h.logger.Errorf("save contact: \"state_province_region\" argument missing")
+		jsonhttp.BadRequest(w, "save contact: \"state_province_region\" argument missing")
 		return
 	}
 	zipCode := r.FormValue("zipcode")
 	if addrLine1 != "" && zipCode == "" {
-		jsonhttp.BadRequest(w, "login: \"zipcode\" argument missing")
+		h.logger.Errorf("save contact: \"zipcode\" argument missing")
+		jsonhttp.BadRequest(w, "save contact: \"zipcode\" argument missing")
 		return
 	}
 
 	if phone == "" && mobile == "" && addrLine1 == "" {
-		fmt.Println("save contact: one of the contact information should be given")
+		h.logger.Errorf("save contact: one of the contact information should be given")
 		jsonhttp.BadRequest(w, "save contact: one of the contact information should be given")
 		return
 	}
@@ -56,11 +58,12 @@ func (h *Handler) SaveUserContactHandler(w http.ResponseWriter, r *http.Request)
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("save contact: ", err)
+		h.logger.Errorf("save contact: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("save contact: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "save contact: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -77,8 +80,8 @@ func (h *Handler) SaveUserContactHandler(w http.ResponseWriter, r *http.Request)
 
 	err = h.dfsAPI.SaveContact(phone, mobile, address, sessionId)
 	if err != nil {
-		fmt.Println("save contact: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "save contact: " + err.Error()})
+		h.logger.Errorf("save contact: %v", err)
+		jsonhttp.InternalServerError(w, "save contact: "+err.Error())
 		return
 	}
 	jsonhttp.OK(w, nil)
@@ -88,19 +91,20 @@ func (h *Handler) GetUserContactHandler(w http.ResponseWriter, r *http.Request) 
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("get contact: ", err)
+		h.logger.Errorf("get contact: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("get contact: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "get contact: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	contacts, err := h.dfsAPI.GetContact(sessionId)
 	if err != nil {
-		fmt.Println("get contact: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "get contact: " + err.Error()})
+		h.logger.Errorf("get contact: %v", err)
+		jsonhttp.InternalServerError(w, "get contact: "+err.Error())
 		return
 	}
 	jsonhttp.OK(w, contacts)

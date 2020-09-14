@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -35,11 +34,12 @@ func (h *Handler) PodListHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("delete: ", err)
+		h.logger.Errorf("ls pod: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("ls pod: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "ls pod: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -47,15 +47,14 @@ func (h *Handler) PodListHandler(w http.ResponseWriter, r *http.Request) {
 	// fetch pods and list them
 	pods, err := h.dfsAPI.ListPods(sessionId)
 	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrUserNotLoggedIn ||
 			err == pod.ErrPodNotOpened {
-			fmt.Println("ls pod: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "ls pod: " + err.Error()})
+			h.logger.Errorf("ls pod: %v", err)
+			jsonhttp.BadRequest(w, "ls pod: "+err.Error())
 			return
 		}
-		fmt.Println("ls pod: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "ls pod: " + err.Error()})
+		h.logger.Errorf("ls pod: %v", err)
+		jsonhttp.InternalServerError(w, "ls pod: "+err.Error())
 		return
 	}
 

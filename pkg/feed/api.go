@@ -29,6 +29,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
 	"github.com/jmozah/intOS-dfs/pkg/feed/lookup"
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
@@ -48,6 +49,7 @@ var (
 type API struct {
 	handler     *Handler
 	accountInfo *account.AccountInfo
+	logger      logging.Logger
 }
 
 type Request struct {
@@ -60,11 +62,12 @@ type Request struct {
 	binaryData []byte     // cached serialized data (does not get serialized again!, for efficiency/internal use)
 }
 
-func New(accountInfo *account.AccountInfo, client blockstore.Client) *API {
+func New(accountInfo *account.AccountInfo, client blockstore.Client, logger logging.Logger) *API {
 	bmtPool := bmtlegacy.NewTreePool(hashFunc, swarm.Branches, bmtlegacy.PoolSize)
 	return &API{
 		handler:     NewHandler(accountInfo, client, bmtPool),
 		accountInfo: accountInfo,
+		logger:      logger,
 	}
 }
 

@@ -33,17 +33,17 @@ func (u *Users) CreateNewUser(userName, passPhrase, mnemonic, dataDir string, cl
 	if u.IsUsernameAvailable(userName, dataDir) {
 		return "", "", nil, ErrUserAlreadyPresent
 	}
-	acc := account.New(userName, dataDir)
+	acc := account.New(userName, dataDir, u.logger)
 	accountInfo := acc.GetAccountInfo(account.UserAccountIndex)
-	fd := feed.New(accountInfo, client)
-	file := f.NewFile(userName, client, fd, accountInfo)
+	fd := feed.New(accountInfo, client, u.logger)
+	file := f.NewFile(userName, client, fd, accountInfo, u.logger)
 
 	mnemonic, err := acc.CreateUserAccount(passPhrase, mnemonic)
 	if err != nil {
 		return "", "", nil, fmt.Errorf("user create:: %w", err)
 	}
 
-	dir := d.NewDirectory(userName, client, fd, accountInfo, file)
+	dir := d.NewDirectory(userName, client, fd, accountInfo, file, u.logger)
 
 	if sessionId == "" {
 		sessionId = cookie.GetUniqueSessionId()
@@ -56,7 +56,7 @@ func (u *Users) CreateNewUser(userName, passPhrase, mnemonic, dataDir string, cl
 		account:   acc,
 		file:      file,
 		dir:       dir,
-		pods:      pod.NewPod(u.client, fd, acc),
+		pods:      pod.NewPod(u.client, fd, acc, u.logger),
 	}
 
 	// set cookie and add user to map

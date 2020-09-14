@@ -75,7 +75,7 @@ func (u *Users) CreateSettingsFeeds(rootAddress utils.Address, userInfo *Info) e
 
 func (u *Users) CreateSharingFeeds(rootAddress utils.Address, userInfo *Info) error {
 	// create inbox feed data
-	inboxFile := &Inbox{Entries: make([]InboxEntry, 0)}
+	inboxFile := &Inbox{Entries: make([]SharingEntry, 0)}
 	inboxFileBytes, err := json.Marshal(&inboxFile)
 	if err != nil {
 		return fmt.Errorf("create sharing inbox: %w", err)
@@ -95,7 +95,7 @@ func (u *Users) CreateSharingFeeds(rootAddress utils.Address, userInfo *Info) er
 	}
 
 	// create outbox feed data
-	outFile := &Outbox{Entries: make([]OutboxEntry, 0)}
+	outFile := &Outbox{Entries: make([]SharingEntry, 0)}
 	outboxFileBytes, err := json.Marshal(&outFile)
 	if err != nil {
 		return fmt.Errorf("create sharing inbox: %w", err)

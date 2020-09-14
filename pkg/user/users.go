@@ -24,6 +24,7 @@ import (
 	d "github.com/jmozah/intOS-dfs/pkg/dir"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
 	f "github.com/jmozah/intOS-dfs/pkg/file"
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
@@ -43,14 +44,16 @@ type Users struct {
 	client  blockstore.Client
 	userMap map[string]*Info
 	userMu  *sync.RWMutex
+	logger  logging.Logger
 }
 
-func NewUsers(dataDir string, client blockstore.Client) *Users {
+func NewUsers(dataDir string, client blockstore.Client, logger logging.Logger) *Users {
 	return &Users{
 		dataDir: dataDir,
 		client:  client,
 		userMap: make(map[string]*Info),
 		userMu:  &sync.RWMutex{},
+		logger:  logger,
 	}
 }
 

@@ -18,17 +18,20 @@ package api
 
 import (
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 	"github.com/jmozah/intOS-dfs/pkg/web"
 )
 
 type Handler struct {
 	dfsAPI      *dfs.DfsAPI
 	WebHandlers *web.Web
+	logger      logging.Logger
 }
 
-func NewHandler(dataDir, beeHost, beePort string) *Handler {
+func NewHandler(dataDir, beeHost, beePort string, logger logging.Logger) *Handler {
 	return &Handler{
-		dfsAPI:      dfs.NewDfsAPI(dataDir, beeHost, beePort),
-		WebHandlers: web.NewWeb(),
+		dfsAPI:      dfs.NewDfsAPI(dataDir, beeHost, beePort, logger),
+		WebHandlers: web.NewWeb(logger),
+		logger:      logger,
 	}
 }

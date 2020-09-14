@@ -11,20 +11,18 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ethersphere/bee/pkg/encryption"
 	"golang.org/x/crypto/sha3"
 )
 
 const (
-	SpanSize                     = 8
-	SectionSize                  = 32
-	Branches                     = 128
-	ChunkSize                    = SectionSize * Branches
-	HashSize                     = 32
-	EncryptedReferenceSize       = HashSize + encryption.KeyLength
-	MaxPO                  uint8 = 15
-	MaxBins                      = MaxPO + 1
-	ChunkWithSpanSize            = ChunkSize + SpanSize
+	SpanSize                = 8
+	SectionSize             = 32
+	Branches                = 128
+	ChunkSize               = SectionSize * Branches
+	HashSize                = 32
+	MaxPO             uint8 = 15
+	MaxBins                 = MaxPO + 1
+	ChunkWithSpanSize       = ChunkSize + SpanSize
 )
 
 var (
@@ -104,14 +102,6 @@ func (a Address) MarshalJSON() ([]byte, error) {
 // ZeroAddress is the address that has no value.
 var ZeroAddress = NewAddress(nil)
 
-// Type describes a kind of chunk, whether it is content-addressed or other
-type Type int
-
-const (
-	Unknown Type = iota
-	ContentAddressed
-)
-
 type Chunk interface {
 	Address() Address
 	Data() []byte
@@ -120,8 +110,6 @@ type Chunk interface {
 	TagID() uint32
 	WithTagID(t uint32) Chunk
 	Equal(Chunk) bool
-	Type() Type
-	WithType(t Type) Chunk
 }
 
 type chunk struct {
@@ -129,7 +117,6 @@ type chunk struct {
 	sdata      []byte
 	pinCounter uint64
 	tagID      uint32
-	typ        Type
 }
 
 func NewChunk(addr Address, data []byte) Chunk {
@@ -173,15 +160,27 @@ func (c *chunk) Equal(cp Chunk) bool {
 	return c.Address().Equal(cp.Address()) && bytes.Equal(c.Data(), cp.Data())
 }
 
-func (c *chunk) Type() Type {
-	return c.typ
-}
-
-func (c *chunk) WithType(t Type) Chunk {
-	c.typ = t
-	return c
-}
-
-type ChunkValidator interface {
+type Validator interface {
 	Validate(ch Chunk) (valid bool)
+}
+
+type chunkValidator struct {
+	set []Validator
+	Validator
+}
+
+func NewChunkValidator(v ...Validator) Validator {
+	return &chunkValidator{
+		set: v,
+	}
+}
+
+func (c *chunkValidator) Validate(ch Chunk) bool {
+	for _, v := range c.set {
+		if v.Validate(ch) {
+			return true
+		}
+	}
+
+	return false
 }

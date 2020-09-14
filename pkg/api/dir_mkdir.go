@@ -17,7 +17,6 @@ limitations under the License.
 package api
 
 import (
-	"fmt"
 	"net/http"
 
 	"resenje.org/jsonhttp"
@@ -30,6 +29,7 @@ import (
 func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) {
 	dirToCreate := r.FormValue("dir")
 	if dirToCreate == "" {
+		h.logger.Errorf("mkdir: \"dir\" argument missing")
 		jsonhttp.BadRequest(w, "mkdir: \"dir\" argument missing")
 		return
 	}
@@ -37,11 +37,12 @@ func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) 
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		fmt.Println("mkdir: ", err)
+		h.logger.Errorf("mkdir: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
+		h.logger.Errorf("mkdir: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "mkdir: \"cookie-id\" parameter missing in cookie")
 		return
 	}
@@ -49,19 +50,17 @@ func (h *Handler) DirectoryMkdirHandler(w http.ResponseWriter, r *http.Request) 
 	// make directory
 	err = h.dfsAPI.Mkdir(dirToCreate, sessionId)
 	if err != nil {
-		w.Header().Set("Content-Type", " application/json")
 		if err == dfs.ErrPodNotOpen || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidDirectory ||
 			err == p.ErrTooLongDirectoryName ||
 			err == p.ErrPodNotOpened {
-			fmt.Println("mkdir: ", err)
-			jsonhttp.BadRequest(w, &ErrorMessage{Err: "mkdir: " + err.Error()})
+			h.logger.Errorf("mkdir: %v", err)
+			jsonhttp.BadRequest(w, "mkdir: "+err.Error())
 			return
 		}
-		fmt.Println("mkdir: ", err)
-		jsonhttp.InternalServerError(w, &ErrorMessage{Err: "mkdir: " + err.Error()})
+		h.logger.Errorf("mkdir: %v", err)
+		jsonhttp.InternalServerError(w, "mkdir: "+err.Error())
 		return
 	}
-
-	jsonhttp.Created(w, nil)
+	jsonhttp.Created(w, "directory created successfully")
 }

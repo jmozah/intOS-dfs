@@ -26,6 +26,7 @@ import (
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/blockstore/bee/mock"
+	"github.com/jmozah/intOS-dfs/pkg/logging"
 )
 
 func TestFeed(t *testing.T) {
@@ -34,8 +35,9 @@ func TestFeed(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer os.RemoveAll(tempDir)
+	logger := logging.New(ioutil.Discard, 0)
 
-	acc1 := account.New("feed_pod1", tempDir)
+	acc1 := account.New("feed_pod1", tempDir, logger)
 	_, err = acc1.CreateUserAccount("password", "")
 	if err != nil {
 		t.Fatal(err)
@@ -45,7 +47,7 @@ func TestFeed(t *testing.T) {
 	client := mock.NewMockBeeClient()
 
 	t.Run("create-feed", func(t *testing.T) {
-		fd := New(accountInfo1, client)
+		fd := New(accountInfo1, client, logger)
 		topic := hashString("topic1")
 		data := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 		addr, err := fd.CreateFeed(topic, user1, data)
@@ -68,7 +70,7 @@ func TestFeed(t *testing.T) {
 
 	t.Run("create-from-user1-read-from-user2", func(t *testing.T) {
 		//create account2
-		acc2 := account.New("feed_pod2", tempDir)
+		acc2 := account.New("feed_pod2", tempDir, logger)
 		_, err = acc2.CreateUserAccount("password", "")
 		if err != nil {
 			t.Fatal(err)
@@ -76,7 +78,7 @@ func TestFeed(t *testing.T) {
 		accountInfo2 := acc2.GetAccountInfo(account.UserAccountIndex)
 
 		//create feed from user1
-		fd1 := New(accountInfo1, client)
+		fd1 := New(accountInfo1, client, logger)
 		topic := hashString("topic1")
 		data := []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 		addr, err := fd1.CreateFeed(topic, user1, data)
@@ -85,7 +87,7 @@ func TestFeed(t *testing.T) {
 		}
 
 		// check if you can read the data from user2
-		fd2 := New(accountInfo2, client)
+		fd2 := New(accountInfo2, client, logger)
 		rcvdAddr, rcvdData, err := fd2.GetFeedData(topic, user1)
 		if err != nil {
 			t.Fatal(err)
@@ -99,7 +101,7 @@ func TestFeed(t *testing.T) {
 	})
 
 	t.Run("read-feed-first-time", func(t *testing.T) {
-		fd := New(accountInfo1, client)
+		fd := New(accountInfo1, client, logger)
 		topic := hashString("topic2")
 
 		// check if the data and address is present and is same as stored
@@ -111,7 +113,7 @@ func TestFeed(t *testing.T) {
 	})
 
 	t.Run("update-feed", func(t *testing.T) {
-		fd := New(accountInfo1, client)
+		fd := New(accountInfo1, client, logger)
 		topic := hashString("topic3")
 		data := []byte{0}
 		_, err := fd.CreateFeed(topic, user1, data)

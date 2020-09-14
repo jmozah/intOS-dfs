@@ -29,12 +29,12 @@ type UserPresentResponse struct {
 func (h *Handler) UserPresentHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	if user == "" {
+		h.logger.Errorf("present: \"user\" argument missing")
 		jsonhttp.BadRequest(w, "present: \"user\" argument missing")
 		return
 	}
 
 	w.Header().Set("Content-Type", " application/json")
-
 	// check if user is present
 	if h.dfsAPI.IsUserNameAvailable(user) {
 		jsonhttp.OK(w, &UserPresentResponse{
