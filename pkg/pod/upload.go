@@ -26,7 +26,7 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (p *Pod) UploadFile(podName, fileName string, fileSize int64, fd io.Reader, podDir, blockSize string, compression string) (string, error) {
+func (p *Pod) UploadFile(podName, fileName string, fileSize int64, fd io.Reader, podDir, blockSize, compression string) (string, error) {
 	if !p.isPodOpened(podName) {
 		return "", fmt.Errorf("upload: login to pod to do this operation")
 	}

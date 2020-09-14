@@ -538,7 +538,7 @@ func (d *DfsAPI) FileStat(fileName, sessionId string) (*file.FileStats, error) {
 	return ds, nil
 }
 
-func (d *DfsAPI) UploadFile(fileName, sessionId string, fileSize int64, fd multipart.File, podDir, blockSize string, compression string) (string, error) {
+func (d *DfsAPI) UploadFile(fileName, sessionId string, fileSize int64, fd multipart.File, podDir, blockSize, compression string) (string, error) {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(sessionId)
 	if ui == nil {

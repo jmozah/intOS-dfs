@@ -36,7 +36,7 @@ var (
 	NoOfParallelWorkers = runtime.NumCPU() * 4
 )
 
-func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize uint32, filePath string, compression string) ([]byte, error) {
+func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize uint32, filePath, compression string) ([]byte, error) {
 	reader := bufio.NewReader(fd)
 	now := time.Now().Unix()
 	meta := m.FileMetaData{
