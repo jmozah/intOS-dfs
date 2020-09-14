@@ -38,6 +38,10 @@ func NewMockBeeClient() *MockBeeClient {
 	}
 }
 
+func (m *MockBeeClient) CheckConnection() bool {
+	return true
+}
+
 func (m *MockBeeClient) UploadChunk(ch swarm.Chunk) (address []byte, err error) {
 	m.storerMu.Lock()
 	defer m.storerMu.Unlock()
