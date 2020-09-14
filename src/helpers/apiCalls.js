@@ -35,16 +35,13 @@ export async function logIn(username, password) {
 
 export async function logOut() {
   try {
-
     const config = {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded"
       }
     };
 
-
     const response = await axi({method: "POST", url: "user/logout", config: config, withCredentials: true});
-
 
     return response;
   } catch (error) {
@@ -235,6 +232,7 @@ export async function getAvatar(username) {
     reader.onloadend = function () {
       var base64data = reader.result;
       console.log(base64data);
+    };
   } catch (e) {
     console.log("error on timeout", e);
   }
