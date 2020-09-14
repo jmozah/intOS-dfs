@@ -21,13 +21,11 @@ import (
 )
 
 type Web struct {
-	indexTmpl      *template.Template
-	signupPageTmpl *template.Template
-	loginPageTmpl  *template.Template
+	indexTmpl *template.Template
 }
 
 func NewWeb() *Web {
 	return &Web{
-		indexTmpl:      template.Must(template.ParseFiles("build/index.html")),
+		indexTmpl: template.Must(template.ParseFiles("build/index.html")),
 	}
 }
