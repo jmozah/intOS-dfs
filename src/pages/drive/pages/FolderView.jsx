@@ -6,6 +6,7 @@ import {useHistory} from "react-router-dom";
 import sortByProp from "helpers/sortByProp";
 import urlPath from "helpers/urlPath";
 import NewDialog from "./components/NewDialog";
+import FolderDialog from "./components/FolderDialog";
 
 import {
   Button,
@@ -160,44 +161,11 @@ export function FolderView({
             {item.name}
           </div>
           <div>
-            <Icon path={mdiSettingsHelper} onClick={() => toggleFolderMenuShown(item.name)} className={styles.custom} rotate={90} size="36px"></Icon>
+            <Icon path={mdiSettingsHelper} onClick={() => toggleFolderMenuShown(item)} className={styles.custom} rotate={90} size="36px"></Icon>
           </div>
         </div>));
         break;
     }
-  };
-
-  const FolderDialogFragment = () => {
-    return (<Dialog open={openFolder} onClose={handleFolderClose} fullWidth="fullWidth">
-      <DialogTitle>
-        <span className={styles.folderMenuTitle}>{folderToEdit}</span>
-      </DialogTitle>
-      <DialogContent>
-        <List>
-          <ListItem button="button" divider="divider" role="listitem">
-            <ListItemIcon>
-              <Icon path={mdiShare} size="24px"></Icon>
-            </ListItemIcon>
-            <ListItemText primary="Share"/>
-          </ListItem>
-          <ListItem button="button" divider="divider" role="listitem">
-            <ListItemIcon>
-              <Icon path={mdiFolderEdit} size="24px"></Icon>
-            </ListItemIcon>
-            <ListItemText primary="Rename"/>
-          </ListItem>
-          <ListItem onClick={() => handleDeleteFolder(folderToEdit)} button="button" divider="divider" role="listitem">
-            <ListItemIcon>
-              <Icon path={mdiTrashCan} size="24px"></Icon>
-            </ListItemIcon>
-            <ListItemText primary="Delete"/>
-          </ListItem>
-        </List>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleFolderClose}>Close</Button>
-      </DialogActions>
-    </Dialog>);
   };
 
   function getPathForItem(item, path) {
@@ -223,12 +191,15 @@ export function FolderView({
     <div className={styles.topbar}>
       <div className={styles.topmenu}>
         <div className={styles.user}>
-          <div onClick={() => handleGotoAccount()} className={styles.username}>
-            {account.username}
-          </div>
-          <div className={styles.balance}>
-            {account.balance}
-            &nbsp; BZZ
+          <img className={styles.avatar} src={account.avatar}></img>
+          <div>
+            <div onClick={() => handleGotoAccount()} className={styles.username}>
+              {account.username}
+            </div>
+            <div className={styles.balance}>
+              {account.balance}
+              &nbsp; BZZ
+            </div>
           </div>
         </div>
         <div className={styles.addButton} onClick={() => handleNewClickOpen()}>
@@ -267,8 +238,8 @@ export function FolderView({
           </div>)
       }
     </div>
-    {FolderDialogFragment()}
-    <NewDialog open={openNew} onClose={() => handleNewClickClose()} path={path} refresh={refresh}></NewDialog>
+    <FolderDialog open={openFolder} onClose={() => handleFolderClose()} path={path} refresh={refresh} item={folderToEdit}></FolderDialog>
+    <NewDialog open={openNew} onClose={() => handleNewClickClose()} path={path} refresh={refresh} item={folderToEdit}></NewDialog>
   </div>);
 }
 

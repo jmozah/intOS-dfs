@@ -36,7 +36,17 @@
 }
 
 .user {
+  display: grid;
+  grid-template-columns: 48px auto;
+  width: 280px;
+  align-items: center;
   margin: 0px 40px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
 }
 
 .uploadSpace {
@@ -130,14 +140,15 @@ margin-top: 10px;
 .username {
   composes: bodyBold from "../../styles.module.css";
   color: white;
-  line-height: 150%;
+  line-height: 120%;
+  cursor: pointer;
 }
 
 .balance {
   composes: bodyBold from "../../styles.module.css";
   composes: baseGlowText from "../../styles.module.css";
   color:var(--fds-blue);
-  line-height: 150%;
+  line-height: 120%;
 }
 
 .status {
@@ -159,6 +170,7 @@ margin-top: 10px;
   line-height: 150%;
   color: white;
   max-width: 100vw;
+  cursor: pointer;
 }
 
 .folderText {

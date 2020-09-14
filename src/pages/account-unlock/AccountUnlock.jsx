@@ -32,6 +32,14 @@ export default function PasswordUnlock({open}) {
     const isUserLoggedIn = await logIn(account.username, password);
 
     if (isUserLoggedIn.data.code == 200) {
+      const avatar = await getAvatar(account.username);
+      console.log(avatar);
+      dispatch({
+        type: "SET_ACCOUNT",
+        data: {
+          avatar: avatar
+        }
+      });
       dispatch({
         type: "SET_SYSTEM",
         data: {

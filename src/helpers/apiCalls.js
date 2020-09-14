@@ -2,7 +2,7 @@ import axios from "axios";
 import qs from "querystring";
 import {Avatar} from "@material-ui/core";
 
-const axi = axios.create({baseURL: "http://fairdrive.org/v0/", timeout: 120000});
+const axi = axios.create({baseURL: "http://localhost:9090/v0/", timeout: 120000});
 
 export async function logIn(username, password) {
   try {
@@ -58,10 +58,13 @@ export async function isLoggedIn(username) {
     const config = {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded"
+      },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, {arrayFormat: "brackets"});
       }
     };
 
-    const response = await axi({method: "POST", url: "user/isloggedin", config: config, data: qs.stringify(requestBody), withCredentials: true});
+    const response = await axi({method: "GET", url: "user/isloggedin", config: config, params: requestBody, withCredentials: true});
 
     return response;
   } catch (error) {
@@ -118,7 +121,7 @@ export async function fileUpload(files, directory, onUploadProgress) {
   return true;
 }
 
-export async function getDirectory(directory) {
+export async function getDirectory(directory, password) {
   try {
     const config = {
       headers: {
@@ -129,7 +132,7 @@ export async function getDirectory(directory) {
     const openPod = await axi({
       method: "POST",
       url: "pod/open",
-      data: qs.stringify({password: "1234", pod: "Fairdrive"}),
+      data: qs.stringify({password: password, pod: "Fairdrive"}),
       config: config,
       withCredentials: true
     });
@@ -137,14 +140,16 @@ export async function getDirectory(directory) {
     let data = "/";
 
     if (directory == "root") {
-      data = qs.stringify({dir: "/"});
+      data = {
+        dir: "/"
+      };
     } else {
-      data = qs.stringify({
+      data = {
         dir: "/" + directory
-      });
+      };
     }
 
-    const response = await axi({method: "POST", url: "dir/ls", data: data, config: config, withCredentials: true});
+    const response = await axi({method: "GET", url: "dir/ls", params: data, config: config, withCredentials: true});
 
     return response.data;
   } catch (error) {
@@ -208,13 +213,26 @@ export async function storeAvatar(avatar) {
   }
 }
 
+async function readAsbase64(blob) {
+  const tempFileReader = new FileReader();
+  return new Promise((resolve, reject) => {
+    tempFileReader.onerror = () => {
+      tempFileReader.abort();
+      reject(new DOMException("Problem with file"));
+    };
+
+    tempFileReader.onload = () => {
+      resolve(tempFileReader.result);
+    };
+    tempFileReader.readAsDataURL(blob);
+  });
+}
+
 export async function getAvatar(username) {
   try {
     const config = {
-      responseType: "arraybuffer",
-
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
+        "Content-Type": "application/json"
       }
     };
 
@@ -222,17 +240,16 @@ export async function getAvatar(username) {
       username: username
     };
 
-    const response = await axi({method: "GET", url: "user/avatar", config: config, data: qs.stringify(data), withCredentials: true});
+    const response = await axi({
+      method: "GET",
+      url: "user/avatar",
+      responseType: "blob",
+      config: config,
+      params: data,
+      withCredentials: true
+    });
     console.log(response);
-
-    const blob = new Blob([response.data]);
-
-    var reader = new FileReader();
-    reader.readAsDataURL(blob);
-    reader.onloadend = function () {
-      var base64data = reader.result;
-      console.log(base64data);
-    };
+    return await readAsbase64(response.data);
   } catch (e) {
     console.log("error on timeout", e);
   }
@@ -280,15 +297,44 @@ export async function deleteDirectory(directoryName) {
   try {
     const config = {
       headers: {
+        "Content-Type": "application/json"
+      }
+    };
+
+    const deleteDirectory = await axi({
+      method: "DELETE",
+      url: "dir/rmdir",
+      config: config,
+      params: {
+        dir: directoryName
+      },
+      withCredentials: true
+    });
+
+    return true;
+  } catch (error) {}
+}
+
+export async function renameDirectory(newDirectoryName) {
+  console.log(newDirectoryName);
+  return true;
+}
+
+export async function deleteFile(fileName) {
+  try {
+    const config = {
+      headers: {
         "Content-Type": "application/x-www-form-urlencoded"
       }
     };
 
     const deletePictursDirectory = await axi({
-      method: "POST",
-      url: "dir/rmdir",
+      method: "DELETE",
+      url: "file/delete",
       config: config,
-      data: qs.stringify({dir: directoryName}),
+      params: {
+        file: fileName
+      },
       withCredentials: true
     });
 

@@ -43,7 +43,7 @@ function App() {
       } else {
         // do the api all to see if the user is logged in
         const checkIsLoggedIn = await isLoggedIn(account.username).then(result => {
-          if (result.data.loggedin) {
+          if (result.data.loggedin && system.passWord) {
             history.push("/drive/root");
             dispatch({
               type: "SET_SYSTEM",
