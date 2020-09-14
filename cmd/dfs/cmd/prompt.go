@@ -213,9 +213,9 @@ func executor(in string) {
 			userName := blocks[2]
 			yes := dfsAPI.IsUserNameAvailable(userName)
 			if yes {
-				fmt.Println("user name: available")
+				fmt.Println("true")
 			} else {
-				fmt.Println("user name: not available")
+				fmt.Println("false")
 			}
 			currentPrompt = getCurrentPrompt()
 		case "ls":
