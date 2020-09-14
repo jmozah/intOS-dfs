@@ -203,7 +203,7 @@ func (a *Account) LoadUserAccount(passPhrase string) error {
 
 func (a *Account) Authorise(password string) bool {
 	if password == "" {
-		fmt.Print("Enter user password to create a pod: ")
+		fmt.Print("Enter user password to open a pod: ")
 		password = a.getPassword()
 	}
 	plainMnemonic, err := a.wallet.decryptMnemonic(password)
@@ -235,7 +235,7 @@ func (a *Account) CreatePodAccount(accountId int, passPhrase string) error {
 
 	password := passPhrase
 	if password == "" {
-		fmt.Print("Enter user password to create a pod: ")
+		fmt.Print("Enter user password to open a pod: ")
 		password = a.getPassword()
 	}
 
