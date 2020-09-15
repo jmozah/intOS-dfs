@@ -145,7 +145,7 @@ func startHttpService(logger logging.Logger) {
 	http.Handle("/", router)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"Origin", "Accept", "Authorization", "Content-Type", "X-Requested-With", "Access-Control-Request-Headers", "Access-Control-Request-Method"},
 		AllowedMethods:   []string{"GET", "POST", "DELETE"},

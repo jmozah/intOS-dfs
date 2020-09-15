@@ -14,10 +14,15 @@ function getAccount(state) {
   return state.account;
 }
 
+function getSystem(state) {
+  return state.system;
+}
+
 export function DriveRoot() {
   const params = useParams();
   const path = params.path;
   const account = useSelector(state => getAccount(state));
+  const system = useSelector(state => getSystem(state));
 
   const [contents, setContents] = useState(null);
 
@@ -26,7 +31,7 @@ export function DriveRoot() {
   async function getDirectoryContent(path) {
     // replace & with / for the api
     const newPath = path.replace(/&/g, "/");
-    const content = await getDirectory(newPath);
+    const content = await getDirectory(newPath, system.passWord);
     console.log(content);
     setContents(content);
     return content;
