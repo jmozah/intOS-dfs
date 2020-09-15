@@ -122,10 +122,11 @@ export default function FolderDialog({open, path, refresh, onClose, item}) {
             <Icon path={mdiFolderPlus} className={styles.blue} size="24px"></Icon>
             Share
           </div>
-          <div className={styles.menuitem} onClick={() => setFolderContentState(renameId)}>
+          {/* <div className={styles.menuitem} onClick={() => setFolderContentState(renameId)}>
             <Icon path={mdiUpload} className={styles.blue} size="24px"></Icon>
             Rename
-          </div>
+          </div> */
+          }
           <div className={styles.menuitem} onClick={() => setFolderContentState(deleteId)}>
             <Icon path={mdiFolderPlus} className={styles.blue} size="24px"></Icon>
             Delete
