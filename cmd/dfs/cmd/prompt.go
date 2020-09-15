@@ -272,7 +272,11 @@ func executor(in string) {
 			}
 			currentPrompt = getCurrentPrompt()
 		case "share":
-			switch blocks[3] {
+			if len(blocks) < 3 {
+				fmt.Println("invalid command. Missing \"inbox/outbox\" argument ")
+				return
+			}
+			switch blocks[2] {
 			case "inbox":
 				inbox, err := dfsAPI.GetUserSharingInbox(DefaultSessionId)
 				if err != nil {
