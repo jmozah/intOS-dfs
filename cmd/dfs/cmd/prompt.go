@@ -552,7 +552,7 @@ func executor(in string) {
 			return
 		}
 	case "share":
-		
+
 	case "receive":
 	case "mv":
 		fmt.Println("not yet implemented")

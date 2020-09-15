@@ -19,7 +19,7 @@ package dfs
 import "errors"
 
 var (
-	ErrUserNotLoggedIn       = errors.New("user not logged in")
-	ErrPodNotOpen            = errors.New("pod not open")
-	ErrBeeClient             = errors.New("could not connect to bee client")
+	ErrUserNotLoggedIn = errors.New("user not logged in")
+	ErrPodNotOpen      = errors.New("pod not open")
+	ErrBeeClient       = errors.New("could not connect to bee client")
 )
