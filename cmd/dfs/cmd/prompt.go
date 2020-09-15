@@ -108,6 +108,8 @@ var suggestions = []prompt.Suggest{
 	{Text: "cd", Description: "change path"},
 	{Text: "copyToLocal", Description: "copy file from dfs to local machine"},
 	{Text: "copyFromLocal", Description: "copy file from local machine to dfs"},
+	{Text: "share", Description: "share file with another user"},
+	{Text: "receive", Description: "receive a shared file"},
 	{Text: "exit", Description: "exit dfs-prompt"},
 	{Text: "head", Description: "show few starting lines of a file"},
 	{Text: "help", Description: "show usage"},
@@ -549,6 +551,9 @@ func executor(in string) {
 			fmt.Println("rm failed: ", err)
 			return
 		}
+	case "share":
+		
+	case "receive":
 	case "mv":
 		fmt.Println("not yet implemented")
 	case "head":
@@ -586,6 +591,8 @@ func help() {
 	fmt.Println(" - ls ")
 	fmt.Println(" - copyToLocal <source file in pod, destination directory in local fs>")
 	fmt.Println(" - copyFromLocal <source file in local fs, destination directory in pod, block size (ex: 1Mb, 64Mb)>")
+	fmt.Println(" - share <file name>")
+	fmt.Println(" - receive <sharing reference>")
 	fmt.Println(" - mkdir <directory name>")
 	fmt.Println(" - rmdir <directory name>")
 	fmt.Println(" - rm <file name>")

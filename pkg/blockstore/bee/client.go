@@ -81,7 +81,7 @@ func NewBeeClient(host, port string, logger logging.Logger) *BeeClient {
 }
 
 func (s *BeeClient) CheckConnection() bool {
-	req, err := http.NewRequest(http.MethodGet, "/", nil)
+	req, err := http.NewRequest(http.MethodGet, s.url, nil)
 	if err != nil {
 		return false
 	}
@@ -99,7 +99,7 @@ func (s *BeeClient) CheckConnection() bool {
 	if err != nil {
 		return false
 	}
-	if string(data) != "Ethereum Swarm Bee" {
+	if string(data) != "Ethereum Swarm Bee\n" {
 		return false
 	}
 	return true

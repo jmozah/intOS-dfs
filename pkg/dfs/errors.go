@@ -22,8 +22,4 @@ var (
 	ErrUserNotLoggedIn       = errors.New("user not logged in")
 	ErrPodNotOpen            = errors.New("pod not open")
 	ErrBeeClient             = errors.New("could not connect to bee client")
-	ErrCreatingDefaultPod    = errors.New("could not create default pod")
-	ErrCreatingSettings      = errors.New("could not create settings directory")
-	ErrCreatingSharing       = errors.New("could not create sharing directory")
-	ErrCreatingSharingOutbox = errors.New("could not create sharing outbox")
 )

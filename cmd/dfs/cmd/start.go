@@ -81,6 +81,9 @@ func startHttpService(logger logging.Logger) {
 
 	apiVersion := "v0"
 	baseRouter := router.PathPrefix("/" + apiVersion).Subrouter()
+	baseRouter.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "User-agent: *\nDisallow: /")
+	})
 
 	// User account related handlers which does not login need middleware
 	baseRouter.Use(handler.LogMiddleware)
