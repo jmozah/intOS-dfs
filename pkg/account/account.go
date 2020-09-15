@@ -173,7 +173,7 @@ func (a *Account) LoadUserAccount(passPhrase string) error {
 
 	plainMnemonic, err := a.wallet.decryptMnemonic(password)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid password")
 	}
 
 	acc, err := a.wallet.CreateAccount(rootPath, plainMnemonic)
@@ -246,7 +246,7 @@ func (a *Account) CreatePodAccount(accountId int, passPhrase string, createPod b
 
 	plainMnemonic, err := a.wallet.decryptMnemonic(password)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid password")
 	}
 
 	path := genericPath + strconv.Itoa(accountId)

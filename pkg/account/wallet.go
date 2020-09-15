@@ -63,13 +63,9 @@ func (w *Wallet) LoadMnemonicAndCreateRootAccount(mnemonic string) (accounts.Acc
 			return accounts.Account{}, "", err
 		}
 	} else {
-		// test the mnemonic for validity
-		words := strings.Split(mnemonic, " ")
-		if len(words) != 12 {
-			return accounts.Account{}, "", fmt.Errorf("number of word in mnemonic is not 12")
-		}
-		if !bip39.IsMnemonicValid(mnemonic) {
-			return accounts.Account{}, "", fmt.Errorf("one or more of the mnemonic words is not in bip39 word list")
+		err = w.isValidMnemonic(mnemonic)
+		if err != nil {
+			return accounts.Account{}, "", err
 		}
 	}
 
@@ -112,5 +108,21 @@ func (w *Wallet) decryptMnemonic(password string) (string, error) {
 		return "", err
 	}
 
+	err = w.isValidMnemonic(mnemonic)
+	if err != nil {
+		return "", fmt.Errorf("Invalid password")
+	}
 	return mnemonic, nil
+}
+
+func (w *Wallet) isValidMnemonic(mnemonic string) error {
+	// test the mnemonic for validity
+	words := strings.Split(mnemonic, " ")
+	if len(words) != 12 {
+		return fmt.Errorf("number of word in mnemonic is not 12")
+	}
+	if !bip39.IsMnemonicValid(mnemonic) {
+		return fmt.Errorf("one or more of the mnemonic words is not in bip39 word list")
+	}
+	return nil
 }
