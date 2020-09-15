@@ -4,6 +4,7 @@ import ConnectRoot from "./connect/ConnectRoot";
 import DriveRoot from "./drive/DriveRoot";
 import AccountUnlock from "./account-unlock/AccountUnlock";
 import AccountLogin from "./account-login/AccountLogin";
+import FileReceive from "./file-receive/FileReceiveRoot";
 
 export default[
   {
@@ -28,5 +29,8 @@ export default[
     path : "/login",
     exact: true,
     component: AccountLogin
+  }, {
+    path : "/receive/:shareId",
+    component: FileReceive
   }
 ];
