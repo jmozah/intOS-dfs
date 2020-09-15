@@ -435,6 +435,7 @@ func executor(in string) {
 			}
 
 		}
+		currentPrompt = getCurrentPrompt()
 	case "copyToLocal":
 		if !isPodOpened() {
 			return
@@ -448,6 +449,7 @@ func executor(in string) {
 			fmt.Println("copyToLocal failed: ", err)
 			return
 		}
+		currentPrompt = getCurrentPrompt()
 	case "copyFromLocal":
 		if !isPodOpened() {
 			return
@@ -461,6 +463,7 @@ func executor(in string) {
 			fmt.Println("copyFromLocal failed: ", err)
 			return
 		}
+		currentPrompt = getCurrentPrompt()
 	case "mkdir":
 		if !isPodOpened() {
 			return
@@ -474,6 +477,7 @@ func executor(in string) {
 			fmt.Println("mkdir failed: ", err)
 			return
 		}
+		currentPrompt = getCurrentPrompt()
 	case "rmdir":
 		if !isPodOpened() {
 			return
@@ -487,6 +491,7 @@ func executor(in string) {
 			fmt.Println("rmdir failed: ", err)
 			return
 		}
+		currentPrompt = getCurrentPrompt()
 	case "cat":
 		if !isPodOpened() {
 			return
@@ -500,6 +505,7 @@ func executor(in string) {
 			fmt.Println("cat failed: ", err)
 			return
 		}
+		currentPrompt = getCurrentPrompt()
 	case "stat":
 		if !isPodOpened() {
 			return
@@ -519,14 +525,16 @@ func executor(in string) {
 		fmt.Println("File Name	   : ", fs.FileName)
 		fmt.Println("File Size    : ", fs.FileSize)
 		fmt.Println("Block Size   : ", fs.BlockSize)
+		fmt.Println("Compression  : ", fs.Compression)
 		fmt.Println("Content Type : ", fs.ContentType)
 		fmt.Println("Cr. Time	   : ", fs.CreationTime)
 		fmt.Println("Mo. Time	   : ", fs.ModificationTime)
 		fmt.Println("Ac. Time	   : ", fs.AccessTime)
 		for _, b := range fs.Blocks {
-			blkStr := fmt.Sprintf("%s, 0x%s, %s bytes", b.Name, b.Reference, b.Size)
+			blkStr := fmt.Sprintf("%s, 0x%s, %s bytes, %s bytes", b.Name, b.Reference, b.Size, b.CompressedSize)
 			fmt.Println(blkStr)
 		}
+		currentPrompt = getCurrentPrompt()
 	case "pwd":
 		if !isPodOpened() {
 			return
@@ -538,6 +546,7 @@ func executor(in string) {
 			curDir := strings.TrimPrefix(currentPodInfo.GetCurrentDirPathAndName(), podDir)
 			fmt.Println(curDir)
 		}
+		currentPrompt = getCurrentPrompt()
 	case "rm":
 		if !isPodOpened() {
 			return
@@ -551,9 +560,41 @@ func executor(in string) {
 			fmt.Println("rm failed: ", err)
 			return
 		}
+		currentPrompt = getCurrentPrompt()
 	case "share":
-
+		if len(blocks) < 2 {
+			fmt.Println("invalid command. Missing one or more arguments")
+			return
+		}
+		podFile := blocks[1]
+		sharingRef, err := dfsAPI.ShareFile(podFile, currentUser, DefaultSessionId)
+		if err != nil {
+			fmt.Println("share: ", err)
+			return
+		}
+		fmt.Println("Sharing Reference: ", sharingRef)
+		currentPrompt = getCurrentPrompt()
 	case "receive":
+		if len(blocks) < 3 {
+			fmt.Println("invalid command. Missing one or more arguments")
+			return
+		}
+		sharingRefString := blocks[1]
+		podDir := blocks[2]
+
+		sharingRef, err := utils.ParseSharingReference(sharingRefString)
+		if err != nil {
+			fmt.Println("receive: ", err)
+			return
+		}
+		filePath, metaRef, err := dfsAPI.ReceiveFile(DefaultSessionId, sharingRef, podDir)
+		if err != nil {
+			fmt.Println("receive: ", err)
+			return
+		}
+		fmt.Println("file path  : ", filePath)
+		fmt.Println("reference  : ", metaRef)
+		currentPrompt = getCurrentPrompt()
 	case "mv":
 		fmt.Println("not yet implemented")
 	case "head":
@@ -592,7 +633,7 @@ func help() {
 	fmt.Println(" - copyToLocal <source file in pod, destination directory in local fs>")
 	fmt.Println(" - copyFromLocal <source file in local fs, destination directory in pod, block size (ex: 1Mb, 64Mb)>")
 	fmt.Println(" - share <file name>")
-	fmt.Println(" - receive <sharing reference>")
+	fmt.Println(" - receive <sharing reference> <pod dir>")
 	fmt.Println(" - mkdir <directory name>")
 	fmt.Println(" - rmdir <directory name>")
 	fmt.Println(" - rm <file name>")

@@ -198,6 +198,10 @@ func (u *Users) ReceiveFileFromUser(podName string, sharingRef utils.SharingRefe
 		return "", "", fmt.Errorf("receive: %w", err)
 	}
 
+	if podDir == utils.PathSeperator {
+		podDir = ""
+	}
+
 	return podDir + utils.PathSeperator + fileName, sharingEntry.FileMetaHash, nil
 }
 
