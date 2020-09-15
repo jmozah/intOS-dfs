@@ -96,7 +96,7 @@ func (u *Users) ShareFileWithUser(podName, podFilePath, destinationRef string, u
 	}
 
 	// store the new outbox file data
-	newOutboxRef, err := u.client.UploadBlob(outData)
+	newOutboxRef, err := u.client.UploadBlob(outData, true)
 	if err != nil {
 		return "", fmt.Errorf("share: %w", err)
 	}
@@ -120,7 +120,7 @@ func (u *Users) ShareFileWithUser(podName, podFilePath, destinationRef string, u
 	}
 
 	// upload the encrypted data and get the reference
-	ref, err := u.client.UploadBlob(encryptedData)
+	ref, err := u.client.UploadBlob(encryptedData, true)
 	if err != nil {
 		return "", fmt.Errorf("share: %w", err)
 	}
@@ -187,7 +187,7 @@ func (u *Users) ReceiveFileFromUser(podName string, sharingRef utils.SharingRefe
 	}
 
 	// store the new inbox file data
-	newInboxRef, err := u.client.UploadBlob(inData)
+	newInboxRef, err := u.client.UploadBlob(inData, true)
 	if err != nil {
 		return "", "", fmt.Errorf("receive: %w", err)
 	}

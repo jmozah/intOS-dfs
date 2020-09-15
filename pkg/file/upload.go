@@ -99,7 +99,7 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 				}
 			}
 
-			addr, err := f.client.UploadBlob(uploadData)
+			addr, err := f.client.UploadBlob(uploadData, true)
 			if err != nil {
 				errC <- err
 				return
@@ -143,7 +143,7 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 		return nil, fmt.Errorf("uplaod: %v", fileName)
 	}
 
-	addr, err := f.client.UploadBlob(fileInodeData)
+	addr, err := f.client.UploadBlob(fileInodeData, true)
 	if err != nil {
 		return nil, fmt.Errorf("uplaod: %w", err)
 	}
@@ -153,7 +153,7 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 	if err != nil {
 		return nil, fmt.Errorf("uplaod: %v", fileName)
 	}
-	metaAddr, err := f.client.UploadBlob(fileMetaBytes)
+	metaAddr, err := f.client.UploadBlob(fileMetaBytes, true)
 	if err != nil {
 		return nil, fmt.Errorf("uplaod: %w", err)
 	}

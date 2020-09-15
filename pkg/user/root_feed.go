@@ -82,7 +82,7 @@ func (u *Users) CreateSharingFeeds(rootAddress utils.Address, userInfo *Info) er
 	}
 
 	// store the new inbox file data
-	newInboxRef, err := u.client.UploadBlob(inboxFileBytes)
+	newInboxRef, err := u.client.UploadBlob(inboxFileBytes, true)
 	if err != nil {
 		return fmt.Errorf("create sharing inbox: %w", err)
 	}
@@ -102,7 +102,7 @@ func (u *Users) CreateSharingFeeds(rootAddress utils.Address, userInfo *Info) er
 	}
 
 	// store the new outbox file data
-	newOutboxRef, err := u.client.UploadBlob(outboxFileBytes)
+	newOutboxRef, err := u.client.UploadBlob(outboxFileBytes, true)
 	if err != nil {
 		return fmt.Errorf("create sharing outbox: %w", err)
 	}
