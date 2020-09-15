@@ -19,13 +19,17 @@ package blockstore
 import (
 	"context"
 
+	"github.com/jmozah/intOS-dfs/pkg/utils"
+
 	"github.com/ethersphere/bee/pkg/swarm"
 )
 
 type Client interface {
 	CheckConnection() bool
-	UploadChunk(ch swarm.Chunk) (address []byte, err error)
-	UploadBlob(data []byte) (address []byte, err error)
+	UploadChunk(ch swarm.Chunk, pin bool) (address []byte, err error)
+	UploadBlob(data []byte, pin bool) (address []byte, err error)
 	DownloadChunk(ctx context.Context, address []byte) (data []byte, err error)
 	DownloadBlob(address []byte) (data []byte, respCode int, err error)
+	UnpinChunk(ref utils.Reference) error
+	UnpinBlob(ref utils.Reference) error
 }

@@ -28,6 +28,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/jmozah/intOS-dfs/pkg/utils"
+
 	"github.com/ethersphere/bee/pkg/swarm"
 	bmtlegacy "github.com/ethersphere/bmt/legacy"
 	lru "github.com/hashicorp/golang-lru"
@@ -43,6 +45,9 @@ const (
 	LRUSize                    = 1024
 	ChunkUploadDownloadUrl     = "/chunks/"
 	BytesUploadDownloadUrl     = "/bytes"
+	pinChunksUrl               = "/pinning/chunks/"
+	pinBlobsUrl                = "/pinning/chunks/" // need to change this when bee supports it
+	SwarmPinHeader             = "Swarm-Pin"
 )
 
 type BeeClient struct {
@@ -106,13 +111,17 @@ func (s *BeeClient) CheckConnection() bool {
 }
 
 // upload a chunk in bee
-func (s *BeeClient) UploadChunk(ch swarm.Chunk) (address []byte, err error) {
+func (s *BeeClient) UploadChunk(ch swarm.Chunk, pin bool) (address []byte, err error) {
 	to := time.Now()
 	path := filepath.Join(ChunkUploadDownloadUrl, ch.Address().String())
 	fullUrl := fmt.Sprintf(s.url + path)
 	req, err := http.NewRequest(http.MethodPost, fullUrl, bytes.NewBuffer(ch.Data()))
 	if err != nil {
 		return nil, err
+	}
+
+	if pin {
+		req.Header.Set(SwarmPinHeader, "true")
 	}
 
 	response, err := s.client.Do(req)
@@ -176,12 +185,16 @@ func (s *BeeClient) DownloadChunk(ctx context.Context, address []byte) (data []b
 }
 
 // upload a chunk in bee
-func (s *BeeClient) UploadBlob(data []byte) (address []byte, err error) {
+func (s *BeeClient) UploadBlob(data []byte, pin bool) (address []byte, err error) {
 	to := time.Now()
 	fullUrl := fmt.Sprintf(s.url + BytesUploadDownloadUrl)
 	req, err := http.NewRequest(http.MethodPost, fullUrl, bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
+	}
+
+	if pin {
+		req.Header.Set(SwarmPinHeader, "true")
 	}
 
 	response, err := s.client.Do(req)
@@ -245,6 +258,44 @@ func (s *BeeClient) DownloadBlob(address []byte) ([]byte, int, error) {
 	}
 	s.logger.WithFields(fields).Log(logrus.DebugLevel, "download blob: ")
 	return respData, response.StatusCode, nil
+}
+
+func (s *BeeClient) UnpinChunk(ref utils.Reference) error {
+	path := filepath.Join(pinChunksUrl, ref.String())
+	fullUrl := fmt.Sprintf(s.url + path)
+	req, err := http.NewRequest(http.MethodDelete, fullUrl, nil)
+	if err != nil {
+		return err
+	}
+
+	response, err := s.client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return err
+	}
+	return nil
+}
+
+func (s *BeeClient) UnpinBlob(ref utils.Reference) error {
+	path := filepath.Join(pinBlobsUrl, ref.String())
+	fullUrl := fmt.Sprintf(s.url + path)
+	req, err := http.NewRequest(http.MethodDelete, fullUrl, nil)
+	if err != nil {
+		return err
+	}
+
+	response, err := s.client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return err
+	}
+	return nil
 }
 
 // createHTTPClient for connection re-use

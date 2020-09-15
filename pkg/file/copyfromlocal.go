@@ -74,7 +74,7 @@ func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo,
 		}
 		fmt.Printf("uploading block-%05d, ", i)
 
-		addr, err := f.client.UploadBlob(data[:r])
+		addr, err := f.client.UploadBlob(data[:r], true)
 		if err != nil {
 			return nil, fmt.Errorf("copyFromLocal: %w", err)
 		}
@@ -95,7 +95,7 @@ func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo,
 		return nil, fmt.Errorf("copyFromLocal: %v", fileInfo.Name())
 	}
 
-	addr, err := f.client.UploadBlob(fileInodeData)
+	addr, err := f.client.UploadBlob(fileInodeData, true)
 	if err != nil {
 		return nil, fmt.Errorf("copyFromLocal: %w", err)
 	}
@@ -105,7 +105,7 @@ func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo,
 	if err != nil {
 		return nil, fmt.Errorf("copyFromLocal: %v", fileInfo.Name())
 	}
-	metaAddr, err := f.client.UploadBlob(fileMetaBytes)
+	metaAddr, err := f.client.UploadBlob(fileMetaBytes, true)
 	if err != nil {
 		return nil, fmt.Errorf("copyFromLocal: %w", err)
 	}

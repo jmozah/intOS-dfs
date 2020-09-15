@@ -23,6 +23,8 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/jmozah/intOS-dfs/pkg/utils"
+
 	"github.com/ethersphere/bee/pkg/swarm"
 )
 
@@ -42,7 +44,7 @@ func (m *MockBeeClient) CheckConnection() bool {
 	return true
 }
 
-func (m *MockBeeClient) UploadChunk(ch swarm.Chunk) (address []byte, err error) {
+func (m *MockBeeClient) UploadChunk(ch swarm.Chunk, pin bool) (address []byte, err error) {
 	m.storerMu.Lock()
 	defer m.storerMu.Unlock()
 	m.storer[ch.Address().String()] = ch.Data()
@@ -58,7 +60,7 @@ func (m *MockBeeClient) DownloadChunk(ctx context.Context, address []byte) (data
 	return nil, fmt.Errorf("error downloading data")
 }
 
-func (m *MockBeeClient) UploadBlob(data []byte) (address []byte, err error) {
+func (m *MockBeeClient) UploadBlob(data []byte, pin bool) (address []byte, err error) {
 	m.storerMu.Lock()
 	defer m.storerMu.Unlock()
 	address = make([]byte, 32)
@@ -74,4 +76,12 @@ func (m *MockBeeClient) DownloadBlob(address []byte) (data []byte, respCode int,
 		return data, http.StatusOK, nil
 	}
 	return nil, http.StatusInternalServerError, fmt.Errorf("error downloading data")
+}
+
+func (m *MockBeeClient) UnpinChunk(ref utils.Reference) error {
+	return nil
+}
+
+func (m *MockBeeClient) UnpinBlob(ref utils.Reference) error {
+	return nil
 }
