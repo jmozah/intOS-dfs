@@ -54,10 +54,13 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		jsonhttp.BadRequest(w, "upload: \"block_size\" argument missing")
 		return
 	}
-	if compression != "snappy" && compression != "gzip" {
-		h.logger.Errorf("upload: invalid value for \"compression\" header")
-		jsonhttp.BadRequest(w, "upload: invalid value for \"compression\" header")
-		return
+
+	if compression != "" {
+		if compression != "snappy" && compression != "gzip" {
+			h.logger.Errorf("upload: invalid value for \"compression\" header")
+			jsonhttp.BadRequest(w, "upload: invalid value for \"compression\" header")
+			return
+		}
 	}
 
 	// get values from cookie
