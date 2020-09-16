@@ -215,9 +215,9 @@ export function FolderView({
               &nbsp; BZZ
             </div>
           </div>
-          <div className={styles.addButton} onClick={() => handleNewClickOpen()}>
-            <AddCircleOutline fontSize="large"></AddCircleOutline>
-          </div>
+        </div>
+        <div className={styles.addButton} onClick={() => handleNewClickOpen()}>
+          <AddCircleOutline fontSize="large"></AddCircleOutline>
         </div>
       </div>
       <div className={styles.flexer}></div>

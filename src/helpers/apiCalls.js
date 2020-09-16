@@ -82,10 +82,13 @@ export async function isUsernamePresent(username) {
     const config = {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded"
+      },
+      paramsSerializer: function (params) {
+        return qs.stringify(params, { arrayFormat: "brackets" });
       }
     };
 
-    const response = await axi({ method: "POST", url: "user/present", config: config, data: qs.stringify(requestBody), withCredentials: true });
+    const response = await axi({ method: "GET", url: "user/present", config: config, params: requestBody, withCredentials: true });
 
     return response;
   } catch (error) {
