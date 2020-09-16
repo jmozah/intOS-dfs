@@ -36,12 +36,14 @@ type Reference struct {
 }
 
 const (
-	defaultMaxMemory = 32 << 20 // 32 MB
+	defaultMaxMemory  = 32 << 20 // 32 MB
+	compressionHeader = "intOS-dfs-Compression"
 )
 
 func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	podDir := r.FormValue("pod_dir")
 	blockSize := r.FormValue("block_size")
+	compression := r.Header.Get(compressionHeader)
 	if podDir == "" {
 		h.logger.Errorf("upload: \"pod_dir\" argument missing")
 		jsonhttp.BadRequest(w, "upload: \"pod_dir\" argument missing")
@@ -50,6 +52,11 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	if blockSize == "" {
 		h.logger.Errorf("upload: \"block_size\" argument missing")
 		jsonhttp.BadRequest(w, "upload: \"block_size\" argument missing")
+		return
+	}
+	if compression != "snappy" && compression != "gzip" {
+		h.logger.Errorf("upload: invalid value for \"compression\" header")
+		jsonhttp.BadRequest(w, "upload: invalid value for \"compression\" header")
 		return
 	}
 
@@ -97,7 +104,7 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//upload file to bee
-		reference, err := h.dfsAPI.UploadFile(file.Filename, sessionId, file.Size, fd, podDir, blockSize)
+		reference, err := h.dfsAPI.UploadFile(file.Filename, sessionId, file.Size, fd, podDir, blockSize, compression)
 		if err != nil {
 			if err == dfs.ErrPodNotOpen {
 				h.logger.Errorf("upload: %v", err)

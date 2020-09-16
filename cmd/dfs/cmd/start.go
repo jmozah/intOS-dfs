@@ -57,7 +57,12 @@ can consume it.`,
 			fmt.Println("unknown verbosity level ", v)
 			return
 		}
-		handler = api.NewHandler(dataDir, beeHost, beePort, logger)
+		hdlr, err := api.NewHandler(dataDir, beeHost, beePort, logger)
+		if err != nil {
+			logger.Error(err.Error())
+			return
+		}
+		handler = hdlr
 		startHttpService(logger)
 	},
 }
@@ -76,6 +81,9 @@ func startHttpService(logger logging.Logger) {
 
 	apiVersion := "v0"
 	baseRouter := router.PathPrefix("/" + apiVersion).Subrouter()
+	baseRouter.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "User-agent: *\nDisallow: /")
+	})
 
 	// User account related handlers which does not login need middleware
 	baseRouter.Use(handler.LogMiddleware)
@@ -137,7 +145,7 @@ func startHttpService(logger logging.Logger) {
 	http.Handle("/", router)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		AllowedOrigins:   []string{"http://localhost:3000"},
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"Origin", "Accept", "Authorization", "Content-Type", "X-Requested-With", "Access-Control-Request-Headers", "Access-Control-Request-Method"},
 		AllowedMethods:   []string{"GET", "POST", "DELETE"},

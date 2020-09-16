@@ -76,8 +76,14 @@ func CleanDirName(dirName string) ([]string, error) {
 		return nil, ErrInvalidDirectory
 	}
 
-	dirs := strings.Split(dirName, utils.PathSeperator)
 	var cleanedDirs []string
+	if dirName == utils.PathSeperator {
+		cleanedDirs = append(cleanedDirs, dirName)
+		return cleanedDirs, nil
+	}
+
+	dirs := strings.Split(dirName, utils.PathSeperator)
+
 	for _, dir := range dirs {
 		if len(dir) > utils.MaxDirectoryNameLength {
 			return nil, ErrTooLongDirectoryName

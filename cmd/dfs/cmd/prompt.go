@@ -18,18 +18,18 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/jmozah/intOS-dfs/pkg/user"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/jmozah/intOS-dfs/pkg/user"
 
 	prompt "github.com/c-bata/go-prompt"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	"github.com/jmozah/intOS-dfs/pkg/logging"
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -56,24 +56,13 @@ var promptCmd = &cobra.Command{
 	Long: `A command prompt where you can interact with the distributed
 file system of the intOS.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		switch v := strings.ToLower(verbosity); v {
-		case "0", "silent":
-			logger = logging.New(ioutil.Discard, 0)
-		case "1", "error":
-			logger = logging.New(cmd.OutOrStdout(), logrus.ErrorLevel)
-		case "2", "warn":
-			logger = logging.New(cmd.OutOrStdout(), logrus.WarnLevel)
-		case "3", "info":
-			logger = logging.New(cmd.OutOrStdout(), logrus.InfoLevel)
-		case "4", "debug":
-			logger = logging.New(cmd.OutOrStdout(), logrus.DebugLevel)
-		case "5", "trace":
-			logger = logging.New(cmd.OutOrStdout(), logrus.TraceLevel)
-		default:
-			fmt.Println("unknown verbosity level: ", v)
+		logger = logging.New(ioutil.Discard, 0)
+		api, err := dfs.NewDfsAPI(dataDir, beeHost, beePort, logger)
+		if err != nil {
+			fmt.Println(err.Error())
 			return
 		}
-		dfsAPI = dfs.NewDfsAPI(dataDir, beeHost, beePort, logger)
+		dfsAPI = api
 		initPrompt()
 	},
 }
@@ -119,6 +108,8 @@ var suggestions = []prompt.Suggest{
 	{Text: "cd", Description: "change path"},
 	{Text: "copyToLocal", Description: "copy file from dfs to local machine"},
 	{Text: "copyFromLocal", Description: "copy file from local machine to dfs"},
+	{Text: "share", Description: "share file with another user"},
+	{Text: "receive", Description: "receive a shared file"},
 	{Text: "exit", Description: "exit dfs-prompt"},
 	{Text: "head", Description: "show few starting lines of a file"},
 	{Text: "help", Description: "show usage"},
@@ -213,9 +204,9 @@ func executor(in string) {
 			userName := blocks[2]
 			yes := dfsAPI.IsUserNameAvailable(userName)
 			if yes {
-				fmt.Println("user name: available")
+				fmt.Println("true")
 			} else {
-				fmt.Println("user name: not available")
+				fmt.Println("false")
 			}
 			currentPrompt = getCurrentPrompt()
 		case "ls":
@@ -281,7 +272,11 @@ func executor(in string) {
 			}
 			currentPrompt = getCurrentPrompt()
 		case "share":
-			switch blocks[3] {
+			if len(blocks) < 3 {
+				fmt.Println("invalid command. Missing \"inbox/outbox\" argument ")
+				return
+			}
+			switch blocks[2] {
 			case "inbox":
 				inbox, err := dfsAPI.GetUserSharingInbox(DefaultSessionId)
 				if err != nil {
@@ -444,6 +439,7 @@ func executor(in string) {
 			}
 
 		}
+		currentPrompt = getCurrentPrompt()
 	case "copyToLocal":
 		if !isPodOpened() {
 			return
@@ -457,6 +453,7 @@ func executor(in string) {
 			fmt.Println("copyToLocal failed: ", err)
 			return
 		}
+		currentPrompt = getCurrentPrompt()
 	case "copyFromLocal":
 		if !isPodOpened() {
 			return
@@ -470,6 +467,7 @@ func executor(in string) {
 			fmt.Println("copyFromLocal failed: ", err)
 			return
 		}
+		currentPrompt = getCurrentPrompt()
 	case "mkdir":
 		if !isPodOpened() {
 			return
@@ -483,6 +481,7 @@ func executor(in string) {
 			fmt.Println("mkdir failed: ", err)
 			return
 		}
+		currentPrompt = getCurrentPrompt()
 	case "rmdir":
 		if !isPodOpened() {
 			return
@@ -496,6 +495,7 @@ func executor(in string) {
 			fmt.Println("rmdir failed: ", err)
 			return
 		}
+		currentPrompt = getCurrentPrompt()
 	case "cat":
 		if !isPodOpened() {
 			return
@@ -509,6 +509,7 @@ func executor(in string) {
 			fmt.Println("cat failed: ", err)
 			return
 		}
+		currentPrompt = getCurrentPrompt()
 	case "stat":
 		if !isPodOpened() {
 			return
@@ -528,14 +529,16 @@ func executor(in string) {
 		fmt.Println("File Name	   : ", fs.FileName)
 		fmt.Println("File Size    : ", fs.FileSize)
 		fmt.Println("Block Size   : ", fs.BlockSize)
+		fmt.Println("Compression  : ", fs.Compression)
 		fmt.Println("Content Type : ", fs.ContentType)
 		fmt.Println("Cr. Time	   : ", fs.CreationTime)
 		fmt.Println("Mo. Time	   : ", fs.ModificationTime)
 		fmt.Println("Ac. Time	   : ", fs.AccessTime)
 		for _, b := range fs.Blocks {
-			blkStr := fmt.Sprintf("%s, 0x%s, %s bytes", b.Name, b.Reference, b.Size)
+			blkStr := fmt.Sprintf("%s, 0x%s, %s bytes, %s bytes", b.Name, b.Reference, b.Size, b.CompressedSize)
 			fmt.Println(blkStr)
 		}
+		currentPrompt = getCurrentPrompt()
 	case "pwd":
 		if !isPodOpened() {
 			return
@@ -547,6 +550,7 @@ func executor(in string) {
 			curDir := strings.TrimPrefix(currentPodInfo.GetCurrentDirPathAndName(), podDir)
 			fmt.Println(curDir)
 		}
+		currentPrompt = getCurrentPrompt()
 	case "rm":
 		if !isPodOpened() {
 			return
@@ -560,6 +564,41 @@ func executor(in string) {
 			fmt.Println("rm failed: ", err)
 			return
 		}
+		currentPrompt = getCurrentPrompt()
+	case "share":
+		if len(blocks) < 2 {
+			fmt.Println("invalid command. Missing one or more arguments")
+			return
+		}
+		podFile := blocks[1]
+		sharingRef, err := dfsAPI.ShareFile(podFile, currentUser, DefaultSessionId)
+		if err != nil {
+			fmt.Println("share: ", err)
+			return
+		}
+		fmt.Println("Sharing Reference: ", sharingRef)
+		currentPrompt = getCurrentPrompt()
+	case "receive":
+		if len(blocks) < 3 {
+			fmt.Println("invalid command. Missing one or more arguments")
+			return
+		}
+		sharingRefString := blocks[1]
+		podDir := blocks[2]
+
+		sharingRef, err := utils.ParseSharingReference(sharingRefString)
+		if err != nil {
+			fmt.Println("receive: ", err)
+			return
+		}
+		filePath, metaRef, err := dfsAPI.ReceiveFile(DefaultSessionId, sharingRef, podDir)
+		if err != nil {
+			fmt.Println("receive: ", err)
+			return
+		}
+		fmt.Println("file path  : ", filePath)
+		fmt.Println("reference  : ", metaRef)
+		currentPrompt = getCurrentPrompt()
 	case "mv":
 		fmt.Println("not yet implemented")
 	case "head":
@@ -597,6 +636,8 @@ func help() {
 	fmt.Println(" - ls ")
 	fmt.Println(" - copyToLocal <source file in pod, destination directory in local fs>")
 	fmt.Println(" - copyFromLocal <source file in local fs, destination directory in pod, block size (ex: 1Mb, 64Mb)>")
+	fmt.Println(" - share <file name>")
+	fmt.Println(" - receive <sharing reference> <pod dir>")
 	fmt.Println(" - mkdir <directory name>")
 	fmt.Println(" - rmdir <directory name>")
 	fmt.Println(" - rm <file name>")

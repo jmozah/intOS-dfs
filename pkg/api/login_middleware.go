@@ -28,22 +28,16 @@ func (h *Handler) LoginMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionId, loginTimeout, err := cookie.GetSessionIdAndLoginTimeFromCookie(r)
 		if err != nil {
-			err1 := h.dfsAPI.LogoutUser(sessionId, w)
-			if err1 == nil {
-				h.logger.Errorf("logged out: invalid cookie")
-				jsonhttp.BadRequest(w, "Logged out: invalid cookie")
-			}
+			h.logger.Errorf("cookie: invalid cookie: %v", err)
+			jsonhttp.BadRequest(w, "cookie: invalid cookie: "+err.Error())
 			return
 		}
 
 		// if the expiry time is over, logout the user
 		loginTime, err := time.Parse(time.RFC3339, loginTimeout)
 		if err != nil {
-			err1 := h.dfsAPI.LogoutUser(sessionId, w)
-			if err1 == nil {
-				h.logger.Errorf("Logged out: invalid login timeout")
-				jsonhttp.BadRequest(w, "Logged out: invalid login timeout")
-			}
+			h.logger.Errorf("cookie: invalid login timeout")
+			jsonhttp.BadRequest(w, "cookie: invalid login timeout")
 			return
 		}
 		if loginTime.Before(time.Now()) {

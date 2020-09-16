@@ -3,6 +3,7 @@ import AccountRoot from "./account/AccountRoot";
 import ConnectRoot from "./connect/ConnectRoot";
 import DriveRoot from "./drive/DriveRoot";
 import AccountUnlock from "./account-unlock/AccountUnlock";
+import AccountLogin from "./account-login/AccountLogin";
 
 export default[
   {
@@ -23,5 +24,9 @@ export default[
     path : "/unlock",
     exact: true,
     component: AccountUnlock
+  }, {
+    path : "/login",
+    exact: true,
+    component: AccountLogin
   }
 ];

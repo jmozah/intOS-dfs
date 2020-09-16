@@ -83,7 +83,7 @@ func (h *Handler) update(req *Request) ([]byte, error) {
 	ch := swarm.NewChunk(req.idAddr, req.binaryData)
 
 	// send the chunk
-	addr, err := h.client.UploadChunk(ch)
+	addr, err := h.client.UploadChunk(ch, true)
 	if err != nil {
 		return nil, err
 	}

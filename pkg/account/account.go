@@ -17,8 +17,10 @@ limitations under the License.
 package account
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/sha256"
+	"encoding/binary"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -27,12 +29,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/btcsuite/btcd/btcec"
 	"github.com/ethersphere/bee/pkg/crypto"
-	"github.com/jmozah/intOS-dfs/pkg/logging"
-	"github.com/jmozah/intOS-dfs/pkg/utils"
 	hdwallet "github.com/miguelmota/go-ethereum-hdwallet"
 	"github.com/tyler-smith/go-bip39"
 	"golang.org/x/crypto/ssh/terminal"
+
+	"github.com/jmozah/intOS-dfs/pkg/logging"
+	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
 const (
@@ -71,6 +75,13 @@ func New(podName, dataDir string, logger logging.Logger) *Account {
 		podAccounts:      make(map[int]*AccountInfo),
 		logger:           logger,
 	}
+}
+
+func CreateRandomKeyPair(now int64) (*ecdsa.PrivateKey, error) {
+	randBytes := make([]byte, 40)
+	binary.LittleEndian.PutUint64(randBytes, uint64(now))
+	randReader := bytes.NewReader(randBytes)
+	return ecdsa.GenerateKey(btcec.S256(), randReader)
 }
 
 func (a *Account) IsAlreadyInitialized() bool {
@@ -162,7 +173,7 @@ func (a *Account) LoadUserAccount(passPhrase string) error {
 
 	plainMnemonic, err := a.wallet.decryptMnemonic(password)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid password")
 	}
 
 	acc, err := a.wallet.CreateAccount(rootPath, plainMnemonic)
@@ -192,7 +203,7 @@ func (a *Account) LoadUserAccount(passPhrase string) error {
 
 func (a *Account) Authorise(password string) bool {
 	if password == "" {
-		fmt.Print("Enter user password to create a pod: ")
+		fmt.Print("Enter user password to delete a pod: ")
 		password = a.getPassword()
 	}
 	plainMnemonic, err := a.wallet.decryptMnemonic(password)
@@ -213,7 +224,7 @@ func (a *Account) Authorise(password string) bool {
 	return true
 }
 
-func (a *Account) CreatePodAccount(accountId int, passPhrase string) error {
+func (a *Account) CreatePodAccount(accountId int, passPhrase string, createPod bool) error {
 	if !a.IsAlreadyInitialized() {
 		return fmt.Errorf("user not created")
 	}
@@ -224,13 +235,18 @@ func (a *Account) CreatePodAccount(accountId int, passPhrase string) error {
 
 	password := passPhrase
 	if password == "" {
-		fmt.Print("Enter user password to create a pod: ")
+		if createPod {
+			fmt.Print("Enter user password to create a pod: ")
+		} else {
+			fmt.Print("Enter user password to open a pod: ")
+		}
+
 		password = a.getPassword()
 	}
 
 	plainMnemonic, err := a.wallet.decryptMnemonic(password)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid password")
 	}
 
 	path := genericPath + strconv.Itoa(accountId)
@@ -300,7 +316,7 @@ func (a *Account) storeAsEncryptedMnemonicToDisk(mnemonic, passPhrase string) (s
 	// encrypt the mnemonic
 	encryptedMessage, err := encrypt(aesKey[:], mnemonic)
 	if err != nil {
-		return "", fmt.Errorf("create root account: %w", err)
+		return "", fmt.Errorf("create user account: %w", err)
 	}
 
 	err = os.MkdirAll(filepath.Dir(a.mnemonicFileName), 0777)

@@ -56,7 +56,7 @@ func (pi *Info) SyncPod(podName string, client blockstore.Client, logger logging
 	fd := pi.getFeed()
 	accountInfo := pi.getAccountInfo()
 
-	logger.Infof("Syncing pod", podName)
+	logger.Infof("Syncing pod: %v", podName)
 	var wg sync.WaitGroup
 	for _, ref := range pi.currentPodInode.Hashes {
 		wg.Add(1)
@@ -81,6 +81,7 @@ func (pi *Info) SyncPod(podName string, client blockstore.Client, logger logging
 				}
 
 				path := meta.Path + utils.PathSeperator + meta.Name
+				meta.MetaReference = reference
 				pi.file.AddToFileMap(path, meta)
 				path = strings.TrimPrefix(path, podName)
 				logger.Infof(path)
