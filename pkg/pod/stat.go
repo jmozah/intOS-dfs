@@ -19,9 +19,9 @@ package pod
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/ethersphere/bee/pkg/swarm"
+
 	"github.com/jmozah/intOS-dfs/pkg/dir"
 	"github.com/jmozah/intOS-dfs/pkg/file"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
@@ -46,9 +46,9 @@ func (p *Pod) PodStat(podName string) (*PodStat, error) {
 		Version:          strconv.Itoa(int(podInode.Meta.Version)),
 		PodName:          podInode.Meta.Name,
 		PodPath:          podInode.Meta.Path,
-		CreationTime:     time.Unix(podInode.Meta.CreationTime, 0).String(),
-		AccessTime:       time.Unix(podInode.Meta.AccessTime, 0).String(),
-		ModificationTime: time.Unix(podInode.Meta.AccessTime, 0).String(),
+		CreationTime:     strconv.FormatInt(podInode.Meta.CreationTime, 10),
+		AccessTime:       strconv.FormatInt(podInode.Meta.AccessTime, 10),
+		ModificationTime: strconv.FormatInt(podInode.Meta.AccessTime, 10),
 	}, nil
 }
 

@@ -17,8 +17,8 @@ limitations under the License.
 package dir
 
 import (
+	"strconv"
 	"strings"
-	"time"
 
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
@@ -60,8 +60,8 @@ func (d *Directory) DirStat(podName, dirName string, dirInode *DirInode, account
 		PodName:          podName,
 		DirPath:          path,
 		DirName:          meta.Name,
-		CreationTime:     time.Unix(meta.CreationTime, 0).String(),
-		ModificationTime: time.Unix(meta.ModificationTime, 0).String(),
+		CreationTime:     strconv.FormatInt(meta.CreationTime, 10),
+		ModificationTime: strconv.FormatInt(meta.ModificationTime, 10),
 		NoOfDirectories:  string(rune(len(dl))),
 		NoOfFiles:        string(rune(len(fl))),
 	}, nil

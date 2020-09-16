@@ -21,14 +21,15 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"strings"
-
-	"github.com/jmozah/intOS-dfs/pkg/user"
+	"time"
 
 	prompt "github.com/c-bata/go-prompt"
 	"github.com/jmozah/intOS-dfs/pkg/dfs"
 	"github.com/jmozah/intOS-dfs/pkg/logging"
 	"github.com/jmozah/intOS-dfs/pkg/pod"
+	"github.com/jmozah/intOS-dfs/pkg/user"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 	"github.com/spf13/cobra"
 )
@@ -375,12 +376,27 @@ func executor(in string) {
 				fmt.Println("error getting stat: ", err)
 				return
 			}
+			crTime, err := strconv.ParseInt(podStat.CreationTime, 10, 64)
+			if err != nil {
+				fmt.Println("error getting stat: ", err)
+				return
+			}
+			accTime, err := strconv.ParseInt(podStat.AccessTime, 10, 64)
+			if err != nil {
+				fmt.Println("error getting stat: ", err)
+				return
+			}
+			modTime, err := strconv.ParseInt(podStat.ModificationTime, 10, 64)
+			if err != nil {
+				fmt.Println("error getting stat: ", err)
+				return
+			}
 			fmt.Println("Version          : ", podStat.Version)
 			fmt.Println("pod Name         : ", podStat.PodName)
 			fmt.Println("Path             : ", podStat.PodPath)
-			fmt.Println("Creation Time    :", podStat.CreationTime)
-			fmt.Println("Access Time      :", podStat.AccessTime)
-			fmt.Println("Modification Time:", podStat.ModificationTime)
+			fmt.Println("Creation Time    :", time.Unix(crTime, 0).String())
+			fmt.Println("Access Time      :", time.Unix(accTime, 0).String())
+			fmt.Println("Modification Time:", time.Unix(modTime, 0).String())
 			currentPrompt = getCurrentPrompt()
 		case "sync":
 			if !isPodOpened() {
@@ -523,17 +539,36 @@ func executor(in string) {
 			fmt.Println("stat failed: ", err)
 			return
 		}
+		crTime, err := strconv.ParseInt(fs.CreationTime, 10, 64)
+		if err != nil {
+			fmt.Println("stat failed: ", err)
+			return
+		}
+		accTime, err := strconv.ParseInt(fs.AccessTime, 10, 64)
+		if err != nil {
+			fmt.Println("stat failed: ", err)
+			return
+		}
+		modTime, err := strconv.ParseInt(fs.ModificationTime, 10, 64)
+		if err != nil {
+			fmt.Println("stat failed: ", err)
+			return
+		}
+		compression := fs.Compression
+		if compression == "" {
+			compression = "None"
+		}
 		fmt.Println("Account 	   : ", fs.Account)
 		fmt.Println("PodName 	   : ", fs.PodName)
 		fmt.Println("File Path	   : ", fs.FilePath)
 		fmt.Println("File Name	   : ", fs.FileName)
 		fmt.Println("File Size    : ", fs.FileSize)
 		fmt.Println("Block Size   : ", fs.BlockSize)
-		fmt.Println("Compression  : ", fs.Compression)
+		fmt.Println("Compression  : ", compression)
 		fmt.Println("Content Type : ", fs.ContentType)
-		fmt.Println("Cr. Time	   : ", fs.CreationTime)
-		fmt.Println("Mo. Time	   : ", fs.ModificationTime)
-		fmt.Println("Ac. Time	   : ", fs.AccessTime)
+		fmt.Println("Cr. Time	   : ", time.Unix(crTime, 0).String())
+		fmt.Println("Mo. Time	   : ", time.Unix(accTime, 0).String())
+		fmt.Println("Ac. Time	   : ", time.Unix(modTime, 0).String())
 		for _, b := range fs.Blocks {
 			blkStr := fmt.Sprintf("%s, 0x%s, %s bytes, %s bytes", b.Name, b.Reference, b.Size, b.CompressedSize)
 			fmt.Println(blkStr)

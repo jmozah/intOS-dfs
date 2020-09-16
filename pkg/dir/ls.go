@@ -21,7 +21,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	m "github.com/jmozah/intOS-dfs/pkg/meta"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
@@ -68,9 +67,9 @@ func (d *Directory) ListDir(podName, path string, printNames bool) []DirOrFileEn
 				ContentType:      meta.ContentType,
 				Size:             strconv.FormatUint(meta.FileSize, 10),
 				BlockSize:        strconv.FormatInt(int64(uint64(meta.BlockSize)), 10),
-				CreationTime:     time.Unix(meta.CreationTime, 0).String(),
-				AccessTime:       time.Unix(meta.AccessTime, 0).String(),
-				ModificationTime: time.Unix(meta.ModificationTime, 0).String(),
+				CreationTime:     strconv.FormatInt(meta.CreationTime, 10),
+				AccessTime:       strconv.FormatInt(meta.AccessTime, 10),
+				ModificationTime: strconv.FormatInt(meta.ModificationTime, 10),
 			}
 			listEntries = append(listEntries, entry)
 			continue
@@ -84,9 +83,9 @@ func (d *Directory) ListDir(podName, path string, printNames bool) []DirOrFileEn
 		entry := DirOrFileEntry{
 			Name:             dirInode.Meta.Name,
 			ContentType:      MineTypeDirectory, // per RFC2425
-			CreationTime:     time.Unix(dirInode.Meta.CreationTime, 0).String(),
-			AccessTime:       time.Unix(dirInode.Meta.AccessTime, 0).String(),
-			ModificationTime: time.Unix(dirInode.Meta.ModificationTime, 0).String(),
+			CreationTime:     strconv.FormatInt(dirInode.Meta.CreationTime, 10),
+			AccessTime:       strconv.FormatInt(dirInode.Meta.AccessTime, 10),
+			ModificationTime: strconv.FormatInt(dirInode.Meta.ModificationTime, 10),
 		}
 		listEntries = append(listEntries, entry)
 	}

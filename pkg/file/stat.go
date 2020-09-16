@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"time"
 )
 
 type FileStats struct {
@@ -81,9 +80,9 @@ func (f *File) FileStat(podName, fileName, account string) (*FileStats, error) {
 		BlockSize:        strconv.Itoa(int(meta.BlockSize)),
 		Compression:      meta.Compression,
 		ContentType:      meta.ContentType,
-		CreationTime:     time.Unix(meta.CreationTime, 0).String(),
-		ModificationTime: time.Unix(meta.ModificationTime, 0).String(),
-		AccessTime:       time.Unix(meta.AccessTime, 0).String(),
+		CreationTime:     strconv.FormatInt(meta.CreationTime, 10),
+		ModificationTime: strconv.FormatInt(meta.ModificationTime, 10),
+		AccessTime:       strconv.FormatInt(meta.AccessTime, 10),
 		Blocks:           fileBlocks,
 	}, nil
 }
