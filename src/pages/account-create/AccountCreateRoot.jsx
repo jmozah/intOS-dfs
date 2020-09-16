@@ -85,10 +85,10 @@ export function AccountCreateRoot() {
     await createPod(password, "Fairdrive");
 
     setItem1(true);
-    await createDirectory(password, "Documents");
-    await createDirectory(password, "Movies");
-    await createDirectory(password, "Music");
-    await createDirectory(password, "Pictures");
+    await createDirectory("Documents");
+    await createDirectory("Movies");
+    await createDirectory("Music");
+    await createDirectory("Pictures");
 
     setItem2(true);
     // store account in Redux

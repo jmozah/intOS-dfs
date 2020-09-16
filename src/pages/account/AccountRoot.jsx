@@ -56,7 +56,8 @@ export function AccountRoot() {
     dispatch({
       type: "SET_SYSTEM",
       data: {
-        unlocked: false
+        unlocked: false,
+        passWord: ""
       }
     });
     history.push("/unlock");
