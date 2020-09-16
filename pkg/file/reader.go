@@ -106,6 +106,10 @@ func (r *Reader) Read(b []byte) (n int, err error) {
 				bytesToRead = r.blockSize
 			}
 
+			if uint32(len(r.lastBlock)) < bytesToRead {
+				bytesToRead = uint32(len(r.lastBlock))
+			}
+
 			cursor := uint32(bytesRead)
 			copy(b[cursor:cursor+bytesToRead], r.lastBlock[:bytesToRead])
 			r.totalSize += uint64(bytesToRead)
