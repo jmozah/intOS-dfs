@@ -121,6 +121,29 @@ export async function fileUpload(files, directory, onUploadProgress) {
   return true;
 }
 
+export async function fileDownload(file) {
+  try {
+    const config = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    };
+
+    const downloadFile = await axi({
+      method: "POST",
+      url: "file/download",
+      data: qs.stringify({ file: file }),
+      config: config,
+      withCredentials: true
+    });
+
+    console.log(downloadFile)
+    return true;
+  } catch (error) {
+    throw error;
+  }
+}
+
 export async function getDirectory(directory, password) {
   try {
     const config = {

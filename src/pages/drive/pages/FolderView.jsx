@@ -7,6 +7,7 @@ import sortByProp from "helpers/sortByProp";
 import urlPath from "helpers/urlPath";
 import NewDialog from "./components/NewDialog";
 import FolderDialog from "./components/FolderDialog";
+import FileDialog from "./components/FileDialog";
 
 import {
   Button,
@@ -53,13 +54,16 @@ export function FolderView({
   contents,
   account,
   refresh,
-  setFolderShown
+  setFolderShown,
+  gotoPreview
 }) {
   const [folderToEdit, setFolderToEdit] = useState("");
   const [openFolder, setFolderOpen] = useState(false);
   const [openNew, setNewOpen] = useState(false);
+  const [openFile, setOpenFile] = useState(false);
 
   const [newFolderName, setNewFolderName] = useState("");
+  const [filePreviewItem, setFilePreviewItem] = useState("");
 
   const toSortProp = "name";
   const [toSort, setToSort] = useState(toSortProp);
@@ -84,6 +88,10 @@ export function FolderView({
     setNewOpen(false);
   }
 
+  function handleFilePreviewClose() {
+    setOpenFile(false);
+  }
+
   useEffect(() => {
     setFolderShown(true);
   }, []);
@@ -99,13 +107,18 @@ export function FolderView({
 
   function handleLocation(item) {
     console.log(item);
-    let writePath = "";
-    if (path == "root") {
-      writePath = "";
+    if (item.content_type == "inode/directory") {
+      let writePath = "";
+      if (path == "root") {
+        writePath = "";
+      } else {
+        writePath = path + "&";
+      }
+      history.push("/drive/" + writePath + item.name);
     } else {
-      writePath = path + "&";
+      setFilePreviewItem(item);
+      setOpenFile(true);
     }
-    history.push("/drive/" + writePath + item);
   }
 
   function handleGotoAccount() {
@@ -158,7 +171,7 @@ export function FolderView({
           <div onClick={() => handleLocation(item.name)}>
             {selectedIcon(item.content_type)}
           </div>
-          <div onClick={() => handleLocation(item.name)} className={styles.folderText}>
+          <div onClick={() => handleLocation(item)} className={styles.folderText}>
             {item.name}
           </div>
           <div>
@@ -241,6 +254,7 @@ export function FolderView({
     </div>
     <FolderDialog open={openFolder} onClose={() => handleFolderClose()} path={path} refresh={refresh} item={folderToEdit}></FolderDialog>
     <NewDialog open={openNew} onClose={() => handleNewClickClose()} path={path} refresh={refresh} item={folderToEdit}></NewDialog>
+    <FileDialog open={openFile} onClose={() => handleFilePreviewClose()} path={path} refresh={refresh} item={filePreviewItem}></FileDialog>
   </div>);
 }
 
