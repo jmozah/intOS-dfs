@@ -1,6 +1,7 @@
 import axios from "axios";
 import qs from "querystring";
 import { Avatar } from "@material-ui/core";
+import FileSaver from "file-saver";
 
 const axi = axios.create({ baseURL: "http://localhost:9090/v0/", timeout: 120000 });
 
@@ -121,7 +122,7 @@ export async function fileUpload(files, directory, onUploadProgress) {
   return true;
 }
 
-export async function fileDownload(file) {
+export async function fileDownload(file, filename) {
   try {
     const config = {
       headers: {
@@ -134,11 +135,15 @@ export async function fileDownload(file) {
       url: "file/download",
       data: qs.stringify({ file: file }),
       config: config,
+      responseType: "blob",
       withCredentials: true
     });
 
     console.log(downloadFile)
-    return true;
+    FileSaver.saveAs(downloadFile.data, filename)
+
+    //const blob = new Blob(downloadFile.data)
+    return downloadFile;
   } catch (error) {
     throw error;
   }

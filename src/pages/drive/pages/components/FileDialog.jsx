@@ -41,8 +41,6 @@ import Icon from "@mdi/react";
 import {fileDownload} from "helpers/apiCalls";
 
 export default function FileDialog({open, path, item, refresh, onClose}) {
-  console.log("from Filedialog: ", open, path, item);
-
   const homeId = "homeId";
 
   //const [openNew, setNewOpen] = useState(open);
@@ -59,9 +57,8 @@ export default function FileDialog({open, path, item, refresh, onClose}) {
   useEffect(() => {
     if (item.size) {
       setFileSize(prettyBytes(parseInt(item.size)));
-      setFileCreateDate(moment().format(item.creation_time, "DD MM YYYY hh:mm:ss"));
-      window.moment = moment;
-      window.item = item;
+      setFileCreateDate(moment.unix(item.creation_time).from());
+      setFileModDate(moment.unix(item.modification_time).from());
     }
   }, [item]);
 
@@ -72,7 +69,7 @@ export default function FileDialog({open, path, item, refresh, onClose}) {
     } else {
       writePath = "/" + urlPath(path) + "/";
     }
-    await fileDownload(writePath + item.name);
+    await fileDownload(writePath + item.name, item.name).catch(e => console.error(e));
   }
 
   const FileDialogContent = () => {
@@ -86,9 +83,7 @@ export default function FileDialog({open, path, item, refresh, onClose}) {
           <div className={styles.fileProps}>Type: {item.content_type}</div>
           <div className={styles.fileProps}>Filesize: {fileSize}</div>
           <div className={styles.fileProps}>Created: {fileCreateDate}</div>
-          <div className={styles.fileProps}>
-            Modified: {item.modification_time}
-          </div>
+          <div className={styles.fileProps}>Modified: {fileModDate}</div>
           <div onClick={handleDownload} className={styles.buttonPlace}>
             <div className={rootStyles.buttontext}>> download</div>
           </div>
