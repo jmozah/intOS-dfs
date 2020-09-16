@@ -1,6 +1,6 @@
 # intOS-dfs
 The decentralised file system (dfs) is a file system built for the internetOS (intOS).
-This works as a think layer over Swarm (https://ethswarm.org/).
+This works as a thin layer over Swarm (https://ethswarm.org/).
 
 dfs can be used as follows
 1) As a standalone, decentralised, personal data drive over the internet.
