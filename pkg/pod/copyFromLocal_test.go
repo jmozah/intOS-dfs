@@ -49,6 +49,7 @@ func TestPod_CopyFromLocal(t *testing.T) {
 
 	podName1 := "test1"
 	firstDir := "dir1"
+	secondDir := "dir2"
 	t.Run("copy-file-to-root-of-pod", func(t *testing.T) {
 		info, err := pod1.CreatePod(podName1, "password")
 		if err != nil {
@@ -138,17 +139,17 @@ func TestPod_CopyFromLocal(t *testing.T) {
 			t.Fatalf("error creating pod %s", podName1)
 		}
 
-		err = pod1.MakeDir(podName1, firstDir)
+		err = pod1.MakeDir(podName1, secondDir)
 		if err != nil {
-			t.Fatalf("error creating directory %s", firstDir)
+			t.Fatalf("error creating directory %s", secondDir)
 		}
-		dirPath := utils.PathSeperator + podName1 + utils.PathSeperator + firstDir
+		dirPath := utils.PathSeperator + podName1 + utils.PathSeperator + secondDir
 		dirInode := info.getDirectory().GetDirFromDirectoryMap(dirPath)
 		if dirInode == nil {
 			t.Fatalf("directory not created")
 		}
 
-		_, err = pod1.ChangeDir(podName1, firstDir)
+		_, err = pod1.ChangeDir(podName1, secondDir)
 		if err != nil {
 			t.Fatalf("error changing directory")
 		}
@@ -156,7 +157,7 @@ func TestPod_CopyFromLocal(t *testing.T) {
 		localFile, clean := createRandomFile(t, 540)
 		defer clean()
 
-		podDir := utils.PathSeperator + firstDir
+		podDir := utils.PathSeperator + secondDir
 		err = pod1.CopyFromLocal(podName1, localFile, podDir, "100")
 		if err != nil {
 			t.Fatalf("copyFromlocal failed")
