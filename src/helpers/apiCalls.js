@@ -1,8 +1,8 @@
 import axios from "axios";
 import qs from "querystring";
-import {Avatar} from "@material-ui/core";
+import { Avatar } from "@material-ui/core";
 
-const axi = axios.create({baseURL: "http://localhost:9090/v0/", timeout: 120000});
+const axi = axios.create({ baseURL: "http://localhost:9090/v0/", timeout: 120000 });
 
 export async function logIn(username, password) {
   try {
@@ -17,12 +17,12 @@ export async function logIn(username, password) {
       }
     };
 
-    const response = await axi({method: "POST", url: "user/login", config: config, data: qs.stringify(requestBody), withCredentials: true});
+    const response = await axi({ method: "POST", url: "user/login", config: config, data: qs.stringify(requestBody), withCredentials: true });
 
     const openPod = await axi({
       method: "POST",
       url: "pod/open",
-      data: qs.stringify({password: password, pod: "Fairdrive"}),
+      data: qs.stringify({ password: password, pod: "Fairdrive" }),
       config: config,
       withCredentials: true
     });
@@ -41,7 +41,7 @@ export async function logOut() {
       }
     };
 
-    const response = await axi({method: "POST", url: "user/logout", config: config, withCredentials: true});
+    const response = await axi({ method: "POST", url: "user/logout", config: config, withCredentials: true });
 
     return response;
   } catch (error) {
@@ -60,11 +60,11 @@ export async function isLoggedIn(username) {
         "Content-Type": "application/x-www-form-urlencoded"
       },
       paramsSerializer: function (params) {
-        return qs.stringify(params, {arrayFormat: "brackets"});
+        return qs.stringify(params, { arrayFormat: "brackets" });
       }
     };
 
-    const response = await axi({method: "GET", url: "user/isloggedin", config: config, params: requestBody, withCredentials: true});
+    const response = await axi({ method: "GET", url: "user/isloggedin", config: config, params: requestBody, withCredentials: true });
 
     return response;
   } catch (error) {
@@ -84,7 +84,7 @@ export async function isUsernamePresent(username) {
       }
     };
 
-    const response = await axi({method: "POST", url: "user/present", config: config, data: qs.stringify(requestBody), withCredentials: true});
+    const response = await axi({ method: "POST", url: "user/present", config: config, data: qs.stringify(requestBody), withCredentials: true });
 
     return response;
   } catch (error) {
@@ -132,7 +132,7 @@ export async function getDirectory(directory, password) {
     const openPod = await axi({
       method: "POST",
       url: "pod/open",
-      data: qs.stringify({password: password, pod: "Fairdrive"}),
+      data: qs.stringify({ password: password, pod: "Fairdrive" }),
       config: config,
       withCredentials: true
     });
@@ -149,7 +149,7 @@ export async function getDirectory(directory, password) {
       };
     }
 
-    const response = await axi({method: "GET", url: "dir/ls", params: data, config: config, withCredentials: true});
+    const response = await axi({ method: "GET", url: "dir/ls", params: data, config: config, withCredentials: true });
 
     return response.data;
   } catch (error) {
@@ -171,7 +171,7 @@ export async function createAccount(username, password, mnemonic) {
       }
     };
 
-    const response = await axi({method: "POST", url: "user/signup", config: config, data: qs.stringify(requestBody), withCredentials: true});
+    const response = await axi({ method: "POST", url: "user/signup", config: config, data: qs.stringify(requestBody), withCredentials: true });
     return response.data;
   } catch (e) {
     console.log("error on timeout", e);
@@ -189,7 +189,7 @@ function dataURLtoFile(dataurl, filename) {
     u8arr[n] = bstr.charCodeAt(n);
   }
 
-  return new File([u8arr], filename, {type: mime});
+  return new File([u8arr], filename, { type: mime });
 }
 
 export async function storeAvatar(avatar) {
@@ -206,7 +206,7 @@ export async function storeAvatar(avatar) {
       }
     };
 
-    const response = await axi({method: "POST", url: "user/avatar", config: config, data: formData, withCredentials: true});
+    const response = await axi({ method: "POST", url: "user/avatar", config: config, data: formData, withCredentials: true });
     return response.data;
   } catch (e) {
     console.log("error on timeout", e);
@@ -267,8 +267,8 @@ export async function createPod(passWord, podName) {
       pod: podName
     };
 
-    const createPod = await axi({method: "POST", url: "pod/new", config: config, data: qs.stringify(podRequest), withCredentials: true});
-  } catch (error) {}
+    const createPod = await axi({ method: "POST", url: "pod/new", config: config, data: qs.stringify(podRequest), withCredentials: true });
+  } catch (error) { }
 }
 
 export async function createDirectory(directoryName) {
@@ -284,12 +284,12 @@ export async function createDirectory(directoryName) {
       method: "POST",
       url: "dir/mkdir",
       config: config,
-      data: qs.stringify({dir: directoryName}),
+      data: qs.stringify({ dir: directoryName }),
       withCredentials: true
     });
 
     return true;
-  } catch (error) {}
+  } catch (error) { }
 }
 
 export async function deleteDirectory(directoryName) {
@@ -312,7 +312,7 @@ export async function deleteDirectory(directoryName) {
     });
 
     return true;
-  } catch (error) {}
+  } catch (error) { }
 }
 
 export async function renameDirectory(newDirectoryName) {
@@ -339,7 +339,7 @@ export async function deleteFile(fileName) {
     });
 
     return true;
-  } catch (error) {}
+  } catch (error) { }
 }
 
 export async function shareFile(fileName, userName) {
@@ -362,5 +362,5 @@ export async function shareFile(fileName, userName) {
     });
 
     return shareFileResult.data.sharing_reference;
-  } catch (error) {}
+  } catch (error) { }
 }
