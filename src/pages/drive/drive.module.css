@@ -31,14 +31,15 @@
 
 .addButton {
   justify-self: right;
-  margin: 0px 40px;
   align-self: center;
+  color: var(--fds-blue);
+  composes: baseGlowText from "../../styles.module.css";
 }
 
 .user {
   display: grid;
-  grid-template-columns: 48px auto;
-  width: 280px;
+  grid-template-columns: 48px auto 48px;
+  width: 100%;
   align-items: center;
   margin: 0px 40px;
 }
