@@ -62,10 +62,7 @@ func (d *Directory) IsDirINodePresent(podName string, dirName string, parent *Di
 	totalPath := parentPath + utils.PathSeperator + dirName
 	topic := utils.HashString(totalPath)
 	_, _, err := d.fd.GetFeedData(topic, d.getAccount().GetAddress())
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 func getPath(podName string, parent *DirInode) string {
