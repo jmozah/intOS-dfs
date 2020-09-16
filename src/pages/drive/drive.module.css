@@ -31,14 +31,15 @@
 
 .addButton {
   justify-self: right;
-  margin: 0px 40px;
   align-self: center;
+  color: var(--fds-blue);
+  composes: baseGlowText from "../../styles.module.css";
 }
 
 .user {
   display: grid;
-  grid-template-columns: 48px auto;
-  width: 280px;
+  grid-template-columns: 48px auto 48px;
+  width: 100%;
   align-items: center;
   margin: 0px 40px;
 }
@@ -158,6 +159,12 @@ margin-top: 10px;
   margin: 0px 40px;
 }
 
+.fileProps {
+  composes: bodyDefault from "../../styles.module.css";
+  line-height: 150%;
+  color: var(--text-light);
+}
+
 .rowItem {
   padding: 16px 40px 14px 40px;
   border-bottom: 1px solid var(--fds-dark);
@@ -236,13 +243,14 @@ margin-top: 10px;
 }
 
 .menutitle {
-  display: grid;
-  grid-template-columns: auto 40px;
   composes: bodyBold from "../../styles.module.css";
   color: var(--text-light);
   font-size: 120%;
-  margin-bottom: 20px;
-align-items: center;
+  margin: 10px 0px 20px 0px;
+white-space: nowrap;
+overflow: hidden;
+width: 100%;
+text-overflow: ellipsis;
 }
 
 .menuitem {
