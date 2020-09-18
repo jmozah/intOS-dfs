@@ -18,6 +18,7 @@ package utils
 
 import (
 	"encoding/hex"
+	"fmt"
 	"strconv"
 )
 
@@ -31,6 +32,9 @@ func NewSharingReference(b []byte, n int64) SharingReference {
 }
 
 func ParseSharingReference(s string) (a SharingReference, err error) {
+	if len(s) < (ReferenceLength*2)+1 {
+		return a, fmt.Errorf("invalid reference length")
+	}
 	b, err := hex.DecodeString(s[:ReferenceLength*2])
 	if err != nil {
 		return a, err

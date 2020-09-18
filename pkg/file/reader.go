@@ -80,6 +80,13 @@ func (r *Reader) Read(b []byte) (n int, err error) {
 			bytesRead += int(remDataSize)
 			bytesToRead -= remDataSize
 			r.totalSize += uint64(remDataSize)
+
+			// this situation comes when the block ends
+			if r.totalSize >= r.fileSize {
+				fmt.Println("returning 2", bytesRead, r.blockCursor, r.totalSize, r.fileSize)
+				return bytesRead, io.EOF
+			}
+
 			// read spans across block.. so flow down and read the next block
 		}
 	}
@@ -99,6 +106,7 @@ func (r *Reader) Read(b []byte) (n int, err error) {
 				if err != nil {
 					return bytesRead, err
 				}
+				r.blockSize = uint32(len(r.lastBlock))
 			}
 
 			// if length of bytes to read is greater than block size

@@ -137,6 +137,7 @@ func startHttpService(logger logging.Logger) {
 	fileRouter.HandleFunc("/upload", handler.FileUploadHandler).Methods("POST")
 	fileRouter.HandleFunc("/share", handler.FileShareHandler).Methods("POST")
 	fileRouter.HandleFunc("/receive", handler.FileReceiveHandler).Methods("POST")
+	fileRouter.HandleFunc("/receiveinfo", handler.FileReceiveInfoHandler).Methods("POST")
 	fileRouter.HandleFunc("/delete", handler.FileDeleteHandler).Methods("DELETE")
 	fileRouter.HandleFunc("/stat", handler.FileStatHandler).Methods("GET")
 
@@ -145,7 +146,7 @@ func startHttpService(logger logging.Logger) {
 	http.Handle("/", router)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:8000", "http://localhost:9090", "http://fairdrive.org"},
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"Origin", "Accept", "Authorization", "Content-Type", "X-Requested-With", "Access-Control-Request-Headers", "Access-Control-Request-Method"},
 		AllowedMethods:   []string{"GET", "POST", "DELETE"},

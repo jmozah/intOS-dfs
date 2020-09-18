@@ -18,7 +18,6 @@ package web
 
 import (
 	"html/template"
-
 	"github.com/jmozah/intOS-dfs/pkg/logging"
 )
 

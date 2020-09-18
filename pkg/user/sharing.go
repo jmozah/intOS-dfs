@@ -20,11 +20,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/btcsuite/btcd/btcec"
-
 	"github.com/jmozah/intOS-dfs/pkg/account"
+	f "github.com/jmozah/intOS-dfs/pkg/file"
+	m "github.com/jmozah/intOS-dfs/pkg/meta"
 	"github.com/jmozah/intOS-dfs/pkg/pod"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
@@ -51,6 +53,20 @@ type SharingEntry struct {
 	SharedTime   string `json:"shared_time"`
 }
 
+type ReceiveFileInfo struct {
+	FileName       string `json:"name"`
+	Size           string `json:"size"`
+	BlockSize      string `json:"block_size"`
+	NumberOfBlocks string `json:"number_of_blocks"`
+	ContentType    string `json:"content_type"`
+	Compression    string `json:"compression"`
+	PodName        string `json:"pod_name"`
+	FileMetaHash   string `json:"meta_ref"`
+	Sender         string `json:"source_address"`
+	Receiver       string `json:"dest_address"`
+	SharedTime     string `json:"shared_time"`
+}
+
 func (u *Users) ShareFileWithUser(podName, podFilePath, destinationRef string, userInfo *Info, pod *pod.Pod) (string, error) {
 	// Get the meta reference of the file to share
 	metaRef, fileName, err := pod.GetMetaReferenceOfFile(podName, podFilePath)
@@ -61,14 +77,13 @@ func (u *Users) ShareFileWithUser(podName, podFilePath, destinationRef string, u
 	// Create a outbox entry
 	rootReference := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
 	now := time.Now()
-	nowTimeStr := now.Format(time.RFC3339)
 	sharingEntry := SharingEntry{
 		FileName:     fileName,
 		PodName:      userInfo.podName,
 		FileMetaHash: utils.NewReference(metaRef).String(),
 		Sender:       rootReference.String(),
 		Receiver:     destinationRef,
-		SharedTime:   nowTimeStr,
+		SharedTime:   strconv.FormatInt(now.Unix(), 10),
 	}
 
 	// get the outbox reference from outbox feed
@@ -274,4 +289,73 @@ func decryptData(data []byte, now int64) ([]byte, error) {
 	}
 	privateKey := btcec.PrivateKey{PublicKey: pk.PublicKey, D: pk.D}
 	return btcec.Decrypt(&privateKey, data)
+}
+
+func (u *Users) ReceiveFileInfo(podName string, sharingRef utils.SharingReference, userInfo *Info, pod *pod.Pod) (*ReceiveFileInfo, error) {
+	metaRef := sharingRef.GetRef()
+	unixTime := sharingRef.GetNonce()
+
+	// get the encrypted meta
+	encryptedData, respCode, err := u.client.DownloadBlob(metaRef)
+	if err != nil || respCode != http.StatusOK {
+		return nil, fmt.Errorf("receive info: %w", err)
+	}
+
+	// decrypt the data
+	decryptedData, err := decryptData(encryptedData, unixTime)
+	if err != nil {
+		return nil, fmt.Errorf("receive info: %w", err)
+	}
+
+	// unmarshall the entry
+	sharingEntry := SharingEntry{}
+	err = json.Unmarshal(decryptedData, &sharingEntry)
+	if err != nil {
+		return nil, fmt.Errorf("receive info: %w", err)
+	}
+
+	fileMetaRef, err := utils.ParseHexReference(sharingEntry.FileMetaHash)
+	if err != nil {
+		return nil, fmt.Errorf("receive info: %w", err)
+	}
+
+	fileMetaBytes, respCode, err := u.client.DownloadBlob(fileMetaRef.Bytes())
+	if err != nil || respCode != http.StatusOK {
+		return nil, fmt.Errorf("receive info: %w", err)
+	}
+
+	meta := m.FileMetaData{}
+	err = json.Unmarshal(fileMetaBytes, &meta)
+	if err != nil {
+		return nil, fmt.Errorf("receive info: %w", err)
+	}
+	compression := meta.Compression
+	if compression == "" {
+		compression = "None"
+	}
+
+	fileInodeBytes, respCode, err := u.client.DownloadBlob(meta.InodeAddress)
+	if err != nil || respCode != http.StatusOK {
+		return nil, fmt.Errorf("receive info: %w", err)
+	}
+	var fileInode f.FileINode
+	err = json.Unmarshal(fileInodeBytes, &fileInode)
+	if err != nil {
+		return nil, fmt.Errorf("receive info: %w", err)
+	}
+
+	info := ReceiveFileInfo{
+		FileName:       meta.Name,
+		Size:           strconv.FormatInt(int64(meta.FileSize), 10),
+		BlockSize:      strconv.FormatInt(int64(meta.BlockSize), 10),
+		NumberOfBlocks: strconv.FormatInt(int64(len(fileInode.FileBlocks)), 10),
+		ContentType:    meta.ContentType,
+		Compression:    compression,
+		PodName:        sharingEntry.PodName,
+		FileMetaHash:   sharingEntry.FileMetaHash,
+		Sender:         sharingEntry.Sender,
+		Receiver:       sharingEntry.Receiver,
+		SharedTime:     sharingEntry.SharedTime,
+	}
+	return &info, nil
 }
