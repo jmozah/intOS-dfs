@@ -1,4 +1,5 @@
 import React from "react";
+
 import styles from "../filereceive.module.css";
 import main from "styles.module.css";
 
@@ -16,6 +17,7 @@ export function FileReceiveAccept({
       fileicon
         ? (<div>
           <img src={fileicon} alt="" className={styles.appicon}></img>
+
         </div>)
         : ("")
     }

@@ -122,3 +122,42 @@ func (h *Handler) FileReceiveHandler(w http.ResponseWriter, r *http.Request) {
 		Reference: fileRef,
 	})
 }
+
+func (h *Handler) FileReceiveInfoHandler(w http.ResponseWriter, r *http.Request) {
+	sharingRefString := r.FormValue("ref")
+	if sharingRefString == "" {
+		h.logger.Errorf("receive info: \"ref\" argument missing")
+		jsonhttp.BadRequest(w, "receive: \"ref\" argument missing")
+		return
+	}
+
+	// get values from cookie
+	sessionId, err := cookie.GetSessionIdFromCookie(r)
+	if err != nil {
+		h.logger.Errorf("receive info: invalid cookie: %v", err)
+		jsonhttp.BadRequest(w, ErrInvalidCookie)
+		return
+	}
+	if sessionId == "" {
+		h.logger.Errorf("receive info: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "share: \"cookie-id\" parameter missing in cookie")
+		return
+	}
+
+	sharingRef, err := utils.ParseSharingReference(sharingRefString)
+	if err != nil {
+		h.logger.Errorf("receive info: invalid reference: ", err)
+		jsonhttp.BadRequest(w, "receive info: invalid reference:"+err.Error())
+		return
+	}
+
+	receiveInfo, err := h.dfsAPI.ReceiveInfo(sessionId, sharingRef)
+	if err != nil {
+		h.logger.Errorf("receive: %v", err)
+		jsonhttp.InternalServerError(w, "receive: "+err.Error())
+		return
+	}
+
+	w.Header().Set("Content-Type", " application/json")
+	jsonhttp.OK(w, receiveInfo)
+}

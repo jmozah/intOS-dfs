@@ -90,6 +90,7 @@ export async function isUsernamePresent(username) {
 
     const response = await axi({ method: "GET", url: "user/present", config: config, params: requestBody, withCredentials: true });
 
+
     return response;
   } catch (error) {
     throw error;

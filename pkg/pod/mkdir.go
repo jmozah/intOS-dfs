@@ -93,6 +93,9 @@ func (p *Pod) MakeDir(podName string, dirName string) error {
 		topic = firstTopic
 	} else {
 		dirInode = podInfo.GetCurrentDirInode()
+		if directory.IsDirINodePresent(podName, dirs[0], dirInode) {
+			return fmt.Errorf("mkdir: directory already present")
+		}
 		_, topic, err = directory.CreateDirINode(podName, dirs[0], dirInode)
 		if err != nil {
 			return fmt.Errorf("mkdir: %w", err)

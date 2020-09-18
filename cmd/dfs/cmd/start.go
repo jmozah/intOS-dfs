@@ -137,6 +137,7 @@ func startHttpService(logger logging.Logger) {
 	fileRouter.HandleFunc("/upload", handler.FileUploadHandler).Methods("POST")
 	fileRouter.HandleFunc("/share", handler.FileShareHandler).Methods("POST")
 	fileRouter.HandleFunc("/receive", handler.FileReceiveHandler).Methods("POST")
+	fileRouter.HandleFunc("/receiveinfo", handler.FileReceiveInfoHandler).Methods("POST")
 	fileRouter.HandleFunc("/delete", handler.FileDeleteHandler).Methods("DELETE")
 	fileRouter.HandleFunc("/stat", handler.FileStatHandler).Methods("GET")
 

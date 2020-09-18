@@ -65,5 +65,4 @@ func (d *Directory) DirStat(podName, dirName string, dirInode *DirInode, account
 		NoOfDirectories:  string(rune(len(dl))),
 		NoOfFiles:        string(rune(len(fl))),
 	}, nil
-
 }
