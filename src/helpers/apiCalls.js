@@ -3,7 +3,7 @@ import qs from "querystring";
 import { Avatar } from "@material-ui/core";
 import FileSaver from "file-saver";
 
-const axi = axios.create({ baseURL: "http://localhost:9090/v0/", timeout: 120000 });
+const axi = axios.create({ baseURL: "http://fairdrive.org:9090/v0/", timeout: 120000 });
 
 export async function logIn(username, password) {
   try {
