@@ -12,8 +12,6 @@ import ChooseUsername from "./pages/ChooseUsername";
 import ChoosePassword from "./pages/ChoosePassword";
 import ChooseAvatar from "./pages/ChooseAvatar";
 import CreatingAccount from "./pages/CreatingAccount";
-import {createNextState} from "@reduxjs/toolkit";
-import {SignalCellularNull} from "@material-ui/icons";
 
 // Ids
 const accountCreateIntroId = "accountCreateIntroId";
@@ -45,7 +43,6 @@ export function AccountCreateRoot() {
   //     "matter"
   //   ]);
   const [mnemonic, setMnemonic] = useState([]);
-  const [wallet, setWallet] = useState();
   const [collection, setCollection] = useState();
   const [avatar, setAvatar] = useState(defaultAvatar);
   const [username, setUsername] = useState("");
@@ -85,10 +82,10 @@ export function AccountCreateRoot() {
     await createPod(password, "Fairdrive");
 
     setItem1(true);
-    await createDirectory(password, "Documents");
-    await createDirectory(password, "Movies");
-    await createDirectory(password, "Music");
-    await createDirectory(password, "Pictures");
+    await createDirectory("Documents");
+    await createDirectory("Movies");
+    await createDirectory("Music");
+    await createDirectory("Pictures");
 
     setItem2(true);
     // store account in Redux

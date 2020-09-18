@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {useHistory} from "react-router-dom";
 
@@ -12,7 +12,6 @@ import ResolveShort from "./pages/ResolveShort";
 
 // Api
 import {logOut} from "helpers/apiCalls";
-import {FormatListBulleted} from "@material-ui/icons";
 
 // Ids
 const accountHome = "accountHome";
@@ -56,7 +55,8 @@ export function AccountRoot() {
     dispatch({
       type: "SET_SYSTEM",
       data: {
-        unlocked: false
+        unlocked: false,
+        passWord: ""
       }
     });
     history.push("/unlock");

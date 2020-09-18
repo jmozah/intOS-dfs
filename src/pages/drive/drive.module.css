@@ -30,18 +30,18 @@
 }
 
 .addButton {
-  justify-self: right;
-  align-self: center;
+  display: flex;
+  justify-self: end;
   color: var(--fds-blue);
+  margin-right: 40px;
   composes: baseGlowText from "../../styles.module.css";
 }
 
 .user {
   display: grid;
   grid-template-columns: 48px auto 48px;
-  width: 100%;
   align-items: center;
-  margin: 0px 40px;
+  margin: 0px 40px 0px 40px;
 }
 
 .avatar {
