@@ -1,8 +1,4 @@
-import React, {useEffect, useState} from "react";
-import {useDispatch, useSelector} from "react-redux";
-import {useHistory, useParams} from "react-router-dom";
-//import {receiveFile} from "helpers/apiCalls";
-//import styles from "./drive.module.css";
+import React from "react";
 import styles from "../filereceive.module.css";
 import main from "styles.module.css";
 
@@ -19,7 +15,7 @@ export function FileReceiveAccept({
     {
       fileicon
         ? (<div>
-          <img src={fileicon} className={styles.appicon}></img>
+          <img src={fileicon} alt="" className={styles.appicon}></img>
         </div>)
         : ("")
     }

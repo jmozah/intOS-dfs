@@ -1,46 +1,16 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useRef, useState} from "react";
 import styles from "../../drive.module.css";
 import urlPath from "helpers/urlPath";
 import rootStyles from "styles.module.css";
-import {
-  AddCircleOutline,
-  Cloud,
-  Folder,
-  HighlightOff,
-  LibraryMusic,
-  Subject,
-  FileCopySharp
-} from "@material-ui/icons/";
-import {CircularProgress, LinearProgress} from "@material-ui/core";
 
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText
-} from "@material-ui/core";
-import {
-  mdiFolder,
-  mdiFolderPlus,
-  mdiFolderEdit,
-  mdiSettingsHelper,
-  mdiShare,
-  mdiTrashCan,
-  mdiUpload,
-  mdiZipBox
-} from "@mdi/js";
+import {LinearProgress} from "@material-ui/core";
+
+import {Dialog} from "@material-ui/core";
+import {mdiFolderPlus, mdiUpload} from "@mdi/js";
 import Icon from "@mdi/react";
-import {createDirectory, deleteDirectory, fileUpload} from "helpers/apiCalls";
+import {createDirectory, fileUpload} from "helpers/apiCalls";
 
 export default function NewDialog({open, path, refresh, onClose}) {
-  console.log("from newdialog: ", open, path);
-
   const homeId = "homeId";
   const newFolderId = "newFolderId";
   const uploadId = "uploadId";
@@ -53,7 +23,6 @@ export default function NewDialog({open, path, refresh, onClose}) {
 
   const [newFolderName, setNewFolderName] = useState();
 
-  const [uploadStatus, setUploadStatus] = useState("ready");
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const hiddenFileInput = useRef(null);
