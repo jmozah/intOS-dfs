@@ -12,8 +12,6 @@ import ChooseUsername from "./pages/ChooseUsername";
 import ChoosePassword from "./pages/ChoosePassword";
 import ChooseAvatar from "./pages/ChooseAvatar";
 import CreatingAccount from "./pages/CreatingAccount";
-import {createNextState} from "@reduxjs/toolkit";
-import {SignalCellularNull} from "@material-ui/icons";
 
 // Ids
 const accountCreateIntroId = "accountCreateIntroId";
@@ -45,7 +43,6 @@ export function AccountCreateRoot() {
   //     "matter"
   //   ]);
   const [mnemonic, setMnemonic] = useState([]);
-  const [wallet, setWallet] = useState();
   const [collection, setCollection] = useState();
   const [avatar, setAvatar] = useState(defaultAvatar);
   const [username, setUsername] = useState("");
