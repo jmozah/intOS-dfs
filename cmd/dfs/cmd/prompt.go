@@ -165,6 +165,25 @@ func executor(in string) {
 			currentUser = userName
 			currentPodInfo = nil
 			currentPrompt = getCurrentPrompt()
+		case "import":
+			if len(blocks) < 15 {
+				fmt.Println("invalid command. Missing \"name\" argument ")
+				return
+			}
+			userName := blocks[2]
+			var mnemonic string
+			for i := 3; i < 15; i++ {
+				mnemonic = mnemonic + " " + blocks[i]
+			}
+			mnemonic = strings.TrimPrefix(mnemonic, " ")
+			err := dfsAPI.ImportUserUsingMnemonic(userName, "", mnemonic, nil, DefaultSessionId)
+			if err != nil {
+				fmt.Println("import user: ", err)
+				return
+			}
+			currentUser = userName
+			currentPodInfo = nil
+			currentPrompt = getCurrentPrompt()
 		case "del":
 			err := dfsAPI.DeleteUser("", DefaultSessionId, nil)
 			if err != nil {

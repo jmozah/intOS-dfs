@@ -65,12 +65,18 @@ func (d *DfsAPI) CreateUser(userName, passPhrase, mnemonic string, response http
 		return reference, rcvdMnemonic, err
 	}
 
-	// TODO: check if the connection is there before creating user
 	err = d.users.CreateRootFeeds(userInfo)
 	if err != nil {
 		return reference, rcvdMnemonic, err
 	}
 	return reference, rcvdMnemonic, nil
+}
+
+func (d *DfsAPI) ImportUserUsingMnemonic(userName, passPhrase, mnemonic string, response http.ResponseWriter, sessionId string) error {
+	if !d.client.CheckConnection() {
+		return ErrBeeClient
+	}
+	return d.users.ImportUsingMnemonic(userName, passPhrase, mnemonic, d.dataDir, d.client, response, sessionId)
 }
 
 func (d *DfsAPI) LoginUser(userName, passPhrase string, response http.ResponseWriter, sessionId string) error {
