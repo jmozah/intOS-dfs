@@ -60,7 +60,10 @@ func (p *Pod) CreatePod(podName, passPhrase string) (*Info, error) {
 	if err != nil {
 		return nil, err
 	}
-	accountInfo := p.acc.GetAccountInfo(freeId)
+	accountInfo, err := p.acc.GetPodAccountInfo(freeId)
+	if err != nil {
+		return nil, err
+	}
 	fd := feed.New(accountInfo, p.client, p.logger)
 	file := f.NewFile(podName, p.client, fd, accountInfo, p.logger)
 	dir := d.NewDirectory(podName, p.client, fd, accountInfo, file, p.logger)

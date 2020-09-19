@@ -38,11 +38,24 @@ func (u *Users) LoginUser(userName, passPhrase, dataDir string, client blockstor
 		return ErrInvalidUserName
 	}
 
-	acc := account.New(userName, dataDir, u.logger)
-	accountInfo := acc.GetAccountInfo(account.UserAccountIndex)
+	acc := account.New(u.logger)
+	accountInfo := acc.GetUserAccountInfo()
 	fd := feed.New(accountInfo, client, u.logger)
 	file := f.NewFile(userName, client, fd, accountInfo, u.logger)
-	err := acc.LoadUserAccount(passPhrase)
+
+	// load address from userName
+	address, err := u.getAddressFromUUserName(userName, dataDir)
+	if err != nil {
+		return err
+	}
+
+	// load encrypted mnemonic from Swarm
+	encryptedMnemonic, err := u.getEncryptedMnemonic(userName, address, fd)
+	if err != nil {
+		return err
+	}
+
+	err = acc.LoadUserAccount(passPhrase, encryptedMnemonic)
 	if err != nil {
 		if err.Error() == "mnemonic is invalid" {
 			return ErrInvalidPassword

@@ -21,7 +21,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
@@ -30,20 +29,15 @@ import (
 )
 
 func TestFeed(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "feed_test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tempDir)
 	logger := logging.New(ioutil.Discard, 0)
 
-	acc1 := account.New("feed_pod1", tempDir, logger)
-	_, err = acc1.CreateUserAccount("password", "")
+	acc1 := account.New(logger)
+	_, _, err := acc1.CreateUserAccount("password", "")
 	if err != nil {
 		t.Fatal(err)
 	}
 	user1 := acc1.GetAddress(account.UserAccountIndex)
-	accountInfo1 := acc1.GetAccountInfo(account.UserAccountIndex)
+	accountInfo1 := acc1.GetUserAccountInfo()
 	client := mock.NewMockBeeClient()
 
 	t.Run("create-feed", func(t *testing.T) {
@@ -70,12 +64,12 @@ func TestFeed(t *testing.T) {
 
 	t.Run("create-from-user1-read-from-user2", func(t *testing.T) {
 		//create account2
-		acc2 := account.New("feed_pod2", tempDir, logger)
-		_, err = acc2.CreateUserAccount("password", "")
+		acc2 := account.New(logger)
+		_, _, err = acc2.CreateUserAccount("password", "")
 		if err != nil {
 			t.Fatal(err)
 		}
-		accountInfo2 := acc2.GetAccountInfo(account.UserAccountIndex)
+		accountInfo2 := acc2.GetUserAccountInfo()
 
 		//create feed from user1
 		fd1 := New(accountInfo1, client, logger)

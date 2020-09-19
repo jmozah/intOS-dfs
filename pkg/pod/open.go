@@ -47,7 +47,10 @@ func (p *Pod) OpenPod(podName, passPhrase string) (*Info, error) {
 	if err != nil {
 		return nil, err
 	}
-	accountInfo := p.acc.GetAccountInfo(index)
+	accountInfo, err := p.acc.GetPodAccountInfo(index)
+	if err != nil {
+		return nil, err
+	}
 	file := f.NewFile(podName, p.client, p.fd, accountInfo, p.logger)
 	dir := d.NewDirectory(podName, p.client, p.fd, accountInfo, file, p.logger)
 

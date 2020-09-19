@@ -31,20 +31,14 @@ import (
 )
 
 func TestPod_CopyFromLocal(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "pod")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tempDir)
-
 	mockClient := mock.NewMockBeeClient()
 	logger := logging.New(ioutil.Discard, 0)
-	acc := account.New("user1", tempDir, logger)
-	_, err = acc.CreateUserAccount("password", "")
+	acc := account.New(logger)
+	_, _, err := acc.CreateUserAccount("password", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	fd := feed.New(acc.GetAccountInfo(account.UserAccountIndex), mockClient, logger)
+	fd := feed.New(acc.GetUserAccountInfo(), mockClient, logger)
 	pod1 := NewPod(mockClient, fd, acc, logger)
 
 	podName1 := "test1"
