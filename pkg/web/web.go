@@ -17,8 +17,8 @@ limitations under the License.
 package web
 
 import (
-	"html/template"
 	"github.com/jmozah/intOS-dfs/pkg/logging"
+	"html/template"
 )
 
 type Web struct {
