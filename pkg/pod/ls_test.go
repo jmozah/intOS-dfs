@@ -18,7 +18,6 @@ package pod
 
 import (
 	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
@@ -28,19 +27,13 @@ import (
 )
 
 func TestPod_ListPods(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "pod")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tempDir)
-
 	mockClient := mock.NewMockBeeClient()
 	logger := logging.New(ioutil.Discard, 0)
-	acc := account.New("user1", tempDir, logger)
-	accountInfo := acc.GetAccountInfo(account.UserAccountIndex)
+	acc := account.New(logger)
+	accountInfo := acc.GetUserAccountInfo()
 	fd := feed.New(accountInfo, mockClient, logger)
 	pod1 := NewPod(mockClient, fd, acc, logger)
-	_, err = acc.CreateUserAccount("password", "")
+	_, _, err := acc.CreateUserAccount("password", "")
 	if err != nil {
 		t.Fatal(err)
 	}

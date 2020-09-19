@@ -17,14 +17,10 @@ limitations under the License.
 package user
 
 import (
-	"fmt"
 	"net/http"
-	"os"
-
-	"github.com/jmozah/intOS-dfs/pkg/account"
 )
 
-func (u *Users) DeleteUser(userName, dataDir, password, sessionId string, response http.ResponseWriter) error {
+func (u *Users) DeleteUser(userName, dataDir, password, sessionId string, response http.ResponseWriter, ui *Info) error {
 
 	if !u.IsUsernameAvailable(userName, dataDir) {
 		return ErrInvalidUserName
@@ -47,11 +43,18 @@ func (u *Users) DeleteUser(userName, dataDir, password, sessionId string, respon
 		return err
 	}
 
-	// remove the user mnemonic file
-	userKeyFileName := account.ConstructUserKeyFile(userName, dataDir)
-	err = os.Remove(userKeyFileName)
+	// remove the user mnemonic file and the user-address mapping file
+	address, err := u.getAddressFromUUserName(userName, dataDir)
 	if err != nil {
-		return fmt.Errorf("user del: could not remove user key: %w", err)
+		return err
+	}
+	err = u.deleteMnemonic(userName, address, ui.GetFeed(), u.client)
+	if err != nil {
+		return err
+	}
+	err = u.deleteUserMapping(userName, dataDir)
+	if err != nil {
+		return err
 	}
 	return nil
 }

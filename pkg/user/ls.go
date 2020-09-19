@@ -19,21 +19,19 @@ package user
 import (
 	"os"
 	"path/filepath"
-	"strings"
-
-	"github.com/jmozah/intOS-dfs/pkg/account"
 )
 
 func (u *Users) ListAllUsers(dataDir string) []string {
 	var users []string
-	keyFileDir := account.GetKeyFileDir(dataDir)
-	err := filepath.Walk(keyFileDir,
+	destDir := filepath.Join(dataDir, userDirectoryName)
+	err := filepath.Walk(destDir,
 		func(path string, info os.FileInfo, err error) error {
-			if strings.HasSuffix(info.Name(), ".key") {
-				userName := strings.TrimSuffix(info.Name(), ".key")
-				userName = "<User> " + userName
-				users = append(users, userName)
+			if info.Name() == userDirectoryName {
+				return nil
 			}
+			userName := info.Name()
+			userName = "<User> " + userName
+			users = append(users, userName)
 			return nil
 		})
 	if err != nil {

@@ -176,7 +176,7 @@ func executor(in string) {
 				mnemonic = mnemonic + " " + blocks[i]
 			}
 			mnemonic = strings.TrimPrefix(mnemonic, " ")
-			err := dfsAPI.ImportUserUsingMnemonic(userName, "", mnemonic, nil, DefaultSessionId)
+			_, err := dfsAPI.ImportUserUsingMnemonic(userName, "", mnemonic, nil, DefaultSessionId)
 			if err != nil {
 				fmt.Println("import user: ", err)
 				return

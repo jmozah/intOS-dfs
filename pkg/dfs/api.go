@@ -72,11 +72,9 @@ func (d *DfsAPI) CreateUser(userName, passPhrase, mnemonic string, response http
 	return reference, rcvdMnemonic, nil
 }
 
-func (d *DfsAPI) ImportUserUsingMnemonic(userName, passPhrase, mnemonic string, response http.ResponseWriter, sessionId string) error {
-	if !d.client.CheckConnection() {
-		return ErrBeeClient
-	}
-	return d.users.ImportUsingMnemonic(userName, passPhrase, mnemonic, d.dataDir, d.client, response, sessionId)
+func (d *DfsAPI) ImportUserUsingMnemonic(userName, passPhrase, mnemonic string, response http.ResponseWriter, sessionId string) (string, error) {
+	reference, _, err := d.CreateUser(userName, passPhrase, mnemonic, response, sessionId)
+	return reference, err
 }
 
 func (d *DfsAPI) LoginUser(userName, passPhrase string, response http.ResponseWriter, sessionId string) error {
@@ -100,7 +98,7 @@ func (d *DfsAPI) DeleteUser(passPhrase, sessionId string, response http.Response
 		return ErrUserNotLoggedIn
 	}
 
-	return d.users.DeleteUser(ui.GetUserName(), d.dataDir, passPhrase, sessionId, response)
+	return d.users.DeleteUser(ui.GetUserName(), d.dataDir, passPhrase, sessionId, response, ui)
 }
 
 func (d *DfsAPI) IsUserNameAvailable(userName string) bool {

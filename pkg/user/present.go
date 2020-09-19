@@ -16,23 +16,6 @@ limitations under the License.
 
 package user
 
-import (
-	"os"
-	"regexp"
-
-	"github.com/jmozah/intOS-dfs/pkg/account"
-)
-
 func (u *Users) IsUsernameAvailable(userName string, dataDir string) bool {
-	re := regexp.MustCompile("^[a-zA-Z0-9_]*$")
-	if !re.MatchString(userName) {
-		return false
-	}
-
-	userKeyFileName := account.ConstructUserKeyFile(userName, dataDir)
-	info, err := os.Stat(userKeyFileName)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return !info.IsDir()
+	return u.isUserMappingPresent(userName, dataDir)
 }
