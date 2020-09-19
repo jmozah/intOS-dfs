@@ -165,9 +165,32 @@ func executor(in string) {
 			currentUser = userName
 			currentPodInfo = nil
 			currentPrompt = getCurrentPrompt()
+		case "export":
+			name, address, err := dfsAPI.ExportUser(DefaultSessionId)
+			if err != nil {
+				fmt.Println("export user: ", err)
+				return
+			}
+			fmt.Println("user name:", name)
+			fmt.Println("address  :", address)
+			currentPrompt = getCurrentPrompt()
 		case "import":
-			if len(blocks) < 15 {
-				fmt.Println("invalid command. Missing \"name\" argument ")
+			if len(blocks) == 4 {
+				userName := blocks[2]
+				address := blocks[3]
+				err := dfsAPI.ImportUserUsingAddress(userName, "", address, nil, DefaultSessionId)
+				if err != nil {
+					fmt.Println("import user: ", err)
+					return
+				}
+				fmt.Println("user imported")
+				currentUser = userName
+				currentPodInfo = nil
+				currentPrompt = getCurrentPrompt()
+				return
+			}
+			if len(blocks) > 4 && len(blocks) < 15 {
+				fmt.Println("invalid command. Missing arguments")
 				return
 			}
 			userName := blocks[2]

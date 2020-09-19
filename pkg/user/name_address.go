@@ -58,7 +58,7 @@ func (u *Users) deleteUserMapping(userName, dataDir string) error {
 	return os.Remove(userFileName)
 }
 
-func (u *Users) getAddressFromUUserName(userName, dataDir string) (utils.Address, error) {
+func (u *Users) getAddressFromUserName(userName, dataDir string) (utils.Address, error) {
 	destDir := filepath.Join(dataDir, userDirectoryName)
 	userFileName := filepath.Join(destDir, userName)
 	data, err := ioutil.ReadFile(userFileName)
@@ -67,4 +67,3 @@ func (u *Users) getAddressFromUUserName(userName, dataDir string) (utils.Address
 	}
 	return utils.NewAddress(data), nil
 }
-

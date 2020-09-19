@@ -44,7 +44,7 @@ func (u *Users) LoginUser(userName, passPhrase, dataDir string, client blockstor
 	file := f.NewFile(userName, client, fd, accountInfo, u.logger)
 
 	// load address from userName
-	address, err := u.getAddressFromUUserName(userName, dataDir)
+	address, err := u.getAddressFromUserName(userName, dataDir)
 	if err != nil {
 		return err
 	}
