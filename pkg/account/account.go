@@ -22,10 +22,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -44,13 +41,10 @@ const (
 )
 
 type Account struct {
-	dataDir          string
-	podName          string
-	mnemonicFileName string
-	wallet           *Wallet
-	userAcount       *AccountInfo
-	podAccounts      map[int]*AccountInfo
-	logger           logging.Logger
+	wallet      *Wallet
+	userAcount  *AccountInfo
+	podAccounts map[int]*AccountInfo
+	logger      logging.Logger
 }
 
 type AccountInfo struct {
@@ -59,21 +53,13 @@ type AccountInfo struct {
 	address    utils.Address
 }
 
-const (
-	KeyStoreDirectoryName = "keystore"
-)
-
-func New(podName, dataDir string, logger logging.Logger) *Account {
-	destFile := ConstructUserKeyFile(podName, dataDir)
+func New(logger logging.Logger) *Account {
 	wallet := NewWallet("")
 	return &Account{
-		dataDir:          dataDir,
-		podName:          podName,
-		wallet:           wallet,
-		mnemonicFileName: destFile,
-		userAcount:       &AccountInfo{},
-		podAccounts:      make(map[int]*AccountInfo),
-		logger:           logger,
+		wallet:      wallet,
+		userAcount:  &AccountInfo{},
+		podAccounts: make(map[int]*AccountInfo),
+		logger:      logger,
 	}
 }
 
@@ -84,93 +70,52 @@ func CreateRandomKeyPair(now int64) (*ecdsa.PrivateKey, error) {
 	return ecdsa.GenerateKey(btcec.S256(), randReader)
 }
 
-func (a *Account) IsAlreadyInitialized() bool {
-	info, err := os.Stat(a.mnemonicFileName)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return !info.IsDir()
-}
-
-func (a *Account) CreateUserAccount(passPhrase, mnemonic string) (string, error) {
-	if passPhrase == "" {
-		if a.IsAlreadyInitialized() {
-			var s string
-			fmt.Println("user is already initialised")
-			fmt.Println("reinitialising again will make all the your data inaccessible")
-			fmt.Printf("do you still want to proceed (Y/N):")
-			_, err := fmt.Scan(&s)
-			if err != nil {
-				return "", err
-			}
-
-			s = strings.TrimSpace(s)
-			s = strings.ToLower(s)
-			s = strings.Trim(s, "\n")
-
-			if s == "n" || s == "no" {
-				return "", nil
-			}
-			err = os.Remove(a.mnemonicFileName)
-			if err != nil {
-				return "", fmt.Errorf("could not remove user key: %w", err)
-			}
-		}
-	} else {
-		if a.IsAlreadyInitialized() {
-			return "", fmt.Errorf("user already present")
-		}
-	}
-
+func (a *Account) CreateUserAccount(passPhrase, mnemonic string) (string, string, error) {
 	wallet := NewWallet("")
 	a.wallet = wallet
 	acc, mnemonic, err := wallet.LoadMnemonicAndCreateRootAccount(mnemonic)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	hdw, err := hdwallet.NewFromMnemonic(mnemonic)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	// store publicKey, private key and user
 	a.userAcount.privateKey, err = hdw.PrivateKey(acc)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	a.userAcount.publicKey, err = hdw.PublicKey(acc)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	addrBytes, err := crypto.NewEthereumAddress(a.userAcount.privateKey.PublicKey)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	a.userAcount.address.SetBytes(addrBytes)
 
 	// store the mnemonic
-	encryptedMnemonic, err := a.storeAsEncryptedMnemonicToDisk(mnemonic, passPhrase)
+	encryptedMnemonic, err := a.encryptMnemonic(mnemonic, passPhrase)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	a.wallet.encryptedmnemonic = encryptedMnemonic
 
-	return mnemonic, nil
+	return mnemonic, encryptedMnemonic, nil
 }
 
-func (a *Account) LoadUserAccount(passPhrase string) error {
+func (a *Account) LoadUserAccount(passPhrase, encryptedMnemonic string) error {
 	password := passPhrase
 	if password == "" {
 		fmt.Print("Enter password to unlock user account: ")
 		password = a.getPassword()
 	}
 
-	err := a.LoadEncryptedMnemonicFromDisk(password)
-	if err != nil {
-		return nil
-	}
-
+	a.wallet.encryptedmnemonic = encryptedMnemonic
 	plainMnemonic, err := a.wallet.decryptMnemonic(password)
 	if err != nil {
 		return fmt.Errorf("invalid password")
@@ -225,10 +170,6 @@ func (a *Account) Authorise(password string) bool {
 }
 
 func (a *Account) CreatePodAccount(accountId int, passPhrase string, createPod bool) error {
-	if !a.IsAlreadyInitialized() {
-		return fmt.Errorf("user not created")
-	}
-
 	if _, ok := a.podAccounts[accountId]; ok {
 		return nil
 	}
@@ -240,7 +181,6 @@ func (a *Account) CreatePodAccount(accountId int, passPhrase string, createPod b
 		} else {
 			fmt.Print("Enter user password to open a pod: ")
 		}
-
 		password = a.getPassword()
 	}
 
@@ -282,28 +222,7 @@ func (a *Account) DeletePodAccount(accountId int) {
 	delete(a.podAccounts, accountId)
 }
 
-func (a *Account) LoadEncryptedMnemonicFromDisk(passPhrase string) error {
-	if !a.IsAlreadyInitialized() {
-		return fmt.Errorf("dfs not initialised. use the \"init\" command to intialise the system")
-	}
-
-	encryptedMessage, err := ioutil.ReadFile(a.mnemonicFileName)
-	if err != nil {
-		return nil
-	}
-
-	a.wallet.encryptedmnemonic = string(encryptedMessage)
-	return nil
-}
-
-func (a *Account) storeAsEncryptedMnemonicToDisk(mnemonic, passPhrase string) (string, error) {
-	if a.IsAlreadyInitialized() {
-		err := os.Remove(a.mnemonicFileName)
-		if err != nil {
-			return "", fmt.Errorf("could not remove old key file: %w", err)
-		}
-	}
-
+func (a *Account) encryptMnemonic(mnemonic, passPhrase string) (string, error) {
 	// get the password and hash it to 256 bits
 	password := passPhrase
 	if password == "" {
@@ -319,31 +238,6 @@ func (a *Account) storeAsEncryptedMnemonicToDisk(mnemonic, passPhrase string) (s
 		return "", fmt.Errorf("create user account: %w", err)
 	}
 
-	err = os.MkdirAll(filepath.Dir(a.mnemonicFileName), 0777)
-	if err != nil {
-		return "", err
-	}
-
-	// store the mnemonic in a file
-	f, err := os.Create(a.mnemonicFileName)
-	if err != nil {
-		return "", err
-	}
-	n, err := f.WriteString(encryptedMessage)
-	if err != nil {
-		return "", err
-	}
-	if n != len(encryptedMessage) {
-		return "", fmt.Errorf("file write error during encryption")
-	}
-	err = f.Sync()
-	if err != nil {
-		return "", err
-	}
-	err = f.Close()
-	if err != nil {
-		return "", err
-	}
 	return encryptedMessage, nil
 }
 
@@ -363,12 +257,15 @@ func (a *Account) GetAddress(index int) utils.Address {
 	}
 }
 
-func (a *Account) GetAccountInfo(index int) *AccountInfo {
-	if index == UserAccountIndex {
-		return a.userAcount
-	} else {
-		return a.podAccounts[index]
+func (a *Account) GetUserAccountInfo() *AccountInfo {
+	return a.userAcount
+}
+
+func (a *Account) GetPodAccountInfo(index int) (*AccountInfo, error) {
+	if index < len(a.podAccounts) {
+		return a.podAccounts[index], nil
 	}
+	return nil, fmt.Errorf("invalid index")
 }
 
 func (a *Account) getPassword() (password string) {

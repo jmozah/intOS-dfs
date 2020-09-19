@@ -14,15 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package account
+package user
 
-import "path/filepath"
-
-func ConstructUserKeyFile(userName string, dataDir string) string {
-	destDir := filepath.Join(dataDir, KeyStoreDirectoryName)
-	return filepath.Join(destDir, userName+".key")
-}
-
-func GetKeyFileDir(dataDir string) string {
-	return filepath.Join(dataDir, KeyStoreDirectoryName)
+func (u *Users) ExportUser(ui *Info) (string, string, error) {
+	addreess, err := u.getAddressFromUserName(ui.name, u.dataDir)
+	if err != nil {
+		return "", "", err
+	}
+	return ui.name, addreess.Hex(), nil
 }

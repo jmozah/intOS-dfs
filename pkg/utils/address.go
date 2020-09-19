@@ -77,6 +77,10 @@ func (a Address) StringToAddress(addr string) error {
 	return nil
 }
 
+func (a Address) ToBytes() []byte {
+	return a[:]
+}
+
 func (a *Address) SetBytes(b []byte) {
 	if len(b) > len(a) {
 		b = b[len(b)-AddressLength:]

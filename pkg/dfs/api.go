@@ -65,12 +65,20 @@ func (d *DfsAPI) CreateUser(userName, passPhrase, mnemonic string, response http
 		return reference, rcvdMnemonic, err
 	}
 
-	// TODO: check if the connection is there before creating user
 	err = d.users.CreateRootFeeds(userInfo)
 	if err != nil {
 		return reference, rcvdMnemonic, err
 	}
 	return reference, rcvdMnemonic, nil
+}
+
+func (d *DfsAPI) ImportUserUsingMnemonic(userName, passPhrase, mnemonic string, response http.ResponseWriter, sessionId string) (string, error) {
+	reference, _, err := d.CreateUser(userName, passPhrase, mnemonic, response, sessionId)
+	return reference, err
+}
+
+func (d *DfsAPI) ImportUserUsingAddress(userName, passPhrase, address string, response http.ResponseWriter, sessionId string) error {
+	return d.users.ImportUsingAddress(userName, passPhrase, address, d.dataDir, d.client, response, sessionId)
 }
 
 func (d *DfsAPI) LoginUser(userName, passPhrase string, response http.ResponseWriter, sessionId string) error {
@@ -94,7 +102,7 @@ func (d *DfsAPI) DeleteUser(passPhrase, sessionId string, response http.Response
 		return ErrUserNotLoggedIn
 	}
 
-	return d.users.DeleteUser(ui.GetUserName(), d.dataDir, passPhrase, sessionId, response)
+	return d.users.DeleteUser(ui.GetUserName(), d.dataDir, passPhrase, sessionId, response, ui)
 }
 
 func (d *DfsAPI) IsUserNameAvailable(userName string) bool {
@@ -191,6 +199,15 @@ func (d *DfsAPI) GetUserSharingOutbox(sessionId string) (*user.Outbox, error) {
 		return nil, ErrUserNotLoggedIn
 	}
 	return d.users.GetSharingOutbox(ui)
+}
+
+func (d *DfsAPI) ExportUser(sessionId string) (string, string, error) {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return "", "", ErrUserNotLoggedIn
+	}
+	return d.users.ExportUser(ui)
 }
 
 //

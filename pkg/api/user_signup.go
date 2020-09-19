@@ -26,7 +26,7 @@ import (
 
 type UserSignupResponse struct {
 	Address  string `json:"address"`
-	Mnemonic string `json:"mnemonic"`
+	Mnemonic string `json:"mnemonic,omitempty"`
 }
 
 func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +45,7 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create user
-	address, mnemonic, err := h.dfsAPI.CreateUser(user, password, mnemonic, w, "")
+	address, createdMnemonic, err := h.dfsAPI.CreateUser(user, password, mnemonic, w, "")
 	if err != nil {
 		if err == u.ErrUserAlreadyPresent {
 			h.logger.Errorf("signup: %v", err)
@@ -55,6 +55,12 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 		h.logger.Errorf("signup: %v", err)
 		jsonhttp.InternalServerError(w, "signup: "+err.Error())
 		return
+	}
+
+	if mnemonic == "" {
+		mnemonic = createdMnemonic
+	} else {
+		mnemonic = ""
 	}
 
 	// send the response
