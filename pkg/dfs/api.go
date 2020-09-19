@@ -77,6 +77,10 @@ func (d *DfsAPI) ImportUserUsingMnemonic(userName, passPhrase, mnemonic string, 
 	return reference, err
 }
 
+func (d *DfsAPI) ImportUserUsingAddress(userName, passPhrase, address string, response http.ResponseWriter, sessionId string) error {
+	return d.users.ImportUsingAddress(userName, passPhrase, address, d.dataDir, d.client, response, sessionId)
+}
+
 func (d *DfsAPI) LoginUser(userName, passPhrase string, response http.ResponseWriter, sessionId string) error {
 	return d.users.LoginUser(userName, passPhrase, d.dataDir, d.client, response, sessionId)
 }
@@ -195,6 +199,15 @@ func (d *DfsAPI) GetUserSharingOutbox(sessionId string) (*user.Outbox, error) {
 		return nil, ErrUserNotLoggedIn
 	}
 	return d.users.GetSharingOutbox(ui)
+}
+
+func (d *DfsAPI) ExportUser(sessionId string) (string, string, error) {
+	// get the logged in user information
+	ui := d.users.GetLoggedInUserInfo(sessionId)
+	if ui == nil {
+		return "", "", ErrUserNotLoggedIn
+	}
+	return d.users.ExportUser(ui)
 }
 
 //

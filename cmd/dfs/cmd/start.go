@@ -89,6 +89,7 @@ func startHttpService(logger logging.Logger) {
 	baseRouter.Use(handler.LogMiddleware)
 	baseRouter.HandleFunc("/user/signup", handler.UserSignupHandler).Methods("POST")
 	baseRouter.HandleFunc("/user/login", handler.UserLoginHandler).Methods("POST")
+	baseRouter.HandleFunc("/import", handler.ImportUserHandler).Methods("POST")
 	baseRouter.HandleFunc("/user/present", handler.UserPresentHandler).Methods("GET")
 	baseRouter.HandleFunc("/user/isloggedin", handler.IsUserLoggedInHandler).Methods("GET")
 
@@ -100,6 +101,8 @@ func startHttpService(logger logging.Logger) {
 	userRouter.HandleFunc("/avatar", handler.SaveUserAvatarHandler).Methods("POST")
 	userRouter.HandleFunc("/name", handler.SaveUserNameHandler).Methods("POST")
 	userRouter.HandleFunc("/contact", handler.SaveUserContactHandler).Methods("POST")
+	userRouter.HandleFunc("/export", handler.ExportUserHandler).Methods("POST")
+
 	userRouter.HandleFunc("/delete", handler.UserDeleteHandler).Methods("DELETE")
 	userRouter.HandleFunc("/stat", handler.GetUserStatHandler).Methods("GET")
 	userRouter.HandleFunc("/avatar", handler.GetUserAvatarHandler).Methods("GET")

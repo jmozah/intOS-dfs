@@ -44,7 +44,7 @@ func (u *Users) DeleteUser(userName, dataDir, password, sessionId string, respon
 	}
 
 	// remove the user mnemonic file and the user-address mapping file
-	address, err := u.getAddressFromUUserName(userName, dataDir)
+	address, err := u.getAddressFromUserName(userName, dataDir)
 	if err != nil {
 		return err
 	}
