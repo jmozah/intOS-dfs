@@ -729,6 +729,39 @@ func executor(in string) {
 		fmt.Println("file path  : ", filePath)
 		fmt.Println("reference  : ", metaRef)
 		currentPrompt = getCurrentPrompt()
+	case "receiveinfo":
+		if len(blocks) < 2 {
+			fmt.Println("invalid command. Missing one or more arguments")
+			return
+		}
+		sharingRefString := blocks[1]
+		sharingRef, err := utils.ParseSharingReference(sharingRefString)
+		if err != nil {
+			fmt.Println("receive info: ", err)
+			return
+		}
+		ri, err := dfsAPI.ReceiveInfo(DefaultSessionId, sharingRef)
+		if err != nil {
+			fmt.Println("receive info: ", err)
+			return
+		}
+		shTime, err := strconv.ParseInt(ri.SharedTime, 10, 64)
+		if err != nil {
+			fmt.Println(" info: ", err)
+			return
+		}
+		fmt.Println("FileName       : ", ri.FileName)
+		fmt.Println("Size           : ", ri.Size)
+		fmt.Println("BlockSize      : ", ri.BlockSize)
+		fmt.Println("NumberOfBlocks : ", ri.NumberOfBlocks)
+		fmt.Println("ContentType    : ", ri.ContentType)
+		fmt.Println("Compression    : ", ri.Compression)
+		fmt.Println("PodName        : ", ri.PodName)
+		fmt.Println("FileMetaHash   : ", ri.FileMetaHash)
+		fmt.Println("Sender         : ", ri.Sender)
+		fmt.Println("Receiver       : ", ri.Receiver)
+		fmt.Println("SharedTime     : ", shTime)
+		currentPrompt = getCurrentPrompt()
 	case "mv":
 		fmt.Println("not yet implemented")
 	case "head":
