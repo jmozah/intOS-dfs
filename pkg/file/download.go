@@ -30,17 +30,17 @@ func (f *File) Download(podFile string) (io.ReadCloser, string, string, error) {
 
 	meta := f.GetFromFileMap(podFile)
 	if meta == nil {
-		return nil, "", "", fmt.Errorf("coptToLocal: file not found in dfs")
+		return nil, "", "", fmt.Errorf("file not found in dfs")
 	}
 
 	fileInodeBytes, _, err := f.getClient().DownloadBlob(meta.InodeAddress)
 	if err != nil {
-		return nil, "", "", fmt.Errorf("copyFromLocal: %w", err)
+		return nil, "", "", err
 	}
 	var fileInode FileINode
 	err = json.Unmarshal(fileInodeBytes, &fileInode)
 	if err != nil {
-		return nil, "", "", fmt.Errorf("copyFromLocal: %w", err)
+		return nil, "", "", err
 	}
 
 	reader := NewReader(fileInode, f.getClient(), meta.FileSize, meta.BlockSize, meta.Compression)

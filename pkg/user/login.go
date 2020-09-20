@@ -17,7 +17,6 @@ limitations under the License.
 package user
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
@@ -60,7 +59,7 @@ func (u *Users) LoginUser(userName, passPhrase, dataDir string, client blockstor
 		if err.Error() == "mnemonic is invalid" {
 			return ErrInvalidPassword
 		}
-		return fmt.Errorf("user login: %w", err)
+		return err
 	}
 	dir := d.NewDirectory(userName, client, fd, accountInfo, file, u.logger)
 

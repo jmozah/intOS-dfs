@@ -28,13 +28,13 @@ func (h *Handler) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	password := r.FormValue("password")
 	if user == "" {
-		h.logger.Errorf("login: \"user\" argument missing")
-		jsonhttp.BadRequest(w, "login: \"user\" argument missing")
+		h.logger.Errorf("user login: \"user\" argument missing")
+		jsonhttp.BadRequest(w, "user login: \"user\" argument missing")
 		return
 	}
 	if password == "" {
-		h.logger.Errorf("login: \"password\" argument missing")
-		jsonhttp.BadRequest(w, "login: \"password\" argument missing")
+		h.logger.Errorf("user login: \"password\" argument missing")
+		jsonhttp.BadRequest(w, "user login: \"password\" argument missing")
 		return
 	}
 
@@ -44,12 +44,12 @@ func (h *Handler) UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 		if err == u.ErrUserAlreadyLoggedIn ||
 			err == u.ErrInvalidUserName ||
 			err == u.ErrInvalidPassword {
-			h.logger.Errorf("login: %v", err)
-			jsonhttp.BadRequest(w, "login: "+err.Error())
+			h.logger.Errorf("user login: %v", err)
+			jsonhttp.BadRequest(w, "user login: "+err.Error())
 			return
 		}
-		h.logger.Errorf("login: %v", err)
-		jsonhttp.InternalServerError(w, "login: "+err.Error())
+		h.logger.Errorf("user login: %v", err)
+		jsonhttp.InternalServerError(w, "user login: "+err.Error())
 		return
 	}
 	jsonhttp.OK(w, "user logged-in successfully")

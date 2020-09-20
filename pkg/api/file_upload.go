@@ -45,20 +45,20 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	blockSize := r.FormValue("block_size")
 	compression := r.Header.Get(compressionHeader)
 	if podDir == "" {
-		h.logger.Errorf("upload: \"pod_dir\" argument missing")
-		jsonhttp.BadRequest(w, "upload: \"pod_dir\" argument missing")
+		h.logger.Errorf("file upload: \"pod_dir\" argument missing")
+		jsonhttp.BadRequest(w, "file upload: \"pod_dir\" argument missing")
 		return
 	}
 	if blockSize == "" {
-		h.logger.Errorf("upload: \"block_size\" argument missing")
-		jsonhttp.BadRequest(w, "upload: \"block_size\" argument missing")
+		h.logger.Errorf("file upload: \"block_size\" argument missing")
+		jsonhttp.BadRequest(w, "file upload: \"block_size\" argument missing")
 		return
 	}
 
 	if compression != "" {
 		if compression != "snappy" && compression != "gzip" {
-			h.logger.Errorf("upload: invalid value for \"compression\" header")
-			jsonhttp.BadRequest(w, "upload: invalid value for \"compression\" header")
+			h.logger.Errorf("file upload: invalid value for \"compression\" header")
+			jsonhttp.BadRequest(w, "file upload: invalid value for \"compression\" header")
 			return
 		}
 	}
@@ -66,27 +66,27 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("upload: invalid cookie: %v", err)
+		h.logger.Errorf("file upload: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("upload: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "upload: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("file upload: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "file upload: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	//  get the files parameter from the multi part
 	err = r.ParseMultipartForm(defaultMaxMemory)
 	if err != nil {
-		h.logger.Errorf("upload: %v", err)
-		jsonhttp.BadRequest(w, "upload: "+err.Error())
+		h.logger.Errorf("file upload: %v", err)
+		jsonhttp.BadRequest(w, "file upload: "+err.Error())
 		return
 	}
 	files := r.MultipartForm.File["files"]
 	if len(files) == 0 {
-		h.logger.Errorf("upload: parameter \"files\" missing")
-		jsonhttp.BadRequest(w, "upload: parameter \"files\" missing")
+		h.logger.Errorf("file upload: parameter \"files\" missing")
+		jsonhttp.BadRequest(w, "file upload: parameter \"files\" missing")
 		return
 	}
 
@@ -97,11 +97,11 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			err := fd.Close()
 			if err != nil {
-				h.logger.Errorf("upload: error closing file: %v", err)
+				h.logger.Errorf("file upload: error closing file: %v", err)
 			}
 		}()
 		if err != nil {
-			h.logger.Errorf("upload: %v", err)
+			h.logger.Errorf("file upload: %v", err)
 			references = append(references, Reference{FileName: file.Filename, Error: err.Error()})
 			continue
 		}
@@ -110,11 +110,11 @@ func (h *Handler) FileUploadHandler(w http.ResponseWriter, r *http.Request) {
 		reference, err := h.dfsAPI.UploadFile(file.Filename, sessionId, file.Size, fd, podDir, blockSize, compression)
 		if err != nil {
 			if err == dfs.ErrPodNotOpen {
-				h.logger.Errorf("upload: %v", err)
-				jsonhttp.BadRequest(w, "upload: "+err.Error())
+				h.logger.Errorf("file upload: %v", err)
+				jsonhttp.BadRequest(w, "file upload: "+err.Error())
 				return
 			}
-			h.logger.Errorf("upload: %v", err)
+			h.logger.Errorf("file upload: %v", err)
 			references = append(references, Reference{FileName: file.Filename, Error: err.Error()})
 			continue
 		}

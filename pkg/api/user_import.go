@@ -30,20 +30,20 @@ func (h *Handler) ImportUserHandler(w http.ResponseWriter, r *http.Request) {
 	mnemonic := r.FormValue("mnemonic") // this is optional
 	password := r.FormValue("password")
 	if user == "" {
-		h.logger.Errorf("import: \"user\" argument missing")
-		jsonhttp.BadRequest(w, "import: \"user\" argument missing")
+		h.logger.Errorf("user import: \"user\" argument missing")
+		jsonhttp.BadRequest(w, "user import: \"user\" argument missing")
 		return
 	}
 
 	if password == "" {
-		h.logger.Errorf("import: \"password\" argument missing")
-		jsonhttp.BadRequest(w, "import: \"password\" argument missing")
+		h.logger.Errorf("user import: \"password\" argument missing")
+		jsonhttp.BadRequest(w, "user import: \"password\" argument missing")
 		return
 	}
 
 	if address == "" && mnemonic == "" {
-		h.logger.Errorf("import: either \"address\" or \"mnemonic\" is mandatory")
-		jsonhttp.BadRequest(w, "import: either \"address\" or \"mnemonic\" is mandatory")
+		h.logger.Errorf("user import: either \"address\" or \"mnemonic\" is mandatory")
+		jsonhttp.BadRequest(w, "user import: either \"address\" or \"mnemonic\" is mandatory")
 		return
 	}
 
@@ -51,12 +51,12 @@ func (h *Handler) ImportUserHandler(w http.ResponseWriter, r *http.Request) {
 		address, _, err := h.dfsAPI.CreateUser(user, password, mnemonic, w, "")
 		if err != nil {
 			if err == u.ErrUserAlreadyPresent {
-				h.logger.Errorf("import: %v", err)
-				jsonhttp.BadRequest(w, "import: "+err.Error())
+				h.logger.Errorf("user import: %v", err)
+				jsonhttp.BadRequest(w, "user import: "+err.Error())
 				return
 			}
-			h.logger.Errorf("import: %v", err)
-			jsonhttp.InternalServerError(w, "import: "+err.Error())
+			h.logger.Errorf("user import: %v", err)
+			jsonhttp.InternalServerError(w, "user import: "+err.Error())
 			return
 		}
 
@@ -70,8 +70,8 @@ func (h *Handler) ImportUserHandler(w http.ResponseWriter, r *http.Request) {
 	if address != "" {
 		err := h.dfsAPI.ImportUserUsingAddress(user, password, address, w, "")
 		if err != nil {
-			h.logger.Errorf("import: %v", err)
-			jsonhttp.InternalServerError(w, "import: "+err.Error())
+			h.logger.Errorf("user import: %v", err)
+			jsonhttp.InternalServerError(w, "user import: "+err.Error())
 			return
 		}
 

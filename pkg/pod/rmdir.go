@@ -32,18 +32,18 @@ func (p *Pod) RemoveDir(podName string, dirName string) error {
 
 	info, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return fmt.Errorf("rmdir: %w", err)
+		return err
 	}
 
 	directory := info.getDirectory()
 
 	dirInode, err := p.GetInodeFromName(dirName, info.GetCurrentDirInode(), directory, info)
 	if err != nil {
-		return fmt.Errorf("rmdir: %w", err)
+		return err
 	}
 
 	if dirInode == nil || dirInode.Meta == nil {
-		return fmt.Errorf("rmdir: name is not a directory")
+		return fmt.Errorf("name is not a directory")
 	}
 
 	topic := info.GetCurrentDirPathAndName() + utils.PathSeperator + dirName
@@ -53,7 +53,7 @@ func (p *Pod) RemoveDir(podName string, dirName string) error {
 	topicBytes := utils.HashString(topic)
 	err = p.UpdateTillThePod(podName, directory, topicBytes, dirInode.GetDirInodePathOnly(), false)
 	if err != nil {
-		return fmt.Errorf("error updating directory: %w", err)
+		return err
 	}
 	directory.GetPrefixPodFromPathMap(topic)
 	return nil

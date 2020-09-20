@@ -18,7 +18,6 @@ package dir
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
@@ -32,18 +31,18 @@ func (d *Directory) LoadDirMeta(podName string, curDirInode *DirInode, fd *feed.
 		if err != nil {
 			respCode, err := d.file.LoadFileMeta(podName, ref)
 			if err != nil {
-				return fmt.Errorf("syncing pod: %w", err)
+				return err
 			}
 			if respCode == http.StatusOK {
 				continue
 			}
-			return fmt.Errorf("syncing pod: %w", err)
+			return err
 		}
 
 		var dirInode *DirInode
 		err = json.Unmarshal(data, &dirInode)
 		if err != nil {
-			return fmt.Errorf("unmarshall error: %w", err)
+			return err
 		}
 
 		path := dirInode.Meta.Path + utils.PathSeperator + dirInode.Meta.Name
@@ -52,11 +51,11 @@ func (d *Directory) LoadDirMeta(podName string, curDirInode *DirInode, fd *feed.
 
 		_, newDirInode, err := d.GetDirNode(path, fd, accountInfo)
 		if err != nil {
-			return fmt.Errorf("could not load Inode for path: %s", path)
+			return err
 		}
 		err = d.LoadDirMeta(podName, newDirInode, fd, accountInfo)
 		if err != nil {
-			return fmt.Errorf("could not load Meta for path: %s", path)
+			return err
 		}
 
 	}

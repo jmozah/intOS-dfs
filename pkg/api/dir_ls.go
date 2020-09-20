@@ -43,21 +43,21 @@ type DirOrFileEntry struct {
 func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 	directory := r.FormValue("dir")
 	if directory == "" {
-		h.logger.Errorf("ls dir: \"dir\" argument missing")
-		jsonhttp.BadRequest(w, "ls dir: \"dir\" argument missing")
+		h.logger.Errorf("ls: \"dir\" argument missing")
+		jsonhttp.BadRequest(w, "ls: \"dir\" argument missing")
 		return
 	}
 
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("ls dir: invalid cookie: %v", err)
+		h.logger.Errorf("ls: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("ls dir: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "ls dir: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("ls: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "ls: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
@@ -66,12 +66,12 @@ func (h *Handler) DirectoryLsHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == dfs.ErrPodNotOpen || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
-			h.logger.Errorf("ls dir: %v", err)
-			jsonhttp.BadRequest(w, "ls dir: "+err.Error())
+			h.logger.Errorf("ls: %v", err)
+			jsonhttp.BadRequest(w, "ls: "+err.Error())
 			return
 		}
-		h.logger.Errorf("ls dir: %v", err)
-		jsonhttp.InternalServerError(w, "ls dir: "+err.Error())
+		h.logger.Errorf("ls: %v", err)
+		jsonhttp.InternalServerError(w, "ls: "+err.Error())
 		return
 	}
 

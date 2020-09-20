@@ -33,22 +33,22 @@ func (f *File) CopyToFile(podFile string, localDir string) error {
 	base := filepath.Base(podFile)
 	meta := f.GetFromFileMap(podFile)
 	if meta == nil {
-		return fmt.Errorf("coptToLocal: file not found in dfs")
+		return fmt.Errorf("file not found in dfs")
 	}
 
 	fileInodeBytes, _, err := f.getClient().DownloadBlob(meta.InodeAddress)
 	if err != nil {
-		return fmt.Errorf("copyFromLocal: %w", err)
+		return err
 	}
 	var fileInode FileINode
 	err = json.Unmarshal(fileInodeBytes, &fileInode)
 	if err != nil {
-		return fmt.Errorf("copyFromLocal: %w", err)
+		return err
 	}
 
 	outFile, err := os.Create(localDir + utils.PathSeperator + base)
 	if err != nil {
-		return fmt.Errorf("copyFromLocal: %w", err)
+		return err
 	}
 	defer outFile.Close()
 
@@ -63,7 +63,7 @@ func (f *File) CopyToFile(podFile string, localDir string) error {
 		}
 
 		if uint32(len(stdoutBytes)) != fb.Size {
-			return fmt.Errorf("rcvd less bytes than expected in a block")
+			return fmt.Errorf("received less bytes than expected in a block")
 		}
 
 		buf := bytes.NewBuffer(stdoutBytes)

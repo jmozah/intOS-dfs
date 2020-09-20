@@ -30,13 +30,13 @@ func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("sync pod: invalid cookie: %v", err)
+		h.logger.Errorf("pod sync: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("sync pod: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "sync pod: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("pod sync: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "pod sync: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
@@ -47,12 +47,12 @@ func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
 			err == p.ErrInvalidPodName ||
 			err == p.ErrTooLongPodName ||
 			err == p.ErrPodNotOpened {
-			h.logger.Errorf("sync pod: %v", err)
-			jsonhttp.BadRequest(w, "sync pod: "+err.Error())
+			h.logger.Errorf("pod sync: %v", err)
+			jsonhttp.BadRequest(w, "pod sync: "+err.Error())
 			return
 		}
-		h.logger.Errorf("sync pod: %v", err)
-		jsonhttp.InternalServerError(w, "sync pod: "+err.Error())
+		h.logger.Errorf("pod sync: %v", err)
+		jsonhttp.InternalServerError(w, "pod sync: "+err.Error())
 		return
 	}
 	jsonhttp.OK(w, "pod synced successfully")

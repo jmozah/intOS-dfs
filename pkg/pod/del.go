@@ -24,7 +24,7 @@ import (
 func (p *Pod) DeletePod(podName string) error {
 	pods, err := p.loadUserPods()
 	if err != nil {
-		return fmt.Errorf("delete pod: %w", err)
+		return err
 	}
 	found := false
 	var podIndex int
@@ -36,7 +36,7 @@ func (p *Pod) DeletePod(podName string) error {
 		}
 	}
 	if !found {
-		return fmt.Errorf("delete pod: pod not found")
+		return fmt.Errorf("pod not found")
 	}
 
 	// if last pod is deleted.. something should be there to update the feed
@@ -47,7 +47,7 @@ func (p *Pod) DeletePod(podName string) error {
 
 	err = p.storeUserPods(pods)
 	if err != nil {
-		return fmt.Errorf("delete pod: %w", err)
+		return err
 	}
 
 	if p.isPodOpened(podName) {
@@ -55,7 +55,7 @@ func (p *Pod) DeletePod(podName string) error {
 	} else {
 		podInfo, err := p.GetPodInfoFromPodMap(podName)
 		if err != nil {
-			return fmt.Errorf("delete pod: %w", err)
+			return err
 		}
 		podInfo.dir.RemoveFromDirectoryMap(podName)
 		p.removePodFromPodMap(podName)

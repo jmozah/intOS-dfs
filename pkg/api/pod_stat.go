@@ -38,20 +38,20 @@ type PodStatResponse struct {
 func (h *Handler) PodStatHandler(w http.ResponseWriter, r *http.Request) {
 	pod := r.FormValue("pod")
 	if pod == "" {
-		h.logger.Errorf("stat podd: \"pod\" argument missing")
-		jsonhttp.BadRequest(w, "stat podd: \"pod\" argument missing")
+		h.logger.Errorf("pod stat: \"pod\" argument missing")
+		jsonhttp.BadRequest(w, "pod stat: \"pod\" argument missing")
 		return
 	}
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("stat pod: invalid cookie: %v", err)
+		h.logger.Errorf("pod stat: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("stat pod: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "stat pod: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("pod stat: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "pod stat: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
@@ -60,12 +60,12 @@ func (h *Handler) PodStatHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidPodName {
-			h.logger.Errorf("stat pod: %v", err)
-			jsonhttp.BadRequest(w, "stat pod: "+err.Error())
+			h.logger.Errorf("pod stat: %v", err)
+			jsonhttp.BadRequest(w, "pod stat: "+err.Error())
 			return
 		}
-		h.logger.Errorf("stat pod: %v", err)
-		jsonhttp.InternalServerError(w, "stat pod: "+err.Error())
+		h.logger.Errorf("pod stat: %v", err)
+		jsonhttp.InternalServerError(w, "pod stat: "+err.Error())
 		return
 	}
 

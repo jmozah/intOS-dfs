@@ -37,7 +37,7 @@ const (
 func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo, blockSize uint32, filePath string) ([]byte, error) {
 	fl, err := os.Open(localFileName)
 	if err != nil {
-		return nil, fmt.Errorf("copyFromLocal: %w", err)
+		return nil, err
 	}
 	defer fl.Close()
 
@@ -65,18 +65,18 @@ func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo,
 		if err != nil {
 			if err == io.EOF {
 				if totalLength < uint64(fileInfo.Size()) {
-					return nil, fmt.Errorf("copyFromLocal: invalid file length of file data received")
+					return nil, fmt.Errorf("invalid file length of file data received")
 				}
 				break
 			} else {
-				return nil, fmt.Errorf("copyFromLocal: %w", err)
+				return nil, err
 			}
 		}
 		fmt.Printf("uploading block-%05d, ", i)
 
 		addr, err := f.client.UploadBlob(data[:r], true)
 		if err != nil {
-			return nil, fmt.Errorf("copyFromLocal: %w", err)
+			return nil, err
 		}
 
 		fileBlock := &FileBlock{
@@ -92,22 +92,22 @@ func (f *File) CopyFromFile(podName, localFileName string, fileInfo os.FileInfo,
 
 	fileInodeData, err := json.Marshal(fileINode)
 	if err != nil {
-		return nil, fmt.Errorf("copyFromLocal: %v", fileInfo.Name())
+		return nil, err
 	}
 
 	addr, err := f.client.UploadBlob(fileInodeData, true)
 	if err != nil {
-		return nil, fmt.Errorf("copyFromLocal: %w", err)
+		return nil, err
 	}
 
 	meta.InodeAddress = addr
 	fileMetaBytes, err := json.Marshal(meta)
 	if err != nil {
-		return nil, fmt.Errorf("copyFromLocal: %v", fileInfo.Name())
+		return nil, err
 	}
 	metaAddr, err := f.client.UploadBlob(fileMetaBytes, true)
 	if err != nil {
-		return nil, fmt.Errorf("copyFromLocal: %w", err)
+		return nil, err
 	}
 
 	meta.MetaReference = metaAddr // to get the address for sharing

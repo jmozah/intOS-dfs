@@ -68,11 +68,11 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 		if err != nil {
 			if err == io.EOF {
 				if totalLength < uint64(fileSize) {
-					return nil, fmt.Errorf("uplaod: invalid file length of file data received")
+					return nil, fmt.Errorf("invalid file length of file data received")
 				}
 				break
 			} else {
-				return nil, fmt.Errorf("uplaod: %w", err)
+				return nil, err
 			}
 		}
 
@@ -130,7 +130,7 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 		break
 	case err := <-errC:
 		close(errC)
-		return nil, fmt.Errorf("uplaod: %w", err)
+		return nil, err
 	}
 
 	// copy the block references to the fileInode
@@ -140,22 +140,22 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 
 	fileInodeData, err := json.Marshal(fileINode)
 	if err != nil {
-		return nil, fmt.Errorf("uplaod: %v", fileName)
+		return nil, err
 	}
 
 	addr, err := f.client.UploadBlob(fileInodeData, true)
 	if err != nil {
-		return nil, fmt.Errorf("uplaod: %w", err)
+		return nil, err
 	}
 
 	meta.InodeAddress = addr
 	fileMetaBytes, err := json.Marshal(meta)
 	if err != nil {
-		return nil, fmt.Errorf("uplaod: %v", fileName)
+		return nil, err
 	}
 	metaAddr, err := f.client.UploadBlob(fileMetaBytes, true)
 	if err != nil {
-		return nil, fmt.Errorf("uplaod: %w", err)
+		return nil, err
 	}
 	meta.MetaReference = metaAddr // the self address is stored to share this file easily
 	f.AddToFileMap(filePath, &meta)

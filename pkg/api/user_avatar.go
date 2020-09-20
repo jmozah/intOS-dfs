@@ -40,53 +40,53 @@ func (h *Handler) SaveUserAvatarHandler(w http.ResponseWriter, r *http.Request) 
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("avatar: invalid cookie: %v", err)
+		h.logger.Errorf("user avatar: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("avatar: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "avatar: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("user avatar: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "user avatar: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	//  get the avatar parameter from the multi part
 	err = r.ParseMultipartForm(defaultMaxMemory)
 	if err != nil {
-		h.logger.Errorf("avatar: %v", err)
-		jsonhttp.BadRequest(w, "avatar: "+err.Error())
+		h.logger.Errorf("user avatar: %v", err)
+		jsonhttp.BadRequest(w, "user avatar: "+err.Error())
 		return
 	}
 	avatars := r.MultipartForm.File["avatar"]
 	if len(avatars) == 0 {
-		h.logger.Errorf("avatar: parameter \"avatar\" missing")
-		jsonhttp.BadRequest(w, "avatar: parameter \"avatar\" missing")
+		h.logger.Errorf("user avatar: parameter \"avatar\" missing")
+		jsonhttp.BadRequest(w, "user avatar: parameter \"avatar\" missing")
 		return
 	}
 	if len(avatars) > 1 {
-		h.logger.Errorf("avatar: multiple avatars not allowed")
-		jsonhttp.BadRequest(w, "avatar: multiple avatars not allowed")
+		h.logger.Errorf("user avatar: multiple avatars not allowed")
+		jsonhttp.BadRequest(w, "user avatar: multiple avatars not allowed")
 		return
 	}
 
 	// Read the avatar file data
 	fd, err := avatars[0].Open()
 	if err != nil {
-		h.logger.Errorf("avatar: %v", err)
-		jsonhttp.BadRequest(w, "avatar: "+err.Error())
+		h.logger.Errorf("user avatar: %v", err)
+		jsonhttp.BadRequest(w, "user avatar: "+err.Error())
 		return
 	}
 	data := make([]byte, avatars[0].Size)
 	_, err = fd.Read(data)
 	if err != nil {
-		h.logger.Errorf("avatar: %v", err)
-		jsonhttp.BadRequest(w, "avatar: "+err.Error())
+		h.logger.Errorf("user avatar: %v", err)
+		jsonhttp.BadRequest(w, "user avatar: "+err.Error())
 		return
 	}
 	err = fd.Close()
 	if err != nil {
-		h.logger.Errorf("avatar: %v", err)
-		jsonhttp.BadRequest(w, "avatar: "+err.Error())
+		h.logger.Errorf("user avatar: %v", err)
+		jsonhttp.BadRequest(w, "user avatar: "+err.Error())
 		return
 	}
 
@@ -94,21 +94,21 @@ func (h *Handler) SaveUserAvatarHandler(w http.ResponseWriter, r *http.Request) 
 	reader := bytes.NewReader(data)
 	im, _, err := image.DecodeConfig(reader)
 	if err != nil {
-		h.logger.Errorf("avatar: %v", err)
-		jsonhttp.InternalServerError(w, "avatar: "+err.Error())
+		h.logger.Errorf("user avatar: %v", err)
+		jsonhttp.InternalServerError(w, "user avatar: "+err.Error())
 		return
 	}
 	if im.Height > avatarHeight || im.Width > avatarWidth {
-		h.logger.Errorf("avatar: invalid avatar size")
-		jsonhttp.BadRequest(w, "avatar: size should be less than 128x128")
+		h.logger.Errorf("user avatar: invalid avatar size")
+		jsonhttp.BadRequest(w, "user avatar: size should be less than 128x128")
 		return
 	}
 
 	// save avatar with .avatar extension
 	err = h.dfsAPI.SaveAvatar(sessionId, data)
 	if err != nil {
-		h.logger.Errorf("avatar: %v", err)
-		jsonhttp.BadRequest(w, "avatar: "+err.Error())
+		h.logger.Errorf("user avatar: %v", err)
+		jsonhttp.BadRequest(w, "user avatar: "+err.Error())
 		return
 	}
 	jsonhttp.OK(w, nil)
@@ -118,20 +118,20 @@ func (h *Handler) GetUserAvatarHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("avatar: invalid cookie: %v", err)
+		h.logger.Errorf("user get avatar: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("avatar: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "avatar: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("user get avatar: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "user get avatar: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	data, err := h.dfsAPI.GetAvatar(sessionId)
 	if err != nil {
-		h.logger.Errorf("avatar: %v", err)
-		jsonhttp.InternalServerError(w, "avatar: "+err.Error())
+		h.logger.Errorf("user get avatar: %v", err)
+		jsonhttp.InternalServerError(w, "user get avatar: "+err.Error())
 		return
 	}
 
@@ -139,8 +139,8 @@ func (h *Handler) GetUserAvatarHandler(w http.ResponseWriter, r *http.Request) {
 	reader := bytes.NewReader(data)
 	_, err = io.Copy(w, reader)
 	if err != nil {
-		h.logger.Errorf("avatar: %v", err)
+		h.logger.Errorf("avauser get avatartar: %v", err)
 		w.Header().Set("Content-Type", " application/json")
-		jsonhttp.InternalServerError(w, "avatar: "+err.Error())
+		jsonhttp.InternalServerError(w, "user get avatar: "+err.Error())
 	}
 }

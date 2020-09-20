@@ -28,47 +28,47 @@ import (
 
 func (p *Pod) UploadFile(podName, fileName string, fileSize int64, fd io.Reader, podDir, blockSize, compression string) (string, error) {
 	if !p.isPodOpened(podName) {
-		return "", fmt.Errorf("upload: login to pod to do this operation")
+		return "", fmt.Errorf("login to pod to do this operation")
 	}
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return "", fmt.Errorf("upload: %w", err)
+		return "", err
 	}
 	dir := podInfo.getDirectory()
 
 	bs, err := humanize.ParseBytes(blockSize)
 	if err != nil {
-		return "", fmt.Errorf("upload: block size parse error: %w", err)
+		return "", err
 	}
 
 	path := p.getFilePath(podDir, podInfo)
 
 	_, dirInode, err := dir.GetDirNode(path, podInfo.getFeed(), podInfo.getAccountInfo())
 	if err != nil {
-		return "", fmt.Errorf("upload: error while fetching pod info: %w", err)
+		return "", err
 	}
 
 	fpath := path + utils.PathSeperator + fileName
 	if podInfo.file.IsFileAlreadyPResent(fpath) {
-		return "", fmt.Errorf("upload: file already present in the destination dir")
+		return "", fmt.Errorf("file already present in the destination dir")
 	}
 	ref, err := podInfo.file.Upload(fd, fileName, fileSize, uint32(bs), fpath, compression)
 	if err != nil {
-		return "", fmt.Errorf("upload: error while copying file to pod: %w", err)
+		return "", err
 	}
 	dirInode.Hashes = append(dirInode.Hashes, ref)
 
 	dirInode.Meta.ModificationTime = time.Now().Unix()
 	topic, err := dir.UpdateDirectory(dirInode)
 	if err != nil {
-		return "", fmt.Errorf("upload: error updating directory: %w", err)
+		return "", err
 	}
 
 	if path != podInfo.GetCurrentPodPathAndName() {
 		err = p.UpdateTillThePod(podName, podInfo.getDirectory(), topic, path, true)
 		if err != nil {
-			return "", fmt.Errorf("upload: error updating directory: %w", err)
+			return "", err
 		}
 	}
 

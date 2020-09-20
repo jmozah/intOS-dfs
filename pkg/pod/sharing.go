@@ -26,12 +26,12 @@ import (
 
 func (p *Pod) GetMetaReferenceOfFile(podName, filePath string) ([]byte, string, error) {
 	if !p.isPodOpened(podName) {
-		return nil, "", fmt.Errorf("share: login to pod to do this operation")
+		return nil, "", fmt.Errorf("login to pod to do this operation")
 	}
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return nil, "", fmt.Errorf("share: %w", err)
+		return nil, "", err
 	}
 
 	podDir := filepath.Dir(filePath)
@@ -44,12 +44,12 @@ func (p *Pod) GetMetaReferenceOfFile(podName, filePath string) ([]byte, string, 
 
 func (p *Pod) ReceiveFileAndStore(podName, podDir, fileName, metaHexRef string) error {
 	if !p.isPodOpened(podName) {
-		return fmt.Errorf("receive: login to pod to do this operation")
+		return fmt.Errorf("login to pod to do this operation")
 	}
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return fmt.Errorf("receive: %w", err)
+		return err
 	}
 
 	path := p.getFilePath(podDir, podInfo)
@@ -57,32 +57,32 @@ func (p *Pod) ReceiveFileAndStore(podName, podDir, fileName, metaHexRef string) 
 
 	_, dirInode, err := dir.GetDirNode(path, podInfo.getFeed(), podInfo.getAccountInfo())
 	if err != nil {
-		return fmt.Errorf("receive: error while fetching pod info: %w", err)
+		return err
 	}
 
 	// check if the file exists already
 	fpath := path + utils.PathSeperator + fileName
 	if podInfo.file.IsFileAlreadyPResent(fpath) {
-		return fmt.Errorf("receive: file already present in the destination dir")
+		return fmt.Errorf("file already present in the destination dir")
 	}
 
 	// append the file meta to the parent directory and update the directory feed
 	metaReference, err := utils.ParseHexReference(metaHexRef)
 	if err != nil {
-		return fmt.Errorf("receive: %w", err)
+		return err
 	}
 	dirInode.Hashes = append(dirInode.Hashes, metaReference.Bytes())
 	dirInode.Meta.ModificationTime = time.Now().Unix()
 	topic, err := dir.UpdateDirectory(dirInode)
 	if err != nil {
-		return fmt.Errorf("receive: error updating directory: %w", err)
+		return err
 	}
 
 	// if the directory path is not root.. then update all the parents too
 	if path != podInfo.GetCurrentPodPathAndName() {
 		err = p.UpdateTillThePod(podName, podInfo.getDirectory(), topic, path, true)
 		if err != nil {
-			return fmt.Errorf("receive: error updating directory: %w", err)
+			return err
 		}
 	}
 

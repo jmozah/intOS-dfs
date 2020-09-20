@@ -18,7 +18,6 @@ package pod
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -42,12 +41,12 @@ func (p *Pod) SyncPod(podName string) error {
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return fmt.Errorf("sync pod: %w", err)
+		return err
 	}
 
 	err = podInfo.SyncPod(podName, p.client, p.logger)
 	if err != nil {
-		return fmt.Errorf("sync pod: %w", err)
+		return err
 	}
 	return nil
 }

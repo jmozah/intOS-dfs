@@ -75,11 +75,11 @@ func NewBeeClient(host, port string, logger logging.Logger) *BeeClient {
 	p := bmtlegacy.NewTreePool(hashFunc, swarm.Branches, bmtlegacy.PoolSize)
 	cache, err := lru.New(chunkCacheSize)
 	if err != nil {
-		fmt.Println("could not initialise chunkCache. system will be slow")
+		logger.Warningf("could not initialise chunkCache. system will be slow")
 	}
 	blockCache, err := lru.New(BlockCacheSize)
 	if err != nil {
-		fmt.Println("could not initialise blockCache. system will be slow")
+		logger.Warningf("could not initialise blockCache. system will be slow")
 	}
 	return &BeeClient{
 		host:       host,

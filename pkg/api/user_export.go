@@ -33,20 +33,20 @@ func (h *Handler) ExportUserHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("export: invalid cookie: %v", err)
+		h.logger.Errorf("user export: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("export: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("user export: \"cookie-id\" parameter missing in cookie")
 		jsonhttp.BadRequest(w, "save contact: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	name, address, err := h.dfsAPI.ExportUser(sessionId)
 	if err != nil {
-		h.logger.Errorf("export: %v", err)
-		jsonhttp.InternalServerError(w, "export: "+err.Error())
+		h.logger.Errorf("user export: %v", err)
+		jsonhttp.InternalServerError(w, "user export: "+err.Error())
 		return
 	}
 

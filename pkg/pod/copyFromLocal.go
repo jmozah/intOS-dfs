@@ -29,29 +29,29 @@ import (
 
 func (p *Pod) CopyFromLocal(podName string, localFile string, podDir string, blockSize string) error {
 	if !p.isPodOpened(podName) {
-		return fmt.Errorf("copyFromLocal: login to pod to do this operation")
+		return fmt.Errorf("login to pod to do this operation")
 	}
 
 	if len(filepath.Base(localFile)) > utils.FileNameLength {
-		return fmt.Errorf("copyFromLocal: file Name length is > %v", utils.FileNameLength)
+		return fmt.Errorf("file Name length is > %v", utils.FileNameLength)
 	}
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return fmt.Errorf("copyFromLocal: %w", err)
+		return err
 	}
 	dir := podInfo.getDirectory()
 
 	bs, err := humanize.ParseBytes(blockSize)
 	if err != nil {
-		return fmt.Errorf("copyFromLocal: block size parse error: %w", err)
+		return err
 	}
 
 	path := p.getFilePath(podDir, podInfo)
 
 	_, dirInode, err := dir.GetDirNode(path, podInfo.getFeed(), podInfo.getAccountInfo())
 	if err != nil {
-		return fmt.Errorf("error while fetching pod info: %w", err)
+		return err
 	}
 
 	var localDir string
@@ -95,7 +95,7 @@ func (p *Pod) CopyFromLocal(podName string, localFile string, podDir string, blo
 					}
 					addr, err := podInfo.file.CopyFromFile(podName, localFile, info, uint32(bs), fpath)
 					if err != nil {
-						return fmt.Errorf("error while copying file to pod: %w", err)
+						return err
 					}
 					dirInode.Hashes = append(dirInode.Hashes, addr)
 				}
@@ -112,7 +112,7 @@ func (p *Pod) CopyFromLocal(podName string, localFile string, podDir string, blo
 		}
 		addr, err := podInfo.file.CopyFromFile(podName, localFile, fileInfo, uint32(bs), fpath)
 		if err != nil {
-			return fmt.Errorf("error while copying file to pod: %w", err)
+			return err
 		}
 		dirInode.Hashes = append(dirInode.Hashes, addr)
 
@@ -121,13 +121,13 @@ func (p *Pod) CopyFromLocal(podName string, localFile string, podDir string, blo
 	dirInode.Meta.ModificationTime = time.Now().Unix()
 	topic, err := dir.UpdateDirectory(dirInode)
 	if err != nil {
-		return fmt.Errorf("error updating directory: %w", err)
+		return err
 	}
 
 	if path != podInfo.GetCurrentPodPathAndName() {
 		err = p.UpdateTillThePod(podName, podInfo.getDirectory(), topic, path, true)
 		if err != nil {
-			return fmt.Errorf("error updating directory: %w", err)
+			return err
 		}
 	}
 	return nil

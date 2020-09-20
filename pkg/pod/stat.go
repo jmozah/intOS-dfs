@@ -59,7 +59,7 @@ func (p *Pod) DirectoryStat(podName, podFileOrDir string) (*dir.DirStats, error)
 
 	info, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return nil, fmt.Errorf("rmdir: %w", err)
+		return nil, err
 	}
 
 	acc := info.getAccountInfo().GetAddress()
@@ -70,7 +70,7 @@ func (p *Pod) DirectoryStat(podName, podFileOrDir string) (*dir.DirStats, error)
 		meta := dirInode.Meta
 		addr, dirInode, err := info.getDirectory().GetDirNode(meta.Path+utils.PathSeperator+meta.Name, info.getFeed(), info.getAccountInfo())
 		if err != nil {
-			return nil, fmt.Errorf("could not get dirnode: %w", err)
+			return nil, err
 		}
 		podAddress := swarm.NewAddress(addr).String()
 		return info.getDirectory().DirStat(podName, path, dirInode, acc.String(), podAddress)
@@ -85,7 +85,7 @@ func (p *Pod) FileStat(podName, podFileOrDir string) (*file.FileStats, error) {
 
 	info, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return nil, fmt.Errorf("rmdir: %w", err)
+		return nil, err
 	}
 
 	acc := info.getAccountInfo().GetAddress()

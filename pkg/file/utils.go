@@ -34,7 +34,7 @@ func (f *File) LoadFileMeta(podName string, addr []byte) (int, error) {
 	var meta *m.FileMetaData
 	err = json.Unmarshal(data, &meta)
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("unmarshall error: %w", err)
+		return http.StatusInternalServerError, err
 	}
 	meta.MetaReference = addr
 	f.AddToFileMap(meta.Path+utils.PathSeperator+meta.Name, meta)

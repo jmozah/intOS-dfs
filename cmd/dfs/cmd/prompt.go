@@ -99,6 +99,9 @@ var suggestions = []prompt.Suggest{
 	{Text: "user contact", Description: "sets and gets the user contact information"},
 	{Text: "user share inbox", Description: "gets the information about the files received by the user"},
 	{Text: "user share outbox", Description: "gets the information about the files shared by the user"},
+	{Text: "user export ", Description: "exports the user"},
+	{Text: "user import ", Description: "imports the user"},
+	{Text: "user stat ", Description: "shows information about a user"},
 	{Text: "pod new", Description: "create a new pod for a user"},
 	{Text: "pod del", Description: "delete a existing pod of a user"},
 	{Text: "pod open", Description: "open to a existing pod of a user"},
@@ -158,7 +161,7 @@ func executor(in string) {
 			fmt.Println("user created with address ", ref)
 			fmt.Println("Please store the following 12 words safely")
 			fmt.Println("if you loose this, you cannot recover the data in-case of an emergency.")
-			fmt.Println("you can also use this mnemonic to access the data from another device")
+			fmt.Println("you can also use this mnemonic to access the datain case this device is lost")
 			fmt.Println("=============== Mnemonic ==========================")
 			fmt.Println(mnemonic)
 			fmt.Println("=============== Mnemonic ==========================")
@@ -692,7 +695,7 @@ func help() {
 	fmt.Println(" - user <del> - deletes a logged in user")
 	fmt.Println(" - user <login> (user-name) - login as a given user")
 	fmt.Println(" - user <logout> - logout a logged in user")
-	fmt.Println(" - user <present> <user-name> - returns true if the user is present, false otherwise")
+	fmt.Println(" - user <present> (user-name) - returns true if the user is present, false otherwise")
 	fmt.Println(" - user <ls> - lists all the user present in this instance")
 	fmt.Println(" - user <name> (first_name) (middle_name) (last_name) (surname) - sets the user name information")
 	fmt.Println(" - user <name> - gets the user name information")
@@ -700,6 +703,10 @@ func help() {
 	fmt.Println(" - user <contact> gets the user contact information")
 	fmt.Println(" - user <share> <inbox> - shows details of the files you have received from other users")
 	fmt.Println(" - user <share> <outbox> - shows details of the files you have sent to other users")
+	fmt.Println(" - user <export> - exports the given user")
+	fmt.Println(" - user <import> (user-name) (address) - imports the user to another device")
+	fmt.Println(" - user <import> (user-name) (12 word mnemonic) - imports the user if the device is lost")
+	fmt.Println(" - user <stat> - shows information about a user")
 
 	fmt.Println(" - pod <new> (pod-name) - create a new pod for the logged in user and opens the pod")
 	fmt.Println(" - pod <del> (pod-name) - deletes a already created pod of the user")
@@ -713,8 +720,9 @@ func help() {
 	fmt.Println(" - ls ")
 	fmt.Println(" - copyToLocal <source file in pod, destination directory in local fs>")
 	fmt.Println(" - copyFromLocal <source file in local fs, destination directory in pod, block size (ex: 1Mb, 64Mb)>")
-	fmt.Println(" - share <file name>")
-	fmt.Println(" - receive <sharing reference> <pod dir>")
+	fmt.Println(" - share <file name> -  shares a file with another user")
+	fmt.Println(" - receive <sharing reference> <pod dir> - receives a file from another user")
+	fmt.Println(" - receiveinfo <sharing reference> - shows the received file info before accepting the receive")
 	fmt.Println(" - mkdir <directory name>")
 	fmt.Println(" - rmdir <directory name>")
 	fmt.Println(" - rm <file name>")

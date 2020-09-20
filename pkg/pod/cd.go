@@ -30,16 +30,16 @@ func (p *Pod) ChangeDir(podName string, dirName string) (*Info, error) {
 	}
 
 	if len(directoryName) > utils.MaxDirectoryNameLength {
-		return nil, fmt.Errorf("cd: directory Name length is > %v", utils.MaxDirectoryNameLength)
+		return nil, fmt.Errorf("directory Name length is > %v", utils.MaxDirectoryNameLength)
 	}
 
 	if !p.isPodOpened(podName) {
-		return nil, fmt.Errorf("cd: login to pod to do this operation")
+		return nil, fmt.Errorf("login to pod to do this operation")
 	}
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return nil, fmt.Errorf("mkdir: %w", err)
+		return nil, err
 	}
 
 	if directoryName[0] == "" || directoryName[0] == utils.PathSeperator {
@@ -57,7 +57,7 @@ func (p *Pod) ChangeDir(podName string, dirName string) (*Info, error) {
 		}
 		_, dirInode, err := directory.GetDirNode(podInfo.GetCurrentDirPathOnly(), fd, accountInfo)
 		if err != nil {
-			return nil, fmt.Errorf("cd: error while fetching pod info: %w", err)
+			return nil, err
 		}
 		podInfo.SetCurrentDirInode(dirInode)
 		return podInfo, nil

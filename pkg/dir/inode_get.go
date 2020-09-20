@@ -18,7 +18,6 @@ package dir
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
@@ -35,7 +34,7 @@ func (d *Directory) GetDirNode(name string, fd *feed.API, accountInfo *account.A
 	var dirInode DirInode
 	err = json.Unmarshal(data, &dirInode)
 	if err != nil {
-		return nil, nil, fmt.Errorf("could not unmarshall dirInode: %v", name)
+		return nil, nil, err
 	}
 	return addr, &dirInode, nil
 }

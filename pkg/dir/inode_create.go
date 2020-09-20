@@ -18,7 +18,6 @@ package dir
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	m "github.com/jmozah/intOS-dfs/pkg/meta"
@@ -42,7 +41,7 @@ func (d *Directory) CreateDirINode(podName string, dirName string, parent *DirIn
 	}
 	data, err := json.Marshal(dirInode)
 	if err != nil {
-		return nil, nil, fmt.Errorf("create inode: %w", err)
+		return nil, nil, err
 	}
 
 	// create a feed for the directory and add data to it
@@ -50,7 +49,7 @@ func (d *Directory) CreateDirINode(podName string, dirName string, parent *DirIn
 	topic := utils.HashString(totalPath)
 	_, err = d.fd.CreateFeed(topic, d.acc.GetAddress(), data)
 	if err != nil {
-		return nil, nil, fmt.Errorf("create inode: %w", err)
+		return nil, nil, err
 	}
 
 	d.AddToDirectoryMap(totalPath, dirInode)
@@ -91,7 +90,7 @@ func (d *Directory) CreatePodINode(podName string) (*DirInode, []byte, error) {
 	}
 	data, err := json.Marshal(dirInode)
 	if err != nil {
-		return nil, nil, fmt.Errorf("create pod inode: %w", err)
+		return nil, nil, err
 	}
 
 	// create a feed and store the metadata of the pod
@@ -99,7 +98,7 @@ func (d *Directory) CreatePodINode(podName string) (*DirInode, []byte, error) {
 	topic := utils.HashString(totalPath)
 	_, err = d.fd.CreateFeed(topic, d.acc.GetAddress(), data)
 	if err != nil {
-		return nil, nil, fmt.Errorf("create pod inode: %w", err)
+		return nil, nil, err
 	}
 
 	d.AddToDirectoryMap(totalPath, dirInode)

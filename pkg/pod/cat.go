@@ -25,12 +25,12 @@ import (
 func (p *Pod) Cat(podName string, fileName string) error {
 
 	if !p.isPodOpened(podName) {
-		return fmt.Errorf("cat: login to pod to do this operation")
+		return fmt.Errorf("login to pod to do this operation")
 	}
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return fmt.Errorf("cat: %w", err)
+		return err
 	}
 
 	var fname string

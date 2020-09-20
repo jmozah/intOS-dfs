@@ -28,20 +28,20 @@ func (h *Handler) GetUserSharingInboxHandler(w http.ResponseWriter, r *http.Requ
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("get share inbox: invalid cookie: ", err)
+		h.logger.Errorf("user get share inbox: invalid cookie: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("get share inbox: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "get share inbox: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("user get share inbox: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "user get share inbox: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	sharingInbox, err := h.dfsAPI.GetUserSharingInbox(sessionId)
 	if err != nil {
-		h.logger.Errorf("get share inbox: %v", err)
-		jsonhttp.InternalServerError(w, "get share inbox: "+err.Error())
+		h.logger.Errorf("user get share inbox: %v", err)
+		jsonhttp.InternalServerError(w, "user get share inbox: "+err.Error())
 		return
 	}
 
@@ -53,20 +53,20 @@ func (h *Handler) GetUserSharingOutboxHandler(w http.ResponseWriter, r *http.Req
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("get share outbox: invalid cookie: ", err)
+		h.logger.Errorf("user get share outbox: invalid cookie: ", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("get share outbox: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "get share outbox: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("user get share outbox: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "user get share outbox: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	sharingOutbox, err := h.dfsAPI.GetUserSharingOutbox(sessionId)
 	if err != nil {
-		h.logger.Errorf("get share outbox: %v", err)
-		jsonhttp.InternalServerError(w, "get share outbox: "+err.Error())
+		h.logger.Errorf("user get share outbox: %v", err)
+		jsonhttp.InternalServerError(w, "user get share outbox: "+err.Error())
 		return
 	}
 

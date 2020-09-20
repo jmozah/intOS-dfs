@@ -28,21 +28,21 @@ import (
 func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	if password == "" {
-		h.logger.Errorf("delete: \"password\" argument missing")
-		jsonhttp.BadRequest(w, "delete: \"password\" argument missing")
+		h.logger.Errorf("user delete: \"password\" argument missing")
+		jsonhttp.BadRequest(w, "user delete: \"password\" argument missing")
 		return
 	}
 
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("delete: invalid cookie: %v", err)
+		h.logger.Errorf("user delete: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("delete: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "delete: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("user delete: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "user delete: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
@@ -52,12 +52,12 @@ func (h *Handler) UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		if err == u.ErrInvalidUserName ||
 			err == u.ErrInvalidPassword ||
 			err == u.ErrUserNotLoggedIn {
-			h.logger.Errorf("delete: %v", err)
-			jsonhttp.BadRequest(w, "delete: "+err.Error())
+			h.logger.Errorf("user delete: %v", err)
+			jsonhttp.BadRequest(w, "user delete: "+err.Error())
 			return
 		}
-		h.logger.Errorf("delete: %v", err)
-		jsonhttp.InternalServerError(w, "delete: "+err.Error())
+		h.logger.Errorf("user delete: %v", err)
+		jsonhttp.InternalServerError(w, "user delete: "+err.Error())
 		return
 	}
 	jsonhttp.OK(w, "user deleted successfully")

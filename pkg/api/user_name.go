@@ -33,20 +33,20 @@ func (h *Handler) SaveUserNameHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("save name: invalid cookie: %v", err)
+		h.logger.Errorf("user save name: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("save name: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "save name: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("user save name: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "user save name: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	err = h.dfsAPI.SaveName(firstName, lastName, middleName, surname, sessionId)
 	if err != nil {
-		h.logger.Errorf("save name: %v", err)
-		jsonhttp.InternalServerError(w, "save name: "+err.Error())
+		h.logger.Errorf("user save name: %v", err)
+		jsonhttp.InternalServerError(w, "user save name: "+err.Error())
 		return
 	}
 	jsonhttp.OK(w, nil)
@@ -56,20 +56,20 @@ func (h *Handler) GetUserNameHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("get name: invalid cookie: %v", err)
+		h.logger.Errorf("user get name: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("get name: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "get name: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("user get name: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "user get name: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	name, err := h.dfsAPI.GetName(sessionId)
 	if err != nil {
-		h.logger.Errorf("get name: %v", err)
-		jsonhttp.InternalServerError(w, "get name: "+err.Error())
+		h.logger.Errorf("user get name: %v", err)
+		jsonhttp.InternalServerError(w, "user get name: "+err.Error())
 		return
 	}
 

@@ -25,21 +25,21 @@ import (
 
 func (p *Pod) CopyToLocal(podName string, podFile string, localDir string) error {
 	if !p.isPodOpened(podName) {
-		return fmt.Errorf("copyToLocal: login to pod to do this operation")
+		return fmt.Errorf("login to pod to do this operation")
 	}
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return fmt.Errorf("copyToLocal: %w", err)
+		return err
 	}
 
 	dirStat, err := os.Stat(localDir)
 	if err != nil {
-		return fmt.Errorf("copyToLocal: %w", err)
+		return err
 	}
 
 	if !dirStat.IsDir() {
-		return fmt.Errorf("copyToLocal: local path is not a directory")
+		return fmt.Errorf("local path is not a directory")
 	}
 
 	var path string
@@ -50,12 +50,12 @@ func (p *Pod) CopyToLocal(podName string, podFile string, localDir string) error
 	}
 
 	if !podInfo.getFile().IsFileAlreadyPResent(path) {
-		return fmt.Errorf("copyToLocal: file not present in pod")
+		return fmt.Errorf("file not present in pod")
 	}
 
 	err = podInfo.getFile().CopyToFile(path, localDir)
 	if err != nil {
-		return fmt.Errorf("copyToLocal: %w", err)
+		return err
 	}
 	return nil
 }

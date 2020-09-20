@@ -18,7 +18,6 @@ package pod
 
 import (
 	"bytes"
-	"fmt"
 	gopath "path"
 	"time"
 
@@ -38,7 +37,7 @@ func (p *Pod) MakeDir(podName string, dirName string) error {
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return fmt.Errorf("mkdir: %w", err)
+		return err
 	}
 
 	directory := podInfo.getDirectory()
@@ -64,7 +63,7 @@ func (p *Pod) MakeDir(podName string, dirName string) error {
 					dirInode, topic, err = directory.CreateDirINode(podName, dirName, previousDirINode)
 				}
 				if err != nil {
-					return fmt.Errorf("mkdir: %w", err)
+					return err
 				}
 				if i == 0 {
 					firstTopic = topic
@@ -83,7 +82,7 @@ func (p *Pod) MakeDir(podName string, dirName string) error {
 						previousDirINode.Meta.ModificationTime = time.Now().Unix()
 						_, err = directory.UpdateDirectory(previousDirINode)
 						if err != nil {
-							return fmt.Errorf("mkdir : %w", err)
+							return err
 						}
 					}
 				}
@@ -94,11 +93,11 @@ func (p *Pod) MakeDir(podName string, dirName string) error {
 	} else {
 		dirInode = podInfo.GetCurrentDirInode()
 		if directory.IsDirINodePresent(podName, dirs[0], dirInode) {
-			return fmt.Errorf("mkdir: directory already present")
+			return err
 		}
 		_, topic, err = directory.CreateDirINode(podName, dirs[0], dirInode)
 		if err != nil {
-			return fmt.Errorf("mkdir: %w", err)
+			return err
 		}
 		addToPod = true
 	}
@@ -110,7 +109,7 @@ func (p *Pod) MakeDir(podName string, dirName string) error {
 		}
 		err = p.UpdateTillThePod(podName, directory, topic, path, true)
 		if err != nil {
-			return fmt.Errorf("mkdir: %w", err)
+			return err
 		}
 	}
 	return nil
@@ -120,14 +119,14 @@ func (p *Pod) MakeDir(podName string, dirName string) error {
 func (p *Pod) UpdateTillThePod(podName string, directory *d.Directory, topic []byte, path string, isAddHash bool) error {
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return fmt.Errorf("mkdir: %w", err)
+		return err
 	}
 
 	var dirInode *d.DirInode
 	for path != utils.PathSeperator {
 		_, dirInode, err = directory.GetDirNode(path, podInfo.getFeed(), podInfo.getAccountInfo())
 		if err != nil {
-			return fmt.Errorf("update directory: %w", err)
+			return err
 		}
 		if isAddHash {
 			// Add or update a hash
@@ -161,7 +160,7 @@ func (p *Pod) UpdateTillThePod(podName string, directory *d.Directory, topic []b
 		dirInode.Meta.ModificationTime = time.Now().Unix()
 		topic, err = directory.UpdateDirectory(dirInode)
 		if err != nil {
-			return fmt.Errorf("update directory: %w", err)
+			return err
 		}
 		path = gopath.Dir(path)
 	}

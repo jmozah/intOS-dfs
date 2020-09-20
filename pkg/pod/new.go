@@ -45,7 +45,7 @@ func (p *Pod) CreatePod(podName, passPhrase string) (*Info, error) {
 	// check if pods is present and get free index
 	pods, err := p.loadUserPods()
 	if err != nil {
-		return nil, fmt.Errorf("create pod: %w", err)
+		return nil, err
 	}
 	if p.checkIfPodPresent(pods, podName) {
 		return nil, ErrPodAlreadyExists
@@ -71,14 +71,14 @@ func (p *Pod) CreatePod(podName, passPhrase string) (*Info, error) {
 	// create the pod inode
 	dirInode, _, err := dir.CreatePodINode(podName)
 	if err != nil {
-		return nil, fmt.Errorf("create pod: %w", err)
+		return nil, err
 	}
 
 	// store the pod file
 	pods[freeId] = podName
 	err = p.storeUserPods(pods)
 	if err != nil {
-		return nil, fmt.Errorf("create pod: %w", err)
+		return nil, err
 	}
 
 	// create the pod info and store it in the podMap
@@ -106,7 +106,7 @@ func (p *Pod) loadUserPods() (map[int]string, error) {
 	_, data, err := p.fd.GetFeedData(topic, p.acc.GetAddress(account.UserAccountIndex))
 	if err != nil {
 		if err.Error() != "no feed updates found" {
-			return nil, fmt.Errorf("loading pods: %w", err)
+			return nil, err
 		}
 	}
 
@@ -147,7 +147,7 @@ func (p *Pod) storeUserPods(pods map[int]string) error {
 	topic := utils.HashString(podFile)
 	_, err := p.fd.UpdateFeed(topic, p.acc.GetAddress(account.UserAccountIndex), buf.Bytes())
 	if err != nil {
-		return fmt.Errorf("store pods: %w", err)
+		return err
 	}
 	return nil
 }

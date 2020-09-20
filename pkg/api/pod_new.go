@@ -34,26 +34,26 @@ func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	pod := r.FormValue("pod")
 	if password == "" {
-		h.logger.Errorf("create pod: \"password\" argument missing")
-		jsonhttp.BadRequest(w, "create pod: \"password\" argument missing")
+		h.logger.Errorf("pod new: \"password\" argument missing")
+		jsonhttp.BadRequest(w, "pod new: \"password\" argument missing")
 		return
 	}
 	if pod == "" {
-		h.logger.Errorf("create pod: \"pod\" argument missing")
-		jsonhttp.BadRequest(w, "create pod: \"pod\" argument missing")
+		h.logger.Errorf("pod new: \"pod\" argument missing")
+		jsonhttp.BadRequest(w, "pod new: \"pod\" argument missing")
 		return
 	}
 
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("delete: invalid cookie: %v", err)
+		h.logger.Errorf("pod new: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("create pod: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "create pod: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("pod new: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "pod new: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
@@ -65,12 +65,12 @@ func (h *Handler) PodCreateHandler(w http.ResponseWriter, r *http.Request) {
 			err == p.ErrTooLongPodName ||
 			err == p.ErrPodAlreadyExists ||
 			err == p.ErrMaxPodsReached {
-			h.logger.Errorf("create pod: %v", err)
-			jsonhttp.BadRequest(w, "create pod: "+err.Error())
+			h.logger.Errorf("pod new: %v", err)
+			jsonhttp.BadRequest(w, "pod new: "+err.Error())
 			return
 		}
-		h.logger.Errorf("create pod: %v", err)
-		jsonhttp.InternalServerError(w, "create pod: "+err.Error())
+		h.logger.Errorf("pod new: %v", err)
+		jsonhttp.InternalServerError(w, "pod new: "+err.Error())
 		return
 	}
 
