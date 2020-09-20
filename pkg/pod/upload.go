@@ -19,6 +19,7 @@ package pod
 import (
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -73,4 +74,31 @@ func (p *Pod) UploadFile(podName, fileName string, fileSize int64, fd io.Reader,
 	}
 
 	return utils.NewReference(ref).String(), nil
+}
+
+func (p *Pod) getFilePath(podDir string, podInfo *Info) string {
+	var path string
+	if podDir == utils.PathSeperator || podDir == podInfo.GetCurrentPodPathAndName() {
+		return podInfo.GetCurrentPodPathAndName()
+	}
+
+	// this is a full path.. so use it as it is
+	if strings.HasPrefix(podDir, "/") {
+		return podInfo.GetCurrentPodPathAndName() + podDir
+	}
+
+	if podInfo.IsCurrentDirRoot() {
+		if podDir == "." {
+			path = podInfo.GetCurrentPodPathAndName()
+		} else {
+			path = podInfo.GetCurrentPodPathAndName() + utils.PathSeperator + podDir
+		}
+	} else {
+		if podDir == "." {
+			path = podInfo.GetCurrentDirPathAndName()
+		} else {
+			path = podInfo.GetCurrentDirPathAndName() + utils.PathSeperator + podDir
+		}
+	}
+	return path
 }

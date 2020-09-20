@@ -52,7 +52,7 @@ func (p *Pod) PodStat(podName string) (*PodStat, error) {
 	}, nil
 }
 
-func (p *Pod) DirectoryStat(podName, podFileOrDir string) (*dir.DirStats, error) {
+func (p *Pod) DirectoryStat(podName, podFileOrDir string, printNames bool) (*dir.DirStats, error) {
 	if !p.isPodOpened(podName) {
 		return nil, ErrPodNotOpened
 	}
@@ -73,7 +73,7 @@ func (p *Pod) DirectoryStat(podName, podFileOrDir string) (*dir.DirStats, error)
 			return nil, err
 		}
 		podAddress := swarm.NewAddress(addr).String()
-		return info.getDirectory().DirStat(podName, path, dirInode, acc.String(), podAddress)
+		return info.getDirectory().DirStat(podName, path, dirInode, acc.String(), podAddress, printNames)
 	}
 	return nil, fmt.Errorf("directory not found")
 }

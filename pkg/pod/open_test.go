@@ -17,7 +17,9 @@ limitations under the License.
 package pod
 
 import (
+	"crypto/rand"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -90,9 +92,15 @@ func TestPod_LoginPod(t *testing.T) {
 		localFile, clean := createRandomFile(t, 540)
 		defer clean()
 		podDir := utils.PathSeperator + firstDir
-		err = pod1.CopyFromLocal(podName1, localFile, podDir, "100")
+		fileName := filepath.Base(localFile)
+		fd, err := os.Open(localFile)
 		if err != nil {
-			t.Fatalf("copyFromlocal failed: %s", err.Error())
+			t.Fatal(err)
+		}
+		defer fd.Close()
+		_, err = pod1.UploadFile(podName1, fileName, 540, fd, podDir, "100", "false")
+		if err != nil {
+			t.Fatalf("upload failed: %s", err.Error())
 		}
 		if !info.getFile().IsFileAlreadyPResent(dirPath + utils.PathSeperator + filepath.Base(localFile)) {
 			t.Fatalf("file not copied in pod")
@@ -135,4 +143,23 @@ func TestPod_LoginPod(t *testing.T) {
 		}
 	})
 
+}
+
+func createRandomFile(t *testing.T, size int) (string, func()) {
+	file, err := ioutil.TempFile("/tmp", "intos")
+	if err != nil {
+		t.Fatal(err)
+	}
+	bytes := make([]byte, size)
+	_, err = rand.Read(bytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = file.Write(bytes)
+	if err != nil {
+		t.Fatal(err)
+	}
+	clean := func() { os.Remove(file.Name()) }
+	fileName := file.Name()
+	return fileName, clean
 }

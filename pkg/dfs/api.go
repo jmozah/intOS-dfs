@@ -18,7 +18,6 @@ package dfs
 
 import (
 	"io"
-	"mime/multipart"
 	"net/http"
 
 	"github.com/jmozah/intOS-dfs/pkg/blockstore"
@@ -426,7 +425,7 @@ func (d *DfsAPI) ListDir(currentDir, sessionId string) ([]dir.DirOrFileEntry, er
 	return entries, nil
 }
 
-func (d *DfsAPI) DirectoryStat(directoryName, sessionId string) (*dir.DirStats, error) {
+func (d *DfsAPI) DirectoryStat(directoryName, sessionId string, printNames bool) (*dir.DirStats, error) {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(sessionId)
 	if ui == nil {
@@ -438,7 +437,7 @@ func (d *DfsAPI) DirectoryStat(directoryName, sessionId string) (*dir.DirStats, 
 		return nil, ErrPodNotOpen
 	}
 
-	ds, err := ui.GetPod().DirectoryStat(ui.GetPodName(), directoryName)
+	ds, err := ui.GetPod().DirectoryStat(ui.GetPodName(), directoryName, printNames)
 	if err != nil {
 		return nil, err
 	}
@@ -467,26 +466,6 @@ func (d *DfsAPI) ChangeDirectory(directoryName, sessionId string) (*pod.Info, er
 //
 // File related API's
 //
-
-func (d *DfsAPI) CopyFromLocal(localFile, podDir, blockSize, sessionId string) error {
-	// get the logged in user information
-	ui := d.users.GetLoggedInUserInfo(sessionId)
-	if ui == nil {
-		return ErrUserNotLoggedIn
-	}
-
-	// check if pod open
-	if ui.GetPodName() == "" {
-		return ErrPodNotOpen
-	}
-
-	err := ui.GetPod().CopyFromLocal(ui.GetPodName(), localFile, podDir, blockSize)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (d *DfsAPI) CopyToLocal(localDir, podFile, sessionId string) error {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(sessionId)
@@ -563,7 +542,7 @@ func (d *DfsAPI) FileStat(fileName, sessionId string) (*file.FileStats, error) {
 	return ds, nil
 }
 
-func (d *DfsAPI) UploadFile(fileName, sessionId string, fileSize int64, fd multipart.File, podDir, blockSize, compression string) (string, error) {
+func (d *DfsAPI) UploadFile(fileName, sessionId string, fileSize int64, fd io.Reader, podDir, blockSize, compression string) (string, error) {
 	// get the logged in user information
 	ui := d.users.GetLoggedInUserInfo(sessionId)
 	if ui == nil {

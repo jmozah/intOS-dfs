@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"path/filepath"
 	"runtime"
 	"sync"
@@ -61,6 +62,7 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 	var wg sync.WaitGroup
 	refMap := make(map[int]*FileBlock)
 	refMapMu := sync.RWMutex{}
+	var contentBytes []byte
 	for {
 		data := make([]byte, blockSize)
 		r, err := reader.Read(data)
@@ -77,10 +79,13 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 		}
 
 		// determine the content type from the first 512 bytes of the file
-		if i == 0 {
-			cBytes := bytes.NewReader(data[:512])
-			cReader := bufio.NewReader(cBytes)
-			meta.ContentType = f.GetContentType(cReader)
+		if len(contentBytes) < 512 {
+			contentBytes = append(contentBytes, data[:r]...)
+			if len(contentBytes) >= 512 {
+				cBytes := bytes.NewReader(contentBytes[:512])
+				cReader := bufio.NewReader(cBytes)
+				meta.ContentType = f.GetContentType(cReader)
+			}
 		}
 
 		wg.Add(1)
@@ -185,4 +190,12 @@ func compress(dataToCompress []byte, compression string, blockSize uint32) ([]by
 		return snappy.Encode(nil, dataToCompress), nil
 	}
 	return dataToCompress, nil
+}
+
+func (f *File) GetContentType(bufferReader *bufio.Reader) string {
+	buffer, err := bufferReader.Peek(512)
+	if err != nil && err != io.EOF {
+		return ""
+	}
+	return http.DetectContentType(buffer)
 }
