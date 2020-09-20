@@ -32,14 +32,18 @@ func NewSharingReference(b []byte, n int64) SharingReference {
 }
 
 func ParseSharingReference(s string) (a SharingReference, err error) {
-	if len(s) < (ReferenceLength*2)+1 {
+	refLen := ReferenceLength * 2
+	if len(s) > encryptedRefLength {
+		refLen = encryptedRefLength * 2
+	}
+	if len(s) < refLen+1 {
 		return a, fmt.Errorf("invalid reference length")
 	}
-	b, err := hex.DecodeString(s[:ReferenceLength*2])
+	b, err := hex.DecodeString(s[:refLen])
 	if err != nil {
 		return a, err
 	}
-	n, err := strconv.ParseInt(s[ReferenceLength*2:], 10, 64)
+	n, err := strconv.ParseInt(s[refLen:], 10, 64)
 	if err != nil {
 		return a, err
 	}

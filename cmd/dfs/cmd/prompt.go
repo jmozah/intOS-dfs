@@ -258,8 +258,10 @@ func executor(in string) {
 			currentPrompt = getCurrentPrompt()
 		case "ls":
 			users := dfsAPI.ListAllUsers()
-			for _, user := range users {
-				fmt.Println(user)
+			if users != nil {
+				for _, usr := range users {
+					fmt.Println(usr)
+				}
 			}
 			currentPrompt = getCurrentPrompt()
 		case "name":

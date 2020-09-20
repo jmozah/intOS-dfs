@@ -19,7 +19,8 @@ package utils
 import "encoding/hex"
 
 const (
-	ReferenceLength = 32
+	ReferenceLength    = 32
+	encryptedRefLength = 64
 )
 
 type Reference struct {

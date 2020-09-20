@@ -26,6 +26,9 @@ func (u *Users) ListAllUsers(dataDir string) []string {
 	destDir := filepath.Join(dataDir, userDirectoryName)
 	err := filepath.Walk(destDir,
 		func(path string, info os.FileInfo, err error) error {
+			if info == nil {
+				return nil
+			}
 			if info.Name() == userDirectoryName {
 				return nil
 			}
