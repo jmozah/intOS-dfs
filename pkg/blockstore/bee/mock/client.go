@@ -60,7 +60,7 @@ func (m *MockBeeClient) DownloadChunk(ctx context.Context, address []byte) (data
 	return nil, fmt.Errorf("error downloading data")
 }
 
-func (m *MockBeeClient) UploadBlob(data []byte, pin bool) (address []byte, err error) {
+func (m *MockBeeClient) UploadBlob(data []byte, pin bool, encrypt bool) (address []byte, err error) {
 	m.storerMu.Lock()
 	defer m.storerMu.Unlock()
 	address = make([]byte, 32)

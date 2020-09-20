@@ -104,12 +104,11 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 				}
 			}
 
-			addr, err := f.client.UploadBlob(uploadData, true)
+			addr, err := f.client.UploadBlob(uploadData, true, true)
 			if err != nil {
 				errC <- err
 				return
 			}
-
 			fileBlock := &FileBlock{
 				Name:           fmt.Sprintf("block-%05d", counter),
 				Size:           uint32(size),
@@ -148,7 +147,7 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 		return nil, err
 	}
 
-	addr, err := f.client.UploadBlob(fileInodeData, true)
+	addr, err := f.client.UploadBlob(fileInodeData, true, true)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +157,7 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 	if err != nil {
 		return nil, err
 	}
-	metaAddr, err := f.client.UploadBlob(fileMetaBytes, true)
+	metaAddr, err := f.client.UploadBlob(fileMetaBytes, true, true)
 	if err != nil {
 		return nil, err
 	}

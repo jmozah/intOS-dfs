@@ -801,7 +801,7 @@ func help() {
 
 	fmt.Println(" - cd <directory name>")
 	fmt.Println(" - ls ")
-	fmt.Println(" - download <destination directory in local fs, source file in pod>")
+	fmt.Println(" - download <relative path of source file in pod, destination dir in local fs>")
 	fmt.Println(" - upload <source file in local fs, destination directory in pod, block size (ex: 1Mb, 64Mb)>, compression true/false")
 	fmt.Println(" - share <file name> -  shares a file with another user")
 	fmt.Println(" - receive <sharing reference> <pod dir> - receives a file from another user")
