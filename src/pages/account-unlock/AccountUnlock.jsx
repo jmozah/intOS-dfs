@@ -57,7 +57,6 @@ export default function PasswordUnlock({open}) {
   }
 
   useEffect(() => {
-    console.log(system);
     if (system.unlocked) {
       history.push("/drive/root");
     }
