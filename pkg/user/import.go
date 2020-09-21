@@ -26,15 +26,12 @@ import (
 	"github.com/jmozah/intOS-dfs/pkg/feed"
 	f "github.com/jmozah/intOS-dfs/pkg/file"
 	"github.com/jmozah/intOS-dfs/pkg/pod"
+	"github.com/jmozah/intOS-dfs/pkg/utils"
 )
 
-func (u *Users) LoginUser(userName, passPhrase, dataDir string, client blockstore.Client, response http.ResponseWriter, sessionId string) error {
-	if u.IsUserLoggedIn(sessionId) {
-		return ErrUserAlreadyLoggedIn
-	}
-
-	if !u.IsUsernameAvailable(userName, dataDir) {
-		return ErrInvalidUserName
+func (u *Users) ImportUsingAddress(userName, passPhrase, addressString, dataDir string, client blockstore.Client, response http.ResponseWriter, sessionId string) error {
+	if u.IsUsernameAvailable(userName, dataDir) {
+		return ErrUserAlreadyPresent
 	}
 
 	acc := account.New(u.logger)
@@ -42,23 +39,24 @@ func (u *Users) LoginUser(userName, passPhrase, dataDir string, client blockstor
 	fd := feed.New(accountInfo, client, u.logger)
 	file := f.NewFile(userName, client, fd, accountInfo, u.logger)
 
-	// load address from userName
-	address, err := u.getAddressFromUserName(userName, dataDir)
-	if err != nil {
-		return err
-	}
+	address := utils.HexToAddress(addressString)
 
-	// load encrypted mnemonic from Swarm
+	// load the encrypted mnemonic and see if it is valid
 	encryptedMnemonic, err := u.getEncryptedMnemonic(userName, address, fd)
 	if err != nil {
 		return err
 	}
-
 	err = acc.LoadUserAccount(passPhrase, encryptedMnemonic)
 	if err != nil {
 		if err.Error() == "mnemonic is invalid" {
 			return ErrInvalidPassword
 		}
+		return err
+	}
+
+	// store the username -> address mapping locally
+	err = u.storeUserNameToAddressFileMapping(userName, dataDir, accountInfo.GetAddress())
+	if err != nil {
 		return err
 	}
 	dir := d.NewDirectory(userName, client, fd, accountInfo, file, u.logger)
@@ -78,42 +76,10 @@ func (u *Users) LoginUser(userName, passPhrase, dataDir string, client blockstor
 	}
 
 	// set cookie and add user to map
-	return u.Login(ui, response)
-}
-
-func (u *Users) Login(ui *Info, response http.ResponseWriter) error {
-	if response != nil {
-		err := cookie.SetSession(ui.GetSessionId(), response)
-		if err != nil {
-			return err
-		}
+	err = u.Login(ui, response)
+	if err != nil {
+		return err
 	}
-	u.addUserToMap(ui)
+
 	return nil
-}
-
-func (u *Users) Logout(sessionId string, response http.ResponseWriter) error {
-	yes := u.isUserPresentInMap(sessionId)
-	if !yes {
-		return ErrUserNotLoggedIn
-	}
-
-	// remove from the user map
-	u.removeUserFromMap(sessionId)
-	if response != nil {
-		cookie.ClearSession(response)
-	}
-	return nil
-}
-
-func (u *Users) IsUserLoggedIn(sessionId string) bool {
-	return u.isUserPresentInMap(sessionId)
-}
-
-func (u *Users) GetLoggedInUserInfo(sessionId string) *Info {
-	return u.getUserFromMap(sessionId)
-}
-
-func (u *Users) IsUserNameLoggedIn(userName string) bool {
-	return u.isUserNameInMap(userName)
 }

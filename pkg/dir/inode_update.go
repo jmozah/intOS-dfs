@@ -18,7 +18,6 @@ package dir
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/jmozah/intOS-dfs/pkg/utils"
@@ -33,7 +32,7 @@ func (d *Directory) UpdateDirectory(dirInode *DirInode) ([]byte, error) {
 
 	data, err := json.Marshal(dirInode)
 	if err != nil {
-		return nil, fmt.Errorf("could not marshall directory: %v", dirName)
+		return nil, err
 	}
 
 	curDir := path + utils.PathSeperator + dirName
@@ -43,7 +42,7 @@ func (d *Directory) UpdateDirectory(dirInode *DirInode) ([]byte, error) {
 	topic := utils.HashString(curDir)
 	_, err = d.getFeed().UpdateFeed(topic, d.getAccount().GetAddress(), data)
 	if err != nil {
-		return nil, fmt.Errorf("could not update feed for dir: %v", dirName)
+		return nil, err
 	}
 
 	d.AddToDirectoryMap(curDir, dirInode)

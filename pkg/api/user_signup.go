@@ -26,7 +26,7 @@ import (
 
 type UserSignupResponse struct {
 	Address  string `json:"address"`
-	Mnemonic string `json:"mnemonic"`
+	Mnemonic string `json:"mnemonic,omitempty"`
 }
 
 func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
@@ -34,27 +34,33 @@ func (h *Handler) UserSignupHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	mnemonic := r.FormValue("mnemonic") // this is optional
 	if user == "" {
-		h.logger.Errorf("signup: \"user\" argument missing")
-		jsonhttp.BadRequest(w, "signup: \"user\" argument missing")
+		h.logger.Errorf("user signup: \"user\" argument missing")
+		jsonhttp.BadRequest(w, "user signup: \"user\" argument missing")
 		return
 	}
 	if password == "" {
-		h.logger.Errorf("signup: \"password\" argument missing")
-		jsonhttp.BadRequest(w, "signup: \"password\" argument missing")
+		h.logger.Errorf("user signup: \"password\" argument missing")
+		jsonhttp.BadRequest(w, "user signup: \"password\" argument missing")
 		return
 	}
 
 	// create user
-	address, mnemonic, err := h.dfsAPI.CreateUser(user, password, mnemonic, w, "")
+	address, createdMnemonic, err := h.dfsAPI.CreateUser(user, password, mnemonic, w, "")
 	if err != nil {
 		if err == u.ErrUserAlreadyPresent {
-			h.logger.Errorf("signup: %v", err)
-			jsonhttp.BadRequest(w, "signup: "+err.Error())
+			h.logger.Errorf("user signup: %v", err)
+			jsonhttp.BadRequest(w, "user signup: "+err.Error())
 			return
 		}
-		h.logger.Errorf("signup: %v", err)
-		jsonhttp.InternalServerError(w, "signup: "+err.Error())
+		h.logger.Errorf("user signup: %v", err)
+		jsonhttp.InternalServerError(w, "user signup: "+err.Error())
 		return
+	}
+
+	if mnemonic == "" {
+		mnemonic = createdMnemonic
+	} else {
+		mnemonic = ""
 	}
 
 	// send the response

@@ -34,26 +34,26 @@ func (h *Handler) PodOpenHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	pod := r.FormValue("pod")
 	if password == "" {
-		h.logger.Errorf("open pod: \"password\" argument missing")
-		jsonhttp.BadRequest(w, "open pod: \"password\" argument missing")
+		h.logger.Errorf("pod open: \"password\" argument missing")
+		jsonhttp.BadRequest(w, "pod open: \"password\" argument missing")
 		return
 	}
 	if pod == "" {
-		h.logger.Errorf("open pod: \"pod\" argument missing")
-		jsonhttp.BadRequest(w, "open pod: \"pod\" argument missing")
+		h.logger.Errorf("pod open: \"pod\" argument missing")
+		jsonhttp.BadRequest(w, "pod open: \"pod\" argument missing")
 		return
 	}
 
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("open pod: invalid cookie: %v", err)
+		h.logger.Errorf("pod open: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("open pod: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "open pod: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("pod open: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "pod open: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
@@ -62,12 +62,12 @@ func (h *Handler) PodOpenHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrInvalidPodName {
-			h.logger.Errorf("open pod: %v", err)
-			jsonhttp.BadRequest(w, "open pod: "+err.Error())
+			h.logger.Errorf("pod open: %v", err)
+			jsonhttp.BadRequest(w, "pod open: "+err.Error())
 			return
 		}
-		h.logger.Errorf("open pod: %v", err)
-		jsonhttp.InternalServerError(w, "open pod: "+err.Error())
+		h.logger.Errorf("pod open: %v", err)
+		jsonhttp.InternalServerError(w, "pod open: "+err.Error())
 		return
 	}
 

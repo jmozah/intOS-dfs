@@ -18,7 +18,6 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/utils"
@@ -42,24 +41,24 @@ func (u *Users) CreateSettingsFeeds(rootAddress utils.Address, userInfo *Info) e
 	name := &Name{}
 	data, err := json.Marshal(&name)
 	if err != nil {
-		return fmt.Errorf("create name feed: %w", err)
+		return err
 	}
 	topic := utils.HashString(nameFeedName)
 	_, err = userInfo.GetFeed().CreateFeed(topic, rootAddress, data)
 	if err != nil {
-		return fmt.Errorf("create name feed: %w", err)
+		return err
 	}
 
 	// create contacts feed
 	contacts := &Contacts{}
 	data, err = json.Marshal(&contacts)
 	if err != nil {
-		return fmt.Errorf("create contacts feed: %w", err)
+		return err
 	}
 	topic = utils.HashString(contactsFeedName)
 	_, err = userInfo.GetFeed().CreateFeed(topic, rootAddress, data)
 	if err != nil {
-		return fmt.Errorf("create contacts feed: %w", err)
+		return err
 	}
 
 	// create avatar feed
@@ -67,7 +66,7 @@ func (u *Users) CreateSettingsFeeds(rootAddress utils.Address, userInfo *Info) e
 	data = make([]byte, 0)
 	_, err = userInfo.GetFeed().CreateFeed(topic, rootAddress, data)
 	if err != nil {
-		return fmt.Errorf("create avatar feed: %w", err)
+		return err
 	}
 
 	return nil
@@ -78,40 +77,40 @@ func (u *Users) CreateSharingFeeds(rootAddress utils.Address, userInfo *Info) er
 	inboxFile := &Inbox{Entries: make([]SharingEntry, 0)}
 	inboxFileBytes, err := json.Marshal(&inboxFile)
 	if err != nil {
-		return fmt.Errorf("create sharing inbox: %w", err)
+		return err
 	}
 
 	// store the new inbox file data
-	newInboxRef, err := u.client.UploadBlob(inboxFileBytes, true)
+	newInboxRef, err := u.client.UploadBlob(inboxFileBytes, true, true)
 	if err != nil {
-		return fmt.Errorf("create sharing inbox: %w", err)
+		return err
 	}
 
 	// store the inbox reference in to inbox feed
 	topic := utils.HashString(inboxFeedName)
 	_, err = userInfo.GetFeed().CreateFeed(topic, rootAddress, newInboxRef)
 	if err != nil {
-		return fmt.Errorf("create sharing inbox: %w", err)
+		return err
 	}
 
 	// create outbox feed data
 	outFile := &Outbox{Entries: make([]SharingEntry, 0)}
 	outboxFileBytes, err := json.Marshal(&outFile)
 	if err != nil {
-		return fmt.Errorf("create sharing inbox: %w", err)
+		return err
 	}
 
 	// store the new outbox file data
-	newOutboxRef, err := u.client.UploadBlob(outboxFileBytes, true)
+	newOutboxRef, err := u.client.UploadBlob(outboxFileBytes, true, true)
 	if err != nil {
-		return fmt.Errorf("create sharing outbox: %w", err)
+		return err
 	}
 
 	// store the outbox reference in to ourbox feed
 	topic = utils.HashString(outboxFeedName)
 	_, err = userInfo.GetFeed().CreateFeed(topic, rootAddress, newOutboxRef)
 	if err != nil {
-		return fmt.Errorf("create sharing inbox: %w", err)
+		return err
 	}
 	return nil
 }

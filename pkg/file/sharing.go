@@ -29,7 +29,7 @@ func (f *File) GetFileReference(podFile string) ([]byte, string, error) {
 	// Get the meta of the file to share
 	meta := f.GetFromFileMap(podFile)
 	if meta == nil {
-		return nil, "", fmt.Errorf("share: file not found in dfs")
+		return nil, "", fmt.Errorf("file not found in dfs")
 	}
 	return meta.MetaReference, meta.Name, nil
 }
@@ -37,16 +37,16 @@ func (f *File) GetFileReference(podFile string) ([]byte, string, error) {
 func (f *File) AddFileToPath(filePath, metaHexRef string) error {
 	metaReferenace, err := utils.ParseHexReference(metaHexRef)
 	if err != nil {
-		return fmt.Errorf("receive: %w", err)
+		return err
 	}
 	data, respCode, err := f.getClient().DownloadBlob(metaReferenace.Bytes())
 	if err != nil || respCode != http.StatusOK {
-		return fmt.Errorf("receive: %w", err)
+		return err
 	}
 	meta := &m.FileMetaData{}
 	err = json.Unmarshal(data, meta)
 	if err != nil {
-		return fmt.Errorf("receive: %w", err)
+		return err
 	}
 	meta.MetaReference = metaReferenace.Bytes()
 	f.AddToFileMap(filePath, meta)

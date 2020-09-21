@@ -25,12 +25,12 @@ import (
 
 func (p *Pod) DownloadFile(podName, podFile string) (io.ReadCloser, string, string, error) {
 	if !p.isPodOpened(podName) {
-		return nil, "", "", fmt.Errorf("copyToLocal: login to pod to do this operation")
+		return nil, "", "", fmt.Errorf("login to pod to do this operation")
 	}
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return nil, "", "", fmt.Errorf("copyToLocal: %w", err)
+		return nil, "", "", err
 	}
 
 	var path string
@@ -41,12 +41,12 @@ func (p *Pod) DownloadFile(podName, podFile string) (io.ReadCloser, string, stri
 	}
 
 	if !podInfo.getFile().IsFileAlreadyPResent(path) {
-		return nil, "", "", fmt.Errorf("copyToLocal: file not present in pod")
+		return nil, "", "", fmt.Errorf("file not present in pod")
 	}
 
 	reader, ref, size, err := podInfo.getFile().Download(path)
 	if err != nil {
-		return nil, "", "", fmt.Errorf("copyToLocal: %w", err)
+		return nil, "", "", err
 	}
 	return reader, ref, size, nil
 }

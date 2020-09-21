@@ -17,7 +17,6 @@ limitations under the License.
 package pod
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
@@ -54,7 +53,7 @@ func (p *Pod) GetName(inode *d.DirInode) string {
 func (p *Pod) GetAccountInfo(podName string) (*account.AccountInfo, error) {
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return nil, fmt.Errorf("get account: %w", err)
+		return nil, err
 	}
 	return podInfo.getAccountInfo(), nil
 }

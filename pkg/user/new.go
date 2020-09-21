@@ -17,7 +17,6 @@ limitations under the License.
 package user
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
@@ -33,14 +32,26 @@ func (u *Users) CreateNewUser(userName, passPhrase, mnemonic, dataDir string, cl
 	if u.IsUsernameAvailable(userName, dataDir) {
 		return "", "", nil, ErrUserAlreadyPresent
 	}
-	acc := account.New(userName, dataDir, u.logger)
-	accountInfo := acc.GetAccountInfo(account.UserAccountIndex)
+	acc := account.New(u.logger)
+	accountInfo := acc.GetUserAccountInfo()
 	fd := feed.New(accountInfo, client, u.logger)
 	file := f.NewFile(userName, client, fd, accountInfo, u.logger)
 
-	mnemonic, err := acc.CreateUserAccount(passPhrase, mnemonic)
+	mnemonic, encryptedMnemonic, err := acc.CreateUserAccount(passPhrase, mnemonic)
 	if err != nil {
-		return "", "", nil, fmt.Errorf("user create:: %w", err)
+		return "", "", nil, err
+	}
+
+	// store the username -> address mapping locally
+	err = u.storeUserNameToAddressFileMapping(userName, dataDir, accountInfo.GetAddress())
+	if err != nil {
+		return "", "", nil, err
+	}
+
+	// store the ecnrypted mnemonic in Swarm
+	err = u.uploadEncryptedMnemonic(userName, accountInfo.GetAddress(), encryptedMnemonic, fd)
+	if err != nil {
+		return "", "", nil, err
 	}
 
 	dir := d.NewDirectory(userName, client, fd, accountInfo, file, u.logger)

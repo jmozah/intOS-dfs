@@ -32,20 +32,14 @@ import (
 )
 
 func TestPod_CopyToLocal(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "pod")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(tempDir)
-
 	mockClient := mock.NewMockBeeClient()
 	logger := logging.New(ioutil.Discard, 0)
-	acc := account.New("user1", tempDir, logger)
-	_, err = acc.CreateUserAccount("password", "")
+	acc := account.New(logger)
+	_, _, err := acc.CreateUserAccount("password", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	fd := feed.New(acc.GetAccountInfo(account.UserAccountIndex), mockClient, logger)
+	fd := feed.New(acc.GetUserAccountInfo(), mockClient, logger)
 	pod1 := NewPod(mockClient, fd, acc, logger)
 
 	podName1 := "test1"
@@ -166,17 +160,35 @@ func createRandomFileInPod(t *testing.T, size int, pod1 *Pod, podName string, po
 		t.Fatal(err)
 	}
 
+	err = file.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fn := file.Name()
 	podDir = strings.TrimPrefix(podDir, utils.PathSeperator+podName)
 	if podDir == "" {
 		podDir = "."
 	}
 
-	err = pod1.CopyFromLocal(podName, file.Name(), podDir, "100")
+	fd, err := os.Open(fn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fName := filepath.Base(file.Name())
+	_, err = pod1.UploadFile(podName, fName, int64(size), fd, podDir, "100", "false")
 	if err != nil {
 		t.Fatalf("createRandomFileInPod failed: %s", err.Error())
 	}
+	err = fd.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	os.Remove(file.Name())
+	err = os.Remove(file.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if podDir == "." {
 		podDir = ""

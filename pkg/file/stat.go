@@ -48,17 +48,17 @@ type Blocks struct {
 func (f *File) FileStat(podName, fileName, account string) (*FileStats, error) {
 	meta := f.GetFromFileMap(fileName)
 	if meta == nil {
-		return nil, fmt.Errorf("file stat: file not found")
+		return nil, fmt.Errorf("file not found")
 	}
 
 	fileInodeBytes, _, err := f.getClient().DownloadBlob(meta.InodeAddress)
 	if err != nil {
-		return nil, fmt.Errorf("file stat: could not find file Inode")
+		return nil, err
 	}
 	var fileInode FileINode
 	err = json.Unmarshal(fileInodeBytes, &fileInode)
 	if err != nil {
-		return nil, fmt.Errorf("stat: file Inode unmarshall error: %w", err)
+		return nil, err
 	}
 
 	var fileBlocks []Blocks

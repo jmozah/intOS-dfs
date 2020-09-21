@@ -78,7 +78,7 @@ func NewHandler(accountInfo *account.AccountInfo, client blockstore.Client, hash
 
 func (h *Handler) update(req *Request) ([]byte, error) {
 	if req.idAddr.Equal(swarm.ZeroAddress) || req.binaryData == nil {
-		return nil, fmt.Errorf("feed update: invlaid address or chunk data")
+		return nil, fmt.Errorf("invlaid address or chunk data")
 	}
 	ch := swarm.NewChunk(req.idAddr, req.binaryData)
 

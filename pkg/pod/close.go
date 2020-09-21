@@ -16,10 +16,6 @@ limitations under the License.
 
 package pod
 
-import (
-	"fmt"
-)
-
 func (p *Pod) ClosePod(podName string) error {
 	if !p.isPodOpened(podName) {
 		return ErrPodNotOpened
@@ -27,7 +23,7 @@ func (p *Pod) ClosePod(podName string) error {
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return fmt.Errorf("logout pod: %w", err)
+		return err
 	}
 
 	p.removePodFromPodMap(podName)

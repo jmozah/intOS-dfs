@@ -30,7 +30,7 @@ func (p *Pod) OpenPod(podName, passPhrase string) (*Info, error) {
 	// check if pods is present and get the index of the pod
 	pods, err := p.loadUserPods()
 	if err != nil {
-		return nil, fmt.Errorf("open pod: %w", err)
+		return nil, err
 	}
 	if !p.checkIfPodPresent(pods, podName) {
 		return nil, ErrInvalidPodName
@@ -38,7 +38,7 @@ func (p *Pod) OpenPod(podName, passPhrase string) (*Info, error) {
 
 	index := p.getIndex(pods, podName)
 	if index == -1 {
-		return nil, fmt.Errorf("open pod: pod does not exist")
+		return nil, fmt.Errorf("pod does not exist")
 	}
 
 	// Create pod account and other data structures
@@ -47,14 +47,17 @@ func (p *Pod) OpenPod(podName, passPhrase string) (*Info, error) {
 	if err != nil {
 		return nil, err
 	}
-	accountInfo := p.acc.GetAccountInfo(index)
+	accountInfo, err := p.acc.GetPodAccountInfo(index)
+	if err != nil {
+		return nil, err
+	}
 	file := f.NewFile(podName, p.client, p.fd, accountInfo, p.logger)
 	dir := d.NewDirectory(podName, p.client, p.fd, accountInfo, file, p.logger)
 
 	// get the pod's inode
 	_, dirInode, err := dir.GetDirNode(utils.PathSeperator+podName, p.fd, accountInfo)
 	if err != nil {
-		return nil, fmt.Errorf("login pod: %w", err)
+		return nil, err
 	}
 
 	// create the pod info and store it in the podMap
@@ -76,7 +79,7 @@ func (p *Pod) OpenPod(podName, passPhrase string) (*Info, error) {
 	// sync the pod's files and directories
 	err = p.SyncPod(podName)
 	if err != nil {
-		return nil, fmt.Errorf("open pod: %s ", podName)
+		return nil, err
 	}
 
 	return podInfo, nil

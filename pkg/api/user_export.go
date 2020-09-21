@@ -22,38 +22,36 @@ import (
 	"resenje.org/jsonhttp"
 
 	"github.com/jmozah/intOS-dfs/pkg/cookie"
-	"github.com/jmozah/intOS-dfs/pkg/dfs"
-	p "github.com/jmozah/intOS-dfs/pkg/pod"
 )
 
-func (h *Handler) PodSyncHandler(w http.ResponseWriter, r *http.Request) {
+type UserExportResponse struct {
+	Name    string `json:"name"`
+	Address string `json:"address"`
+}
+
+func (h *Handler) ExportUserHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("pod sync: invalid cookie: %v", err)
+		h.logger.Errorf("user export: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("pod sync: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "pod sync: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("user export: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "save contact: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
-	// fetch pods and list them
-	err = h.dfsAPI.SyncPod(sessionId)
+	name, address, err := h.dfsAPI.ExportUser(sessionId)
 	if err != nil {
-		if err == dfs.ErrPodNotOpen || err == dfs.ErrUserNotLoggedIn ||
-			err == p.ErrInvalidPodName ||
-			err == p.ErrTooLongPodName ||
-			err == p.ErrPodNotOpened {
-			h.logger.Errorf("pod sync: %v", err)
-			jsonhttp.BadRequest(w, "pod sync: "+err.Error())
-			return
-		}
-		h.logger.Errorf("pod sync: %v", err)
-		jsonhttp.InternalServerError(w, "pod sync: "+err.Error())
+		h.logger.Errorf("user export: %v", err)
+		jsonhttp.InternalServerError(w, "user export: "+err.Error())
 		return
 	}
-	jsonhttp.OK(w, "pod synced successfully")
+
+	jsonhttp.OK(w, &UserExportResponse{
+		Name:    name,
+		Address: address,
+	})
 }

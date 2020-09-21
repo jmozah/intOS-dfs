@@ -31,12 +31,12 @@ import (
 
 func (p *Pod) RemoveFile(podName string, podFile string) error {
 	if !p.isPodOpened(podName) {
-		return fmt.Errorf("rm: login to pod to do this operation")
+		return fmt.Errorf("login to pod to do this operation")
 	}
 
 	podInfo, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return fmt.Errorf("rm: %w", err)
+		return err
 	}
 	dir := podInfo.getDirectory()
 
@@ -48,12 +48,12 @@ func (p *Pod) RemoveFile(podName string, podFile string) error {
 	}
 
 	if !podInfo.getFile().IsFileAlreadyPResent(path) {
-		return fmt.Errorf("rm: file not present in pod")
+		return fmt.Errorf("file not present in pod")
 	}
 
 	_, dirInode, err := dir.GetDirNode(gopath.Dir(path), podInfo.getFeed(), podInfo.getAccountInfo())
 	if err != nil {
-		return fmt.Errorf("error while fetching pod info: %w", err)
+		return err
 	}
 
 	// remove the file
@@ -84,13 +84,13 @@ func (p *Pod) RemoveFile(podName string, podFile string) error {
 	dirInode.Meta.ModificationTime = time.Now().Unix()
 	topic, err := dir.UpdateDirectory(dirInode)
 	if err != nil {
-		return fmt.Errorf("rm: error updating directory: %w", err)
+		return err
 	}
 
 	if path != podInfo.GetCurrentPodPathAndName() {
 		err = p.UpdateTillThePod(podName, podInfo.getDirectory(), topic, gopath.Dir(path), true)
 		if err != nil {
-			return fmt.Errorf("rm: error updating directory: %w", err)
+			return err
 		}
 	}
 	return nil

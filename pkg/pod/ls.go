@@ -17,7 +17,6 @@ limitations under the License.
 package pod
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/jmozah/intOS-dfs/pkg/dir"
@@ -27,7 +26,7 @@ import (
 func (p *Pod) ListPods() ([]string, error) {
 	pods, err := p.loadUserPods()
 	if err != nil {
-		return nil, fmt.Errorf("list pods: %w", err)
+		return nil, err
 	}
 
 	var listPods []string
@@ -44,7 +43,7 @@ func (p *Pod) ListEntiesInDir(podName, dirName string) ([]dir.DirOrFileEntry, er
 
 	info, err := p.GetPodInfoFromPodMap(podName)
 	if err != nil {
-		return nil, fmt.Errorf("ls: %w", err)
+		return nil, err
 	}
 
 	directory := info.getDirectory()

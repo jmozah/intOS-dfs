@@ -30,13 +30,13 @@ func (h *Handler) PodCloseHandler(w http.ResponseWriter, r *http.Request) {
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("close pod: invalid cookie: %v", err)
+		h.logger.Errorf("pod close: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("close pod: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "close pod: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("pod close: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "pod close: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
@@ -45,12 +45,12 @@ func (h *Handler) PodCloseHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == dfs.ErrPodNotOpen || err == dfs.ErrUserNotLoggedIn ||
 			err == p.ErrPodNotOpened {
-			h.logger.Errorf("close pod: %v", err)
-			jsonhttp.BadRequest(w, "close pod: "+err.Error())
+			h.logger.Errorf("pod close: %v", err)
+			jsonhttp.BadRequest(w, "pod close: "+err.Error())
 			return
 		}
-		h.logger.Errorf("close pod: %v", err)
-		jsonhttp.InternalServerError(w, "close pod: "+err.Error())
+		h.logger.Errorf("pod close: %v", err)
+		jsonhttp.InternalServerError(w, "pod close: "+err.Error())
 		return
 	}
 	jsonhttp.OK(w, "pod closed successfully")

@@ -37,34 +37,34 @@ type SharingReference struct {
 func (h *Handler) FileShareHandler(w http.ResponseWriter, r *http.Request) {
 	podFile := r.FormValue("file")
 	if podFile == "" {
-		h.logger.Errorf("share: \"file\" argument missing")
-		jsonhttp.BadRequest(w, "share: \"file\" argument missing")
+		h.logger.Errorf("file share: \"file\" argument missing")
+		jsonhttp.BadRequest(w, "file share: \"file\" argument missing")
 		return
 	}
 	destinationRef := r.FormValue("to")
 	if destinationRef == "" {
-		h.logger.Errorf("share: \"to\" argument missing")
-		jsonhttp.BadRequest(w, "share: \"to\" argument missing")
+		h.logger.Errorf("file share: \"to\" argument missing")
+		jsonhttp.BadRequest(w, "file share: \"to\" argument missing")
 		return
 	}
 
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("share: invalid cookie: %v", err)
+		h.logger.Errorf("file share: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("share: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "share: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("file share: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "file share: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	sharingRef, err := h.dfsAPI.ShareFile(podFile, destinationRef, sessionId)
 	if err != nil {
-		h.logger.Errorf("share: %v", err)
-		jsonhttp.InternalServerError(w, "share: "+err.Error())
+		h.logger.Errorf("file share: %v", err)
+		jsonhttp.InternalServerError(w, "file share: "+err.Error())
 		return
 	}
 
@@ -77,42 +77,42 @@ func (h *Handler) FileShareHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) FileReceiveHandler(w http.ResponseWriter, r *http.Request) {
 	sharingRefString := r.FormValue("ref")
 	if sharingRefString == "" {
-		h.logger.Errorf("receive: \"ref\" argument missing")
-		jsonhttp.BadRequest(w, "receive: \"ref\" argument missing")
+		h.logger.Errorf("file receive: \"ref\" argument missing")
+		jsonhttp.BadRequest(w, "file receive: \"ref\" argument missing")
 		return
 	}
 
 	dir := r.FormValue("dir")
 	if dir == "" {
-		h.logger.Errorf("receive: \"dir\" argument missing")
-		jsonhttp.BadRequest(w, "receive: \"dir\" argument missing")
+		h.logger.Errorf("file receive: \"dir\" argument missing")
+		jsonhttp.BadRequest(w, "file receive: \"dir\" argument missing")
 		return
 	}
 
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("receive: invalid cookie: %v", err)
+		h.logger.Errorf("file receive: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("receive: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "share: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("file receive: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "file receive: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	sharingRef, err := utils.ParseSharingReference(sharingRefString)
 	if err != nil {
-		h.logger.Errorf("receive: invalid reference: ", err)
-		jsonhttp.BadRequest(w, "receive: invalid reference:"+err.Error())
+		h.logger.Errorf("file receive: invalid reference: ", err)
+		jsonhttp.BadRequest(w, "file receive: invalid reference:"+err.Error())
 		return
 	}
 
 	filePath, fileRef, err := h.dfsAPI.ReceiveFile(sessionId, sharingRef, dir)
 	if err != nil {
-		h.logger.Errorf("receive: %v", err)
-		jsonhttp.InternalServerError(w, "receive: "+err.Error())
+		h.logger.Errorf("file receive: %v", err)
+		jsonhttp.InternalServerError(w, "file receive: "+err.Error())
 		return
 	}
 
@@ -126,35 +126,35 @@ func (h *Handler) FileReceiveHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) FileReceiveInfoHandler(w http.ResponseWriter, r *http.Request) {
 	sharingRefString := r.FormValue("ref")
 	if sharingRefString == "" {
-		h.logger.Errorf("receive info: \"ref\" argument missing")
-		jsonhttp.BadRequest(w, "receive: \"ref\" argument missing")
+		h.logger.Errorf("file receive info: \"ref\" argument missing")
+		jsonhttp.BadRequest(w, "file receive info: \"ref\" argument missing")
 		return
 	}
 
 	// get values from cookie
 	sessionId, err := cookie.GetSessionIdFromCookie(r)
 	if err != nil {
-		h.logger.Errorf("receive info: invalid cookie: %v", err)
+		h.logger.Errorf("file receive info: invalid cookie: %v", err)
 		jsonhttp.BadRequest(w, ErrInvalidCookie)
 		return
 	}
 	if sessionId == "" {
-		h.logger.Errorf("receive info: \"cookie-id\" parameter missing in cookie")
-		jsonhttp.BadRequest(w, "share: \"cookie-id\" parameter missing in cookie")
+		h.logger.Errorf("file receive info: \"cookie-id\" parameter missing in cookie")
+		jsonhttp.BadRequest(w, "file receive info: \"cookie-id\" parameter missing in cookie")
 		return
 	}
 
 	sharingRef, err := utils.ParseSharingReference(sharingRefString)
 	if err != nil {
-		h.logger.Errorf("receive info: invalid reference: ", err)
-		jsonhttp.BadRequest(w, "receive info: invalid reference:"+err.Error())
+		h.logger.Errorf("file receive info: invalid reference: ", err)
+		jsonhttp.BadRequest(w, "file receive info: invalid reference:"+err.Error())
 		return
 	}
 
 	receiveInfo, err := h.dfsAPI.ReceiveInfo(sessionId, sharingRef)
 	if err != nil {
-		h.logger.Errorf("receive: %v", err)
-		jsonhttp.InternalServerError(w, "receive: "+err.Error())
+		h.logger.Errorf("file receive info: %v", err)
+		jsonhttp.InternalServerError(w, "file receive info: "+err.Error())
 		return
 	}
 

@@ -36,9 +36,9 @@ type DirStats struct {
 	NoOfFiles        string `json:"no_of_files"`
 }
 
-func (d *Directory) DirStat(podName, dirName string, dirInode *DirInode, account, podAddr string) (*DirStats, error) {
+func (d *Directory) DirStat(podName, dirName string, dirInode *DirInode, account, podAddr string, printNames bool) (*DirStats, error) {
 	meta := dirInode.Meta
-	fl, dl := d.ListDirOnlyNames(podName, dirName, false)
+	fl, dl := d.ListDirOnlyNames(podName, dirName, printNames)
 
 	files := 0
 	dirs := 0
@@ -62,7 +62,8 @@ func (d *Directory) DirStat(podName, dirName string, dirInode *DirInode, account
 		DirName:          meta.Name,
 		CreationTime:     strconv.FormatInt(meta.CreationTime, 10),
 		ModificationTime: strconv.FormatInt(meta.ModificationTime, 10),
-		NoOfDirectories:  string(rune(len(dl))),
-		NoOfFiles:        string(rune(len(fl))),
+		AccessTime:       strconv.FormatInt(meta.AccessTime, 10),
+		NoOfDirectories:  strconv.FormatInt(int64(len(dl)), 10),
+		NoOfFiles:        strconv.FormatInt(int64(len(fl)), 10),
 	}, nil
 }

@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"path/filepath"
 	"runtime"
 	"sync"
@@ -61,6 +62,7 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 	var wg sync.WaitGroup
 	refMap := make(map[int]*FileBlock)
 	refMapMu := sync.RWMutex{}
+	var contentBytes []byte
 	for {
 		data := make([]byte, blockSize)
 		r, err := reader.Read(data)
@@ -68,19 +70,22 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 		if err != nil {
 			if err == io.EOF {
 				if totalLength < uint64(fileSize) {
-					return nil, fmt.Errorf("uplaod: invalid file length of file data received")
+					return nil, fmt.Errorf("invalid file length of file data received")
 				}
 				break
 			} else {
-				return nil, fmt.Errorf("uplaod: %w", err)
+				return nil, err
 			}
 		}
 
 		// determine the content type from the first 512 bytes of the file
-		if i == 0 {
-			cBytes := bytes.NewReader(data[:512])
-			cReader := bufio.NewReader(cBytes)
-			meta.ContentType = f.GetContentType(cReader)
+		if len(contentBytes) < 512 {
+			contentBytes = append(contentBytes, data[:r]...)
+			if len(contentBytes) >= 512 {
+				cBytes := bytes.NewReader(contentBytes[:512])
+				cReader := bufio.NewReader(cBytes)
+				meta.ContentType = f.GetContentType(cReader)
+			}
 		}
 
 		wg.Add(1)
@@ -99,12 +104,11 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 				}
 			}
 
-			addr, err := f.client.UploadBlob(uploadData, true)
+			addr, err := f.client.UploadBlob(uploadData, true, true)
 			if err != nil {
 				errC <- err
 				return
 			}
-
 			fileBlock := &FileBlock{
 				Name:           fmt.Sprintf("block-%05d", counter),
 				Size:           uint32(size),
@@ -130,7 +134,7 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 		break
 	case err := <-errC:
 		close(errC)
-		return nil, fmt.Errorf("uplaod: %w", err)
+		return nil, err
 	}
 
 	// copy the block references to the fileInode
@@ -140,22 +144,22 @@ func (f *File) Upload(fd io.Reader, fileName string, fileSize int64, blockSize u
 
 	fileInodeData, err := json.Marshal(fileINode)
 	if err != nil {
-		return nil, fmt.Errorf("uplaod: %v", fileName)
+		return nil, err
 	}
 
-	addr, err := f.client.UploadBlob(fileInodeData, true)
+	addr, err := f.client.UploadBlob(fileInodeData, true, true)
 	if err != nil {
-		return nil, fmt.Errorf("uplaod: %w", err)
+		return nil, err
 	}
 
 	meta.InodeAddress = addr
 	fileMetaBytes, err := json.Marshal(meta)
 	if err != nil {
-		return nil, fmt.Errorf("uplaod: %v", fileName)
+		return nil, err
 	}
-	metaAddr, err := f.client.UploadBlob(fileMetaBytes, true)
+	metaAddr, err := f.client.UploadBlob(fileMetaBytes, true, true)
 	if err != nil {
-		return nil, fmt.Errorf("uplaod: %w", err)
+		return nil, err
 	}
 	meta.MetaReference = metaAddr // the self address is stored to share this file easily
 	f.AddToFileMap(filePath, &meta)
@@ -185,4 +189,12 @@ func compress(dataToCompress []byte, compression string, blockSize uint32) ([]by
 		return snappy.Encode(nil, dataToCompress), nil
 	}
 	return dataToCompress, nil
+}
+
+func (f *File) GetContentType(bufferReader *bufio.Reader) string {
+	buffer, err := bufferReader.Peek(512)
+	if err != nil && err != io.EOF {
+		return ""
+	}
+	return http.DetectContentType(buffer)
 }

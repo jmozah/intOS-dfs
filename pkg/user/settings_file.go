@@ -18,7 +18,6 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/jmozah/intOS-dfs/pkg/account"
 	"github.com/jmozah/intOS-dfs/pkg/feed"
@@ -55,12 +54,12 @@ func (u *Users) SaveName(firstName, lastName, middleName, surName string, userIn
 	rootAddress := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
 	data, err := getFeedData(nameFeedName, rootAddress, userInfo.GetFeed())
 	if err != nil {
-		return fmt.Errorf("save name: %w", err)
+		return err
 	}
 	name := &Name{}
 	err = json.Unmarshal(data, name)
 	if err != nil {
-		return fmt.Errorf("save name: %w", err)
+		return err
 	}
 	if firstName != "" {
 		name.FirstName = firstName
@@ -77,7 +76,7 @@ func (u *Users) SaveName(firstName, lastName, middleName, surName string, userIn
 
 	nameData, err := json.Marshal(name)
 	if err != nil {
-		return fmt.Errorf("save name: %w", err)
+		return err
 	}
 	return putFeedData(nameFeedName, rootAddress, nameData, userInfo.GetFeed())
 }
@@ -86,12 +85,12 @@ func (u *Users) GetName(userInfo *Info) (*Name, error) {
 	rootAddress := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
 	data, err := getFeedData(nameFeedName, rootAddress, userInfo.GetFeed())
 	if err != nil {
-		return nil, fmt.Errorf("get name: %w", err)
+		return nil, err
 	}
 	name := &Name{}
 	err = json.Unmarshal(data, name)
 	if err != nil {
-		return nil, fmt.Errorf("get name: %w", err)
+		return nil, err
 	}
 	return name, nil
 }
@@ -100,12 +99,12 @@ func (u *Users) SaveContacts(phone, mobile string, address *Address, userInfo *I
 	rootAddress := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
 	data, err := getFeedData(contactsFeedName, rootAddress, userInfo.GetFeed())
 	if err != nil {
-		return fmt.Errorf("save contacts: %w", err)
+		return err
 	}
 	contacts := &Contacts{}
 	err = json.Unmarshal(data, contacts)
 	if err != nil {
-		return fmt.Errorf("save contacts: %w", err)
+		return err
 	}
 
 	if phone != "" {
@@ -122,7 +121,7 @@ func (u *Users) SaveContacts(phone, mobile string, address *Address, userInfo *I
 	}
 	contactData, err := json.Marshal(contacts)
 	if err != nil {
-		return fmt.Errorf("save name: %w", err)
+		return err
 	}
 	return putFeedData(contactsFeedName, rootAddress, contactData, userInfo.GetFeed())
 }
@@ -131,12 +130,12 @@ func (u *Users) GetContacts(userInfo *Info) (*Contacts, error) {
 	rootReference := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
 	data, err := getFeedData(contactsFeedName, rootReference, userInfo.GetFeed())
 	if err != nil {
-		return nil, fmt.Errorf("get contacts: %w", err)
+		return nil, err
 	}
 	contacts := &Contacts{}
 	err = json.Unmarshal(data, contacts)
 	if err != nil {
-		return nil, fmt.Errorf("get contacts: %w", err)
+		return nil, err
 	}
 	return contacts, nil
 }

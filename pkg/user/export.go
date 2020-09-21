@@ -14,19 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package datapod
+package user
 
-var (
-	SharedFileMetaVersion uint8 = 1
-)
-
-type SharedFileMetaData struct {
-	Version      uint8
-	Owner        string
-	Name         string
-	FileSize     uint64
-	BlockSize    uint32
-	ContentType  string
-	ShareTime    int64
-	InodeAddress []byte
+func (u *Users) ExportUser(ui *Info) (string, string, error) {
+	addreess, err := u.getAddressFromUserName(ui.name, u.dataDir)
+	if err != nil {
+		return "", "", err
+	}
+	return ui.name, addreess.Hex(), nil
 }

@@ -32,11 +32,10 @@ func TestAccount_CreateRootAccount(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	podName := "test_pod1"
 	password := "letmein"
 	logger := logging.New(ioutil.Discard, 0)
-	acc := New(podName, tempDir, logger)
-	_, err = acc.CreateUserAccount(password, "")
+	acc := New(logger)
+	_, _, err = acc.CreateUserAccount(password, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,10 +54,6 @@ func TestAccount_CreateRootAccount(t *testing.T) {
 		t.Fatal("mnemonic is not 12 words")
 	}
 
-	if !acc.IsAlreadyInitialized() {
-		t.Fatal("mnemonic file does not exists")
-	}
-
 	if acc.userAcount.GetPrivateKey() == nil || acc.userAcount.GetPublicKey() == nil || len(acc.userAcount.address[:]) != utils.AddressLength {
 		t.Fatalf("keys not intialised")
 	}
@@ -74,11 +69,10 @@ func TestLoadAndStoreMnemonic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	podName := "test_pod1"
 	password := "letmein"
 	logger := logging.New(ioutil.Discard, 0)
-	acc := New(podName, tempDir, logger)
-	_, err = acc.CreateUserAccount(password, "")
+	acc := New(logger)
+	_, em, err := acc.CreateUserAccount(password, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,11 +82,7 @@ func TestLoadAndStoreMnemonic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	acc.wallet.encryptedmnemonic = ""
-	err = acc.LoadEncryptedMnemonicFromDisk(password)
-	if err != nil {
-		t.Fatal(err)
-	}
+	acc.wallet.encryptedmnemonic = em
 
 	gotMnemonic, err := acc.wallet.decryptMnemonic(password)
 	if err != nil {

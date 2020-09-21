@@ -28,17 +28,17 @@ func (f *File) Cat(fileName string) error {
 	//TODO: need to change the access time
 	meta := f.GetFromFileMap(fileName)
 	if meta == nil {
-		return fmt.Errorf("cat: file not found")
+		return fmt.Errorf("file not found")
 	}
 
 	fileInodeBytes, _, err := f.getClient().DownloadBlob(meta.InodeAddress)
 	if err != nil {
-		return fmt.Errorf("cat: could not find file Inode")
+		return err
 	}
 	var fileInode FileINode
 	err = json.Unmarshal(fileInodeBytes, &fileInode)
 	if err != nil {
-		return fmt.Errorf("cat: file Inode unmarshall error: %w", err)
+		return err
 	}
 
 	totalBytes := uint32(0)
@@ -48,17 +48,17 @@ func (f *File) Cat(fileName string) error {
 			if err == io.EOF {
 				break
 			}
-			return fmt.Errorf("cat: could not find file block")
+			return fmt.Errorf("could not find file block")
 		}
 
 		if uint32(len(stdoutBytes)) != fb.Size {
-			return fmt.Errorf("cat: rcvd less bytes than expected in a block")
+			return fmt.Errorf("received less bytes than expected in a block")
 		}
 
 		buf := bytes.NewBuffer(stdoutBytes)
 		n, err := io.Copy(os.Stdout, buf)
 		if err != nil || uint32(n) != fb.Size {
-			return fmt.Errorf("cat: could not write to stdout")
+			return fmt.Errorf("could not write to stdout")
 		}
 		totalBytes += fb.Size
 	}

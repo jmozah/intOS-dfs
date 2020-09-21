@@ -19,7 +19,6 @@ package bee
 import (
 	"bytes"
 	"context"
-	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -44,23 +43,26 @@ const (
 	MaxIdleConnections     int = 20
 	RequestTimeout         int = 1
 	chunkCacheSize             = 1024
-	BlockCacheSize             = 10
+	uploadBlockCacheSize       = 100
+	downloadBlockCacheSize     = 100
 	ChunkUploadDownloadUrl     = "/chunks/"
 	BytesUploadDownloadUrl     = "/bytes"
 	pinChunksUrl               = "/pinning/chunks/"
 	pinBlobsUrl                = "/pinning/chunks/" // need to change this when bee supports it
 	SwarmPinHeader             = "Swarm-Pin"
+	SwarmEncryptHeader         = "Swarm-Encrypt"
 )
 
 type BeeClient struct {
-	host       string
-	port       string
-	url        string
-	client     *http.Client
-	hasher     *bmtlegacy.Hasher
-	chunkCache *lru.Cache
-	blockCache *lru.Cache
-	logger     logging.Logger
+	host               string
+	port               string
+	url                string
+	client             *http.Client
+	hasher             *bmtlegacy.Hasher
+	chunkCache         *lru.Cache
+	uploadBlockCache   *lru.Cache
+	downloadBlockCache *lru.Cache
+	logger             logging.Logger
 }
 
 func hashFunc() hash.Hash {
@@ -75,21 +77,27 @@ func NewBeeClient(host, port string, logger logging.Logger) *BeeClient {
 	p := bmtlegacy.NewTreePool(hashFunc, swarm.Branches, bmtlegacy.PoolSize)
 	cache, err := lru.New(chunkCacheSize)
 	if err != nil {
-		fmt.Println("could not initialise chunkCache. system will be slow")
+		logger.Warningf("could not initialise chunkCache. system will be slow")
 	}
-	blockCache, err := lru.New(BlockCacheSize)
+	uploadBlockCache, err := lru.New(uploadBlockCacheSize)
 	if err != nil {
-		fmt.Println("could not initialise blockCache. system will be slow")
+		logger.Warningf("could not initialise blockCache. system will be slow")
 	}
+	downloadBlockCache, err := lru.New(downloadBlockCacheSize)
+	if err != nil {
+		logger.Warningf("could not initialise blockCache. system will be slow")
+	}
+
 	return &BeeClient{
-		host:       host,
-		port:       port,
-		url:        fmt.Sprintf("http://" + host + ":" + port),
-		client:     createHTTPClient(),
-		hasher:     bmtlegacy.New(p),
-		chunkCache: cache,
-		blockCache: blockCache,
-		logger:     logger,
+		host:               host,
+		port:               port,
+		url:                fmt.Sprintf("http://" + host + ":" + port),
+		client:             createHTTPClient(),
+		hasher:             bmtlegacy.New(p),
+		chunkCache:         cache,
+		uploadBlockCache:   uploadBlockCache,
+		downloadBlockCache: downloadBlockCache,
+		logger:             logger,
 	}
 }
 
@@ -193,19 +201,12 @@ func (s *BeeClient) DownloadChunk(ctx context.Context, address []byte) (data []b
 }
 
 // upload a chunk in bee
-func (s *BeeClient) UploadBlob(data []byte, pin bool) (address []byte, err error) {
+func (s *BeeClient) UploadBlob(data []byte, pin bool, encrypt bool) (address []byte, err error) {
 	to := time.Now()
 
-	addr, err := getHash(data)
-	if err == nil {
-		ref := swarm.NewAddress(addr)
-		if s.inBlockCache(ref.String()) {
-			// then this block is already in swarm
-			return ref.Bytes(), nil
-		} else {
-			// add this block in cache for future reference
-			s.addToBlockCache(ref.String(), data)
-		}
+	// return the ref if this data is already in swarm
+	if s.inBlockCache(s.uploadBlockCache, string(data)) {
+		return s.getFromBlockCache(s.uploadBlockCache, string(data)), nil
 	}
 
 	fullUrl := fmt.Sprintf(s.url + BytesUploadDownloadUrl)
@@ -216,6 +217,10 @@ func (s *BeeClient) UploadBlob(data []byte, pin bool) (address []byte, err error
 
 	if pin {
 		req.Header.Set(SwarmPinHeader, "true")
+	}
+
+	if encrypt {
+		req.Header.Set(SwarmEncryptHeader, "true")
 	}
 
 	response, err := s.client.Do(req)
@@ -243,15 +248,21 @@ func (s *BeeClient) UploadBlob(data []byte, pin bool) (address []byte, err error
 		"duration":  time.Since(to).String(),
 	}
 	s.logger.WithFields(fields).Log(logrus.DebugLevel, "upload blob: ")
+
+	// add the data and ref if itis not in cache
+	if !s.inBlockCache(s.uploadBlockCache, string(data)) {
+		s.addToBlockCache(s.uploadBlockCache, string(data), resp.Reference.Bytes())
+	}
 	return resp.Reference.Bytes(), nil
 }
 
 func (s *BeeClient) DownloadBlob(address []byte) ([]byte, int, error) {
 	to := time.Now()
 
+	// return the data if this address is already in cache
 	addrString := swarm.NewAddress(address).String()
-	if s.inBlockCache(addrString) {
-		return s.getFromBlockCache(addrString), 200, nil
+	if s.inBlockCache(s.downloadBlockCache, addrString) {
+		return s.getFromBlockCache(s.downloadBlockCache, addrString), 200, nil
 	}
 
 	fullUrl := fmt.Sprintf(s.url + BytesUploadDownloadUrl + "/" + addrString)
@@ -279,7 +290,11 @@ func (s *BeeClient) DownloadBlob(address []byte) ([]byte, int, error) {
 		"duration":  time.Since(to).String(),
 	}
 	s.logger.WithFields(fields).Log(logrus.DebugLevel, "download blob: ")
-	s.addToBlockCache(addrString, respData)
+
+	// add the data and ref if it is not in cache
+	if !s.inBlockCache(s.downloadBlockCache, addrString) {
+		s.addToBlockCache(s.downloadBlockCache, addrString, respData)
+	}
 	return respData, response.StatusCode, nil
 }
 
@@ -356,45 +371,25 @@ func (s *BeeClient) getFromChunkCache(key string) []byte {
 	return nil
 }
 
-func (s *BeeClient) addToBlockCache(key string, value []byte) {
-	if s.blockCache != nil {
-		s.blockCache.Add(key, value)
+func (s *BeeClient) addToBlockCache(cache *lru.Cache, key string, value []byte) {
+	if cache != nil {
+		cache.Add(key, value)
 	}
 }
 
-func (s *BeeClient) inBlockCache(key string) bool {
-	if s.blockCache != nil {
-		return s.blockCache.Contains(key)
+func (s *BeeClient) inBlockCache(cache *lru.Cache, key string) bool {
+	if cache != nil {
+		return cache.Contains(key)
 	}
 	return false
 }
-
-func (s *BeeClient) getFromBlockCache(key string) []byte {
-	if s.blockCache != nil {
-		value, ok := s.blockCache.Get(key)
+func (s *BeeClient) getFromBlockCache(cache *lru.Cache, key string) []byte {
+	if cache != nil {
+		value, ok := cache.Get(key)
 		if ok {
 			return value.([]byte)
 		}
 		return nil
 	}
 	return nil
-}
-
-func getHash(data []byte) ([]byte, error) {
-	bmtPool := bmtlegacy.NewTreePool(swarm.NewHasher, swarm.Branches, bmtlegacy.PoolSize)
-	hasher := bmtlegacy.New(bmtPool)
-
-	span := int64(len(data))
-	spanBytes := make([]byte, 8)
-	binary.LittleEndian.PutUint64(spanBytes, uint64(span))
-	err := hasher.SetSpanBytes(spanBytes)
-	if err != nil {
-		return nil, err
-	}
-	_, err = hasher.Write(data)
-	if err != nil {
-		return nil, err
-	}
-	s := hasher.Sum(nil)
-	return s, nil
 }

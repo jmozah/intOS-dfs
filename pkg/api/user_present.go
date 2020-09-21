@@ -29,8 +29,8 @@ type UserPresentResponse struct {
 func (h *Handler) UserPresentHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	if user == "" {
-		h.logger.Errorf("present: \"user\" argument missing")
-		jsonhttp.BadRequest(w, "present: \"user\" argument missing")
+		h.logger.Errorf("user present: \"user\" argument missing")
+		jsonhttp.BadRequest(w, "user present: \"user\" argument missing")
 		return
 	}
 

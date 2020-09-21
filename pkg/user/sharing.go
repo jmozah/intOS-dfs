@@ -71,7 +71,7 @@ func (u *Users) ShareFileWithUser(podName, podFilePath, destinationRef string, u
 	// Get the meta reference of the file to share
 	metaRef, fileName, err := pod.GetMetaReferenceOfFile(podName, podFilePath)
 	if err != nil {
-		return "", fmt.Errorf("share: %w", err)
+		return "", err
 	}
 
 	// Create a outbox entry
@@ -89,55 +89,55 @@ func (u *Users) ShareFileWithUser(podName, podFilePath, destinationRef string, u
 	// get the outbox reference from outbox feed
 	outboxRef, err := getFeedData(outboxFeedName, rootReference, userInfo.GetFeed())
 	if err != nil {
-		return "", fmt.Errorf("share: %w", err)
+		return "", err
 	}
 
 	// download the entire outbox file
 	outboxFileBytes, respCode, err := u.client.DownloadBlob(outboxRef)
 	if err != nil && respCode != http.StatusOK {
-		return "", fmt.Errorf("share: %w", err)
+		return "", err
 	}
 
 	// unmarshall, add a new outbox entry, marshall the data again
 	outbox := &Outbox{}
 	err = json.Unmarshal(outboxFileBytes, outbox)
 	if err != nil {
-		return "", fmt.Errorf("share: %w", err)
+		return "", err
 	}
 	outbox.Entries = append(outbox.Entries, sharingEntry)
 	outData, err := json.Marshal(outbox)
 	if err != nil {
-		return "", fmt.Errorf("share: %w", err)
+		return "", err
 	}
 
 	// store the new outbox file data
-	newOutboxRef, err := u.client.UploadBlob(outData, true)
+	newOutboxRef, err := u.client.UploadBlob(outData, true, true)
 	if err != nil {
-		return "", fmt.Errorf("share: %w", err)
+		return "", err
 	}
 
 	// update the outbox feed with the new outbox file reference
 	err = putFeedData(outboxFeedName, rootReference, newOutboxRef, userInfo.GetFeed())
 	if err != nil {
-		return "", fmt.Errorf("share: %w", err)
+		return "", err
 	}
 
 	// marshall the entry
 	data, err := json.Marshal(sharingEntry)
 	if err != nil {
-		return "", fmt.Errorf("share: %w", err)
+		return "", err
 	}
 
 	//encrypt data
 	encryptedData, err := encryptData(data, now.Unix())
 	if err != nil {
-		return "", fmt.Errorf("share: %w", err)
+		return "", err
 	}
 
 	// upload the encrypted data and get the reference
-	ref, err := u.client.UploadBlob(encryptedData, true)
+	ref, err := u.client.UploadBlob(encryptedData, true, true)
 	if err != nil {
-		return "", fmt.Errorf("share: %w", err)
+		return "", err
 	}
 
 	// add now to the ref
@@ -152,20 +152,20 @@ func (u *Users) ReceiveFileFromUser(podName string, sharingRef utils.SharingRefe
 	// get the encrypted meta
 	encryptedData, respCode, err := u.client.DownloadBlob(metaRef)
 	if err != nil || respCode != http.StatusOK {
-		return "", "", fmt.Errorf("receive: %w", err)
+		return "", "", err
 	}
 
 	// decrypt the data
 	decryptedData, err := decryptData(encryptedData, unixTime)
 	if err != nil {
-		return "", "", fmt.Errorf("receive: %w", err)
+		return "", "", err
 	}
 
 	// unmarshall the entry
 	sharingEntry := SharingEntry{}
 	err = json.Unmarshal(decryptedData, &sharingEntry)
 	if err != nil {
-		return "", "", fmt.Errorf("receive: %w", err)
+		return "", "", err
 	}
 
 	// add the file to the pod directory specified
@@ -173,44 +173,44 @@ func (u *Users) ReceiveFileFromUser(podName string, sharingRef utils.SharingRefe
 	sharingEntry.PodName = podName
 	err = pod.ReceiveFileAndStore(podName, podDir, fileName, sharingEntry.FileMetaHash)
 	if err != nil {
-		return "", "", fmt.Errorf("receive: %w", err)
+		return "", "", err
 	}
 
 	// get the inbox reference from inbox feed
 	rootReference := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
 	inboxRef, err := getFeedData(inboxFeedName, rootReference, userInfo.GetFeed())
 	if err != nil {
-		return "", "", fmt.Errorf("receive: %w", err)
+		return "", "", err
 	}
 
 	// download the entire inbox file
 	inboxFileBytes, respCode, err := u.client.DownloadBlob(inboxRef)
 	if err != nil && respCode != http.StatusOK {
-		return "", "", fmt.Errorf("receive: %w", err)
+		return "", "", err
 	}
 
 	// unmarshall, add a new inbox entry, marshall the data again
 	inbox := &Inbox{}
 	err = json.Unmarshal(inboxFileBytes, inbox)
 	if err != nil {
-		return "", "", fmt.Errorf("receive: %w", err)
+		return "", "", err
 	}
 	inbox.Entries = append(inbox.Entries, sharingEntry)
 	inData, err := json.Marshal(inbox)
 	if err != nil {
-		return "", "", fmt.Errorf("receive: %w", err)
+		return "", "", err
 	}
 
 	// store the new inbox file data
-	newInboxRef, err := u.client.UploadBlob(inData, true)
+	newInboxRef, err := u.client.UploadBlob(inData, true, true)
 	if err != nil {
-		return "", "", fmt.Errorf("receive: %w", err)
+		return "", "", err
 	}
 
 	// update the inbox feed with the new inbox file reference
 	err = putFeedData(inboxFeedName, rootReference, newInboxRef, userInfo.GetFeed())
 	if err != nil {
-		return "", "", fmt.Errorf("receive: %w", err)
+		return "", "", err
 	}
 
 	if podDir == utils.PathSeperator {
@@ -225,24 +225,24 @@ func (u *Users) GetSharingInbox(userInfo *Info) (*Inbox, error) {
 	rootReference := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
 	inboxRef, err := getFeedData(inboxFeedName, rootReference, userInfo.GetFeed())
 	if err != nil {
-		return nil, fmt.Errorf("get sharing inbox: %w", err)
+		return nil, err
 	}
 
 	if len(inboxRef) < utils.ReferenceLength {
-		return nil, fmt.Errorf("get sharing inbox: empty inbox")
+		return nil, fmt.Errorf("empty inbox")
 	}
 
 	// download the entire inbox file
 	inboxFileBytes, respCode, err := u.client.DownloadBlob(inboxRef)
 	if err != nil && respCode != http.StatusOK {
-		return nil, fmt.Errorf("share: %w", err)
+		return nil, err
 	}
 
 	// unmarshall it and return the entire structure
 	inbox := &Inbox{}
 	err = json.Unmarshal(inboxFileBytes, inbox)
 	if err != nil {
-		return nil, fmt.Errorf("get sharing inbox: %w", err)
+		return nil, err
 	}
 	return inbox, nil
 }
@@ -252,23 +252,23 @@ func (u *Users) GetSharingOutbox(userInfo *Info) (*Outbox, error) {
 	rootReference := userInfo.GetAccount().GetAddress(account.UserAccountIndex)
 	outboxRef, err := getFeedData(outboxFeedName, rootReference, userInfo.GetFeed())
 	if err != nil {
-		return nil, fmt.Errorf("get sharing outbox: %w", err)
+		return nil, err
 	}
 
 	if len(outboxRef) < utils.ReferenceLength {
-		return nil, fmt.Errorf("get sharing outbox: empty outbox")
+		return nil, fmt.Errorf("empty outbox")
 	}
 
 	// download the entire outbox file
 	outboxFileBytes, respCode, err := u.client.DownloadBlob(outboxRef)
 	if err != nil && respCode != http.StatusOK {
-		return nil, fmt.Errorf("share: %w", err)
+		return nil, err
 	}
 
 	outbox := &Outbox{}
 	err = json.Unmarshal(outboxFileBytes, outbox)
 	if err != nil {
-		return nil, fmt.Errorf("get sharing outbox: %w", err)
+		return nil, err
 	}
 	return outbox, nil
 }
@@ -276,7 +276,7 @@ func (u *Users) GetSharingOutbox(userInfo *Info) (*Outbox, error) {
 func encryptData(data []byte, now int64) ([]byte, error) {
 	pk, err := account.CreateRandomKeyPair(now)
 	if err != nil {
-		return nil, fmt.Errorf("encrypt: %w", err)
+		return nil, err
 	}
 	pubKey := btcec.PublicKey{Curve: pk.PublicKey.Curve, X: pk.PublicKey.X, Y: pk.PublicKey.Y}
 	return btcec.Encrypt(&pubKey, data)
@@ -285,7 +285,7 @@ func encryptData(data []byte, now int64) ([]byte, error) {
 func decryptData(data []byte, now int64) ([]byte, error) {
 	pk, err := account.CreateRandomKeyPair(now)
 	if err != nil {
-		return nil, fmt.Errorf("decrypt: %w", err)
+		return nil, err
 	}
 	privateKey := btcec.PrivateKey{PublicKey: pk.PublicKey, D: pk.D}
 	return btcec.Decrypt(&privateKey, data)
@@ -298,36 +298,36 @@ func (u *Users) ReceiveFileInfo(podName string, sharingRef utils.SharingReferenc
 	// get the encrypted meta
 	encryptedData, respCode, err := u.client.DownloadBlob(metaRef)
 	if err != nil || respCode != http.StatusOK {
-		return nil, fmt.Errorf("receive info: %w", err)
+		return nil, err
 	}
 
 	// decrypt the data
 	decryptedData, err := decryptData(encryptedData, unixTime)
 	if err != nil {
-		return nil, fmt.Errorf("receive info: %w", err)
+		return nil, err
 	}
 
 	// unmarshall the entry
 	sharingEntry := SharingEntry{}
 	err = json.Unmarshal(decryptedData, &sharingEntry)
 	if err != nil {
-		return nil, fmt.Errorf("receive info: %w", err)
+		return nil, err
 	}
 
 	fileMetaRef, err := utils.ParseHexReference(sharingEntry.FileMetaHash)
 	if err != nil {
-		return nil, fmt.Errorf("receive info: %w", err)
+		return nil, err
 	}
 
 	fileMetaBytes, respCode, err := u.client.DownloadBlob(fileMetaRef.Bytes())
 	if err != nil || respCode != http.StatusOK {
-		return nil, fmt.Errorf("receive info: %w", err)
+		return nil, err
 	}
 
 	meta := m.FileMetaData{}
 	err = json.Unmarshal(fileMetaBytes, &meta)
 	if err != nil {
-		return nil, fmt.Errorf("receive info: %w", err)
+		return nil, err
 	}
 	compression := meta.Compression
 	if compression == "" {
@@ -336,12 +336,12 @@ func (u *Users) ReceiveFileInfo(podName string, sharingRef utils.SharingReferenc
 
 	fileInodeBytes, respCode, err := u.client.DownloadBlob(meta.InodeAddress)
 	if err != nil || respCode != http.StatusOK {
-		return nil, fmt.Errorf("receive info: %w", err)
+		return nil, err
 	}
 	var fileInode f.FileINode
 	err = json.Unmarshal(fileInodeBytes, &fileInode)
 	if err != nil {
-		return nil, fmt.Errorf("receive info: %w", err)
+		return nil, err
 	}
 
 	info := ReceiveFileInfo{

@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -99,6 +100,9 @@ var suggestions = []prompt.Suggest{
 	{Text: "user contact", Description: "sets and gets the user contact information"},
 	{Text: "user share inbox", Description: "gets the information about the files received by the user"},
 	{Text: "user share outbox", Description: "gets the information about the files shared by the user"},
+	{Text: "user export ", Description: "exports the user"},
+	{Text: "user import ", Description: "imports the user"},
+	{Text: "user stat ", Description: "shows information about a user"},
 	{Text: "pod new", Description: "create a new pod for a user"},
 	{Text: "pod del", Description: "delete a existing pod of a user"},
 	{Text: "pod open", Description: "open to a existing pod of a user"},
@@ -158,10 +162,52 @@ func executor(in string) {
 			fmt.Println("user created with address ", ref)
 			fmt.Println("Please store the following 12 words safely")
 			fmt.Println("if you loose this, you cannot recover the data in-case of an emergency.")
-			fmt.Println("you can also use this mnemonic to access the data from another device")
+			fmt.Println("you can also use this mnemonic to access the datain case this device is lost")
 			fmt.Println("=============== Mnemonic ==========================")
 			fmt.Println(mnemonic)
 			fmt.Println("=============== Mnemonic ==========================")
+			currentUser = userName
+			currentPodInfo = nil
+			currentPrompt = getCurrentPrompt()
+		case "export":
+			name, address, err := dfsAPI.ExportUser(DefaultSessionId)
+			if err != nil {
+				fmt.Println("export user: ", err)
+				return
+			}
+			fmt.Println("user name:", name)
+			fmt.Println("address  :", address)
+			currentPrompt = getCurrentPrompt()
+		case "import":
+			if len(blocks) == 4 {
+				userName := blocks[2]
+				address := blocks[3]
+				err := dfsAPI.ImportUserUsingAddress(userName, "", address, nil, DefaultSessionId)
+				if err != nil {
+					fmt.Println("import user: ", err)
+					return
+				}
+				fmt.Println("user imported")
+				currentUser = userName
+				currentPodInfo = nil
+				currentPrompt = getCurrentPrompt()
+				return
+			}
+			if len(blocks) > 4 && len(blocks) < 15 {
+				fmt.Println("invalid command. Missing arguments")
+				return
+			}
+			userName := blocks[2]
+			var mnemonic string
+			for i := 3; i < 15; i++ {
+				mnemonic = mnemonic + " " + blocks[i]
+			}
+			mnemonic = strings.TrimPrefix(mnemonic, " ")
+			_, err := dfsAPI.ImportUserUsingMnemonic(userName, "", mnemonic, nil, DefaultSessionId)
+			if err != nil {
+				fmt.Println("import user: ", err)
+				return
+			}
 			currentUser = userName
 			currentPodInfo = nil
 			currentPrompt = getCurrentPrompt()
@@ -212,8 +258,10 @@ func executor(in string) {
 			currentPrompt = getCurrentPrompt()
 		case "ls":
 			users := dfsAPI.ListAllUsers()
-			for _, user := range users {
-				fmt.Println(user)
+			if users != nil {
+				for _, usr := range users {
+					fmt.Println(usr)
+				}
 			}
 			currentPrompt = getCurrentPrompt()
 		case "name":
@@ -351,7 +399,7 @@ func executor(in string) {
 			podName := blocks[2]
 			podInfo, err := dfsAPI.OpenPod(podName, "", DefaultSessionId)
 			if err != nil {
-				fmt.Println("Login failed: ", err)
+				fmt.Println("Open failed: ", err)
 				return
 			}
 			currentPodInfo = podInfo
@@ -456,7 +504,7 @@ func executor(in string) {
 
 		}
 		currentPrompt = getCurrentPrompt()
-	case "copyToLocal":
+	case "download":
 		if !isPodOpened() {
 			return
 		}
@@ -466,23 +514,38 @@ func executor(in string) {
 		}
 		err := dfsAPI.CopyToLocal(blocks[1], blocks[2], DefaultSessionId)
 		if err != nil {
-			fmt.Println("copyToLocal failed: ", err)
+			fmt.Println("download failed: ", err)
 			return
 		}
 		currentPrompt = getCurrentPrompt()
-	case "copyFromLocal":
+	case "upload":
 		if !isPodOpened() {
 			return
 		}
-		if len(blocks) < 4 {
+		if len(blocks) < 5 {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		err := dfsAPI.CopyFromLocal(blocks[1], blocks[2], blocks[3], DefaultSessionId)
+		fileName := filepath.Base(blocks[1])
+		fd, err := os.Open(blocks[1])
 		if err != nil {
-			fmt.Println("copyFromLocal failed: ", err)
+			fmt.Println("upload failed: ", err)
 			return
 		}
+		fi, err := fd.Stat()
+		if err != nil {
+			fmt.Println("upload failed: ", err)
+			return
+		}
+		podDir := blocks[2]
+		blockSize := blocks[3]
+		compression := blocks[4]
+		ref, err := dfsAPI.UploadFile(fileName, DefaultSessionId, fi.Size(), fd, podDir, blockSize, compression)
+		if err != nil {
+			fmt.Println("upload failed: ", err)
+			return
+		}
+		fmt.Println("reference : ", ref)
 		currentPrompt = getCurrentPrompt()
 	case "mkdir":
 		if !isPodOpened() {
@@ -534,44 +597,78 @@ func executor(in string) {
 			fmt.Println("invalid command. Missing one or more arguments")
 			return
 		}
-		fs, err := dfsAPI.FileStat(blocks[1], DefaultSessionId)
+		ds, err := dfsAPI.DirectoryStat(blocks[1], DefaultSessionId, true)
 		if err != nil {
-			fmt.Println("stat failed: ", err)
-			return
-		}
-		crTime, err := strconv.ParseInt(fs.CreationTime, 10, 64)
-		if err != nil {
-			fmt.Println("stat failed: ", err)
-			return
-		}
-		accTime, err := strconv.ParseInt(fs.AccessTime, 10, 64)
-		if err != nil {
-			fmt.Println("stat failed: ", err)
-			return
-		}
-		modTime, err := strconv.ParseInt(fs.ModificationTime, 10, 64)
-		if err != nil {
-			fmt.Println("stat failed: ", err)
-			return
-		}
-		compression := fs.Compression
-		if compression == "" {
-			compression = "None"
-		}
-		fmt.Println("Account 	   : ", fs.Account)
-		fmt.Println("PodName 	   : ", fs.PodName)
-		fmt.Println("File Path	   : ", fs.FilePath)
-		fmt.Println("File Name	   : ", fs.FileName)
-		fmt.Println("File Size    : ", fs.FileSize)
-		fmt.Println("Block Size   : ", fs.BlockSize)
-		fmt.Println("Compression  : ", compression)
-		fmt.Println("Content Type : ", fs.ContentType)
-		fmt.Println("Cr. Time	   : ", time.Unix(crTime, 0).String())
-		fmt.Println("Mo. Time	   : ", time.Unix(accTime, 0).String())
-		fmt.Println("Ac. Time	   : ", time.Unix(modTime, 0).String())
-		for _, b := range fs.Blocks {
-			blkStr := fmt.Sprintf("%s, 0x%s, %s bytes, %s bytes", b.Name, b.Reference, b.Size, b.CompressedSize)
-			fmt.Println(blkStr)
+			if err.Error() == "directory not found" {
+				fs, err := dfsAPI.FileStat(blocks[1], DefaultSessionId)
+				if err != nil {
+					fmt.Println("stat failed: ", err)
+					return
+				}
+				crTime, err := strconv.ParseInt(fs.CreationTime, 10, 64)
+				if err != nil {
+					fmt.Println("stat failed: ", err)
+					return
+				}
+				accTime, err := strconv.ParseInt(fs.AccessTime, 10, 64)
+				if err != nil {
+					fmt.Println("stat failed: ", err)
+					return
+				}
+				modTime, err := strconv.ParseInt(fs.ModificationTime, 10, 64)
+				if err != nil {
+					fmt.Println("stat failed: ", err)
+					return
+				}
+				compression := fs.Compression
+				if compression == "" {
+					compression = "None"
+				}
+				fmt.Println("Account 	   	: ", fs.Account)
+				fmt.Println("PodName 	   	: ", fs.PodName)
+				fmt.Println("File Path	   	: ", fs.FilePath)
+				fmt.Println("File Name	   	: ", fs.FileName)
+				fmt.Println("File Size	   	: ", fs.FileSize)
+				fmt.Println("Block Size	   	: ", fs.BlockSize)
+				fmt.Println("Compression   		: ", compression)
+				fmt.Println("Content Type  		: ", fs.ContentType)
+				fmt.Println("Cr. Time	   	: ", time.Unix(crTime, 0).String())
+				fmt.Println("Mo. Time	   	: ", time.Unix(accTime, 0).String())
+				fmt.Println("Ac. Time	   	: ", time.Unix(modTime, 0).String())
+				for _, b := range fs.Blocks {
+					blkStr := fmt.Sprintf("%s, 0x%s, %s bytes, %s bytes", b.Name, b.Reference, b.Size, b.CompressedSize)
+					fmt.Println(blkStr)
+				}
+			} else {
+				fmt.Println("stat: %w", err)
+				return
+			}
+		} else {
+			crTime, err := strconv.ParseInt(ds.CreationTime, 10, 64)
+			if err != nil {
+				fmt.Println("stat failed: ", err)
+				return
+			}
+			accTime, err := strconv.ParseInt(ds.AccessTime, 10, 64)
+			if err != nil {
+				fmt.Println("stat failed: ", err)
+				return
+			}
+			modTime, err := strconv.ParseInt(ds.ModificationTime, 10, 64)
+			if err != nil {
+				fmt.Println("stat failed: ", err)
+				return
+			}
+			fmt.Println("Account 	   	: ", ds.Account)
+			fmt.Println("PodAddress    		: ", ds.PodAddress)
+			fmt.Println("PodName 	   	: ", ds.PodName)
+			fmt.Println("Dir Path	   	: ", ds.DirPath)
+			fmt.Println("Dir Name	   	: ", ds.DirName)
+			fmt.Println("Cr. Time	   	: ", time.Unix(crTime, 0).String())
+			fmt.Println("Mo. Time	   	: ", time.Unix(accTime, 0).String())
+			fmt.Println("Ac. Time	   	: ", time.Unix(modTime, 0).String())
+			fmt.Println("No of Dir.	   	: ", ds.NoOfDirectories)
+			fmt.Println("No of Files   		: ", ds.NoOfFiles)
 		}
 		currentPrompt = getCurrentPrompt()
 	case "pwd":
@@ -634,6 +731,39 @@ func executor(in string) {
 		fmt.Println("file path  : ", filePath)
 		fmt.Println("reference  : ", metaRef)
 		currentPrompt = getCurrentPrompt()
+	case "receiveinfo":
+		if len(blocks) < 2 {
+			fmt.Println("invalid command. Missing one or more arguments")
+			return
+		}
+		sharingRefString := blocks[1]
+		sharingRef, err := utils.ParseSharingReference(sharingRefString)
+		if err != nil {
+			fmt.Println("receive info: ", err)
+			return
+		}
+		ri, err := dfsAPI.ReceiveInfo(DefaultSessionId, sharingRef)
+		if err != nil {
+			fmt.Println("receive info: ", err)
+			return
+		}
+		shTime, err := strconv.ParseInt(ri.SharedTime, 10, 64)
+		if err != nil {
+			fmt.Println(" info: ", err)
+			return
+		}
+		fmt.Println("FileName       : ", ri.FileName)
+		fmt.Println("Size           : ", ri.Size)
+		fmt.Println("BlockSize      : ", ri.BlockSize)
+		fmt.Println("NumberOfBlocks : ", ri.NumberOfBlocks)
+		fmt.Println("ContentType    : ", ri.ContentType)
+		fmt.Println("Compression    : ", ri.Compression)
+		fmt.Println("PodName        : ", ri.PodName)
+		fmt.Println("FileMetaHash   : ", ri.FileMetaHash)
+		fmt.Println("Sender         : ", ri.Sender)
+		fmt.Println("Receiver       : ", ri.Receiver)
+		fmt.Println("SharedTime     : ", shTime)
+		currentPrompt = getCurrentPrompt()
 	case "mv":
 		fmt.Println("not yet implemented")
 	case "head":
@@ -650,7 +780,7 @@ func help() {
 	fmt.Println(" - user <del> - deletes a logged in user")
 	fmt.Println(" - user <login> (user-name) - login as a given user")
 	fmt.Println(" - user <logout> - logout a logged in user")
-	fmt.Println(" - user <present> <user-name> - returns true if the user is present, false otherwise")
+	fmt.Println(" - user <present> (user-name) - returns true if the user is present, false otherwise")
 	fmt.Println(" - user <ls> - lists all the user present in this instance")
 	fmt.Println(" - user <name> (first_name) (middle_name) (last_name) (surname) - sets the user name information")
 	fmt.Println(" - user <name> - gets the user name information")
@@ -658,6 +788,10 @@ func help() {
 	fmt.Println(" - user <contact> gets the user contact information")
 	fmt.Println(" - user <share> <inbox> - shows details of the files you have received from other users")
 	fmt.Println(" - user <share> <outbox> - shows details of the files you have sent to other users")
+	fmt.Println(" - user <export> - exports the given user")
+	fmt.Println(" - user <import> (user-name) (address) - imports the user to another device")
+	fmt.Println(" - user <import> (user-name) (12 word mnemonic) - imports the user if the device is lost")
+	fmt.Println(" - user <stat> - shows information about a user")
 
 	fmt.Println(" - pod <new> (pod-name) - create a new pod for the logged in user and opens the pod")
 	fmt.Println(" - pod <del> (pod-name) - deletes a already created pod of the user")
@@ -669,10 +803,11 @@ func help() {
 
 	fmt.Println(" - cd <directory name>")
 	fmt.Println(" - ls ")
-	fmt.Println(" - copyToLocal <source file in pod, destination directory in local fs>")
-	fmt.Println(" - copyFromLocal <source file in local fs, destination directory in pod, block size (ex: 1Mb, 64Mb)>")
-	fmt.Println(" - share <file name>")
-	fmt.Println(" - receive <sharing reference> <pod dir>")
+	fmt.Println(" - download <relative path of source file in pod, destination dir in local fs>")
+	fmt.Println(" - upload <source file in local fs, destination directory in pod, block size (ex: 1Mb, 64Mb)>, compression true/false")
+	fmt.Println(" - share <file name> -  shares a file with another user")
+	fmt.Println(" - receive <sharing reference> <pod dir> - receives a file from another user")
+	fmt.Println(" - receiveinfo <sharing reference> - shows the received file info before accepting the receive")
 	fmt.Println(" - mkdir <directory name>")
 	fmt.Println(" - rmdir <directory name>")
 	fmt.Println(" - rm <file name>")
